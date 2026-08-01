@@ -1,0 +1,27 @@
+# Experimental data and generated analysis stores
+DATA/
+*.mat
+*.h5
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local scratch and logs
+tmp/
+.agents/
+.codex/archive/
+*.log
+*.partial
+
+# Editor and OS state
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
