@@ -23,6 +23,8 @@
 - Treat an HDF5 `source_root` attribute as conversion-time provenance, not a live path after a directory rename; rebind embedded `source_files/relative_path` values to the current raw directory.
 - This acquisition is streak-only. Only `StreakCamImage` is analysis pixel payload; Main/Second camera arrays and Cam2 state are excluded.
 - `ZeroOrderPowerRatio` is the central-dot-strength field: the two conditions are 0.05 and 0.18, each with 1000 frames. Detector axes remain uncalibrated.
+- The single derived HDF5 is a multi-condition container: raw acquisition blocks 2 and 3 map to `central_dot_0p05` and `central_dot_0p18`, respectively; it is not one HDF5 per measurement condition.
+- The 0.18 condition's element-wise sum over 1000 streak frames shows four bright bands. The reproducible script, display rule and reviewed PNG live under `analysis/`.
 
 ## Progress and detail index
 
@@ -34,4 +36,5 @@
 - Literature conclusions and primary sources: `docs/literature.md`.
 - Data format, environment and reproducibility rules: `docs/data.md`.
 - Converter and tests: `scripts/convert_matlab_v73_to_analysis_hdf5.py`, `tests/test_convert_matlab_v73_to_analysis_hdf5.py`.
+- Central-dot frame-sum analysis: `analysis/README.md`, `analysis/sum_streak_condition.py`, `analysis/results/26-07-31_central_dot_0p18_sum.png`.
 - Exact derived-file integrity evidence: `DATA/26-07-31-derived-single-sweep/README.md`.

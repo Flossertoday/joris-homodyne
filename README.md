@@ -11,6 +11,7 @@
 ## 目录
 
 - `DATA/`：原始实验数据及与实验一一对应的分析副本；不进入 Git。
+- `analysis/`：可复现的数据分析代码和可审阅的结果图。
 - `docs/`：用户可审阅的项目判断、实验路线、文献依据和数据约定。
 - `scripts/`：可重复运行的数据转换或分析程序。
 - `tests/`：脚本测试。
@@ -24,6 +25,8 @@
 - 转换器：`scripts/convert_matlab_v73_to_analysis_hdf5.py`
 
 原始 MATLAB 7.3 文件保持不变；日常 Python 分析读取实验专属的 HDF5 副本。当前副本只包含 streak-camera 图像，两个条件由 `ZeroOrderPowerRatio` 标识为 0.05 和 0.18。
+
+当前求和示例选择 0.18 条件；1000 帧的逐像素和呈现四条亮带。见 [分析说明与结果](analysis/README.md)。
 
 ## 文档入口
 
