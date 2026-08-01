@@ -19,8 +19,8 @@
 
 ## 当前数据
 
-- 原始数据：`DATA/26-07-31 single sweep/`
-- 无损分析副本：`DATA/26-07-31 single sweep derived/26-07-31_single_sweep.h5`
+- 原始数据：`DATA/26-07-31-single-sweep/`
+- 无损分析副本：`DATA/26-07-31-derived-single-sweep/26-07-31_single_sweep.h5`
 - 转换器：`scripts/convert_matlab_v73_to_analysis_hdf5.py`
 
 原始 MATLAB 7.3 文件保持不变；日常 Python 分析读取实验专属的 HDF5 副本。当前副本只包含 streak-camera 图像，两个条件由 `ZeroOrderPowerRatio` 标识为 0.05 和 0.18。

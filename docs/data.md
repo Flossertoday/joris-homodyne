@@ -3,19 +3,19 @@
 ## 原则
 
 - 原始 MATLAB 7.3 文件是不可变的 source of truth，不删除、不覆盖、不原地转换。
-- 每次实验使用一对同级目录：原始目录与带 `derived` 后缀的分析目录。
+- 每次实验使用一对同级目录：原始目录采用 `YY-MM-DD-<experiment>`，分析目录采用 `YY-MM-DD-derived-<experiment>`。
 - 分析副本必须保留条件、采集顺序、源文件、帧号、轴状态和哈希 provenance。
 - 机器专属解释器路径、包版本和一次性检查输出不写入长期项目文档。
 
 ## 2026-07-31 single sweep
 
-- 原始目录：`DATA/26-07-31 single sweep/`
-- 分析目录：`DATA/26-07-31 single sweep derived/`
+- 原始目录：`DATA/26-07-31-single-sweep/`
+- 分析目录：`DATA/26-07-31-derived-single-sweep/`
 - 分析文件：`26-07-31_single_sweep.h5`
 
 本批实验已确认为 streak-only。像素 payload 只取 `structVar/StreakCamImage`；`MainCamImage`、`SecondCamImage` 和 Cam2 状态不进入分析条件或验证。`ZeroOrderPowerRatio` 是 central-dot strength 的权威字段，对应 0.05 和 0.18 两个各 1000 帧的条件。
 
-HDF5 中每帧都能追溯到源 MAT 文件和源文件内帧号，并记录源文件 SHA-256。精确文件大小、输出哈希和逐像素验证证据只维护在 `DATA/26-07-31 single sweep derived/README.md`，避免在多份文档中复制后过时。
+HDF5 中每帧都能追溯到源 MAT 文件和源文件内帧号，并记录源文件 SHA-256。根属性 `source_root` 是转换时的绝对路径快照，目录重命名或移动后可能过时；定位现有源文件时，应将当前原始目录与 HDF5 内的 `source_files/relative_path` 组合。精确文件大小、输出哈希和逐像素验证证据只维护在 `DATA/26-07-31-derived-single-sweep/README.md`，避免在多份文档中复制后过时。
 
 ## Python
 
