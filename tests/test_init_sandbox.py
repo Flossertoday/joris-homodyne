@@ -10,6 +10,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 INIT_SCRIPT = PROJECT_ROOT / "scripts" / "init_sandbox.ps1"
 REQUIREMENTS = PROJECT_ROOT / "requirements-analysis.txt"
+LOCAL_ENVIRONMENT = PROJECT_ROOT / ".codex" / "environments" / "environment.toml"
 
 
 def powershell_quote(value: Path | str) -> str:
@@ -35,6 +36,18 @@ def run_powershell(command: str) -> subprocess.CompletedProcess[str]:
 
 
 class SandboxInitializationTests(unittest.TestCase):
+    def test_codex_local_environment_runs_initializer_automatically(self):
+        content = LOCAL_ENVIRONMENT.read_text(encoding="utf-8")
+
+        self.assertIn("version = 1", content)
+        self.assertIn('name = "Joris homodyne"', content)
+        self.assertIn("[setup.win32]", content)
+        self.assertIn(
+            'script = "powershell -NoProfile -ExecutionPolicy Bypass -File '
+            '.\\\\scripts\\\\init_sandbox.ps1"',
+            content,
+        )
+
     def test_analysis_requirements_are_machine_readable(self):
         packages = [
             line.strip()
@@ -43,6 +56,31 @@ class SandboxInitializationTests(unittest.TestCase):
         ]
 
         self.assertEqual(["numpy", "scipy", "h5py", "matplotlib"], packages)
+
+    def test_initializer_runs_under_windows_powershell(self):
+        executable = shutil.which("powershell")
+        if executable is None:
+            raise AssertionError("Windows PowerShell is required by environment.toml")
+
+        result = subprocess.run(
+            [
+                executable,
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(INIT_SCRIPT),
+                "-CheckOnly",
+                "-AsJson",
+            ],
+            text=True,
+            capture_output=True,
+        )
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertTrue(report["ready"])
+        self.assertEqual(str(PROJECT_ROOT.resolve()), report["project_root"])
 
     def test_check_only_reports_python_dependencies_and_local_data(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -83,6 +121,42 @@ class SandboxInitializationTests(unittest.TestCase):
                 report["git"]["safe_directory"],
             )
             self.assertFalse(report["git"]["is_repository"])
+            self.assertFalse((project_root / "tmp" / "sandbox-initialization.json").exists())
+
+    def test_setup_persists_report_for_later_agent_commands(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            data_root = project_root / "DATA"
+            data_root.mkdir()
+            requirements = project_root / "requirements-analysis.txt"
+            requirements.write_text(
+                "numpy\nscipy\nh5py\nmatplotlib\n",
+                encoding="utf-8",
+            )
+            command = " ".join(
+                [
+                    "&",
+                    powershell_quote(INIT_SCRIPT),
+                    "-ProjectRoot",
+                    powershell_quote(project_root),
+                    "-PythonPath",
+                    powershell_quote(sys.executable),
+                    "-RequirementsPath",
+                    powershell_quote(requirements),
+                    "-AsJson",
+                ]
+            )
+
+            result = run_powershell(command)
+
+            self.assertEqual(0, result.returncode, result.stderr)
+            output_report = json.loads(result.stdout)
+            state_path = project_root / "tmp" / "sandbox-initialization.json"
+            self.assertTrue(state_path.is_file())
+            persisted_report = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(output_report, persisted_report)
+            self.assertEqual(str(Path(sys.executable).resolve()), persisted_report["python"])
+            self.assertEqual(str(data_root.resolve()), persisted_report["data_root"])
 
     def test_process_environment_makes_plain_git_and_python_reusable(self):
         command = f"""

@@ -19,16 +19,15 @@ HDF5 中每帧都能追溯到源 MAT 文件和源文件内帧号，并记录源�
 
 ## Python
 
-本地科学代码使用从机器 `sci` 环境克隆出的、位于非 OneDrive 路径的项目环境。核心库由 `requirements-analysis.txt` 声明；不要在仓库中提交环境目录。受限沙盒统一从 `scripts/init_sandbox.ps1` 进入：脚本优先复用工作树 `.venv`，否则从 `sci` 建立带系统包的 `.venv`，然后只安装缺失依赖。
+本地科学代码使用从机器 `sci` 环境克隆出的、位于非 OneDrive 路径的项目环境。核心库由 `requirements-analysis.txt` 声明；不要在仓库中提交环境目录。Codex Desktop 激活 `.codex/environments/environment.toml` 时会自动调用 `scripts/init_sandbox.ps1`；若未激活或 setup 失败，代理按 `AGENTS.md` 自行调用。脚本优先复用工作树 `.venv`，否则从 `sci` 建立带系统包的 `.venv`，然后只安装缺失依赖。
 
-初始化并运行完整测试：
+自动初始化后运行完整测试：
 
 ```powershell
-.\scripts\init_sandbox.ps1
-& $env:PROJECT_PYTHON -m unittest discover -s tests -p "test_*.py" -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-初始化后，`PROJECT_PYTHON` 是权威解释器，`JORIS_DATA_ROOT` 是实际数据根。`-CheckOnly` 不创建环境或安装包；`-AsJson` 输出适合自动化保存的预检摘要。详见 [沙盒初始化方法与反馈](sandbox-initialization.md)。
+初始化结果保存在忽略 Git 的 `tmp/sandbox-initialization.json`，其中 `python` 是权威解释器、`data_root` 是实际数据根。用户无需维护这份状态；若状态缺失或失败，`AGENTS.md` 要求 Codex 代理自行恢复。详见 [沙盒初始化方法与反馈](sandbox-initialization.md)。
 
 转换器拒绝覆盖既有输出，并先写 `.partial` 文件后原子改名。需要重新生成时，应指定新的输出文件名；不要覆盖已经验证的分析副本。
 

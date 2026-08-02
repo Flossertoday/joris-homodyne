@@ -53,6 +53,7 @@ class ProjectDataPathTests(unittest.TestCase):
 
     def test_maintained_environment_docs_use_the_sandbox_initializer(self):
         initializer = "scripts/init_sandbox.ps1"
+        local_environment = ".codex/environments/environment.toml"
         for relative_path in (
             "AGENTS.md",
             "README.md",
@@ -62,6 +63,10 @@ class ProjectDataPathTests(unittest.TestCase):
             with self.subTest(relative_path=relative_path):
                 content = (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
                 self.assertIn(initializer, content)
+                self.assertIn(local_environment, content)
+
+        agents = (PROJECT_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("Do not ask the user to initialize the sandbox", agents)
 
 
 if __name__ == "__main__":

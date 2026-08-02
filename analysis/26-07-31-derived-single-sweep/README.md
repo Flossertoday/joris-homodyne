@@ -22,10 +22,10 @@ PNG 使用线性色阶，并把显示范围裁剪到求和图的第 1–99.9 百
 在项目根目录运行：
 
 ```powershell
-.\scripts\init_sandbox.ps1
-& $env:PROJECT_PYTHON `
+$sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
+& $sandboxState.python `
   .\analysis/26-07-31-derived-single-sweep/sum_streak_condition.py `
-  (Join-Path $env:JORIS_DATA_ROOT "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
+  (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
   .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_sum.png `
   --central-dot-strength 0.18
 ```

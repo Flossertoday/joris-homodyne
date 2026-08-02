@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
+    [string]$ProjectRoot,
     [string]$PythonPath,
     [string]$RequirementsPath,
     [string]$DataRoot,
@@ -10,6 +10,10 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+if (-not $ProjectRoot) {
+    $ProjectRoot = Split-Path -Parent $PSScriptRoot
+}
 
 function Add-ProcessGitSafeDirectory {
     param([Parameter(Mandatory)][string]$Directory)
@@ -226,6 +230,7 @@ $report = [ordered]@{
     ready = $ready
     project_root = $resolvedProjectRoot
     environment_created = $environmentCreated
+    state_path = $null
     python = $resolvedPython
     dependencies = [ordered]@{
         requirements = $resolvedRequirements
@@ -242,6 +247,21 @@ $report = [ordered]@{
         common_directory_external = $gitCommonExternal
         metadata_write_may_require_approval = $gitCommonExternal
     }
+}
+
+if (-not $CheckOnly) {
+    $stateDirectory = Join-Path $resolvedProjectRoot "tmp"
+    New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
+    $statePath = Join-Path $stateDirectory "sandbox-initialization.json"
+    $partialStatePath = "$statePath.partial"
+    $report["state_path"] = $statePath
+    $stateJson = $report | ConvertTo-Json -Depth 5 -Compress
+    [IO.File]::WriteAllText(
+        $partialStatePath,
+        $stateJson + [Environment]::NewLine,
+        [Text.UTF8Encoding]::new($false)
+    )
+    Move-Item -LiteralPath $partialStatePath -Destination $statePath -Force
 }
 
 if ($AsJson) {

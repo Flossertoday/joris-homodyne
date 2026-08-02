@@ -18,16 +18,11 @@
 - `.codex/`：项目级 Codex 配置。
 - `MEMORY.md`：简短的项目状态和细节索引，不承载长篇论证。
 
-## 沙盒快速初始化
+## Codex 自动初始化
 
-在项目根目录运行 `scripts/init_sandbox.ps1`。它只修改当前 PowerShell 进程：为当前工作树注入精确的 Git `safe.directory`，复用或创建 `.venv`，按 `requirements-analysis.txt` 补齐缺失依赖，并发现真实 `DATA` 根。
+用户不需要运行初始化命令。项目提供 `.codex/environments/environment.toml`：Codex Desktop 激活该 Local environment 时，会在新聊天创建工作树阶段调用 `scripts/init_sandbox.ps1`。脚本复用或创建 `.venv`，按 `requirements-analysis.txt` 补齐缺失依赖，发现真实 `DATA` 根，并把可复用结果写到忽略 Git 的 `tmp/sandbox-initialization.json`。
 
-```powershell
-.\scripts\init_sandbox.ps1
-& $env:PROJECT_PYTHON -m unittest discover -s tests -p "test_*.py" -v
-```
-
-只做预检可加 `-CheckOnly`；供自动化读取可加 `-AsJson`。共享 Git 元数据若位于沙盒写入根之外，脚本会报告该边界，但不会尝试扩大权限。
+`AGENTS.md` 要求后续 Codex 代理先消费这份状态；即使 App 未激活项目环境，或 setup 失败，代理也必须自行运行同一脚本恢复并反馈，不把环境管理转交给用户。共享 Git 元数据若位于沙盒写入根之外，状态会明确报告，但初始化不会自行扩大权限。
 
 ## 当前数据
 
