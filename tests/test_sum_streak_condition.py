@@ -1,3 +1,4 @@
+import importlib
 import subprocess
 import sys
 import tempfile
@@ -8,18 +9,28 @@ import h5py
 import numpy as np
 
 
+ANALYSIS_MODULE = "analysis.26-07-31-derived-single-sweep.sum_streak_condition"
+ANALYSIS_SCRIPT = (
+    Path(__file__).resolve().parents[1]
+    / "analysis"
+    / "26-07-31-derived-single-sweep"
+    / "sum_streak_condition.py"
+)
+
+
 def load_sum_api():
     try:
-        from analysis.sum_streak_condition import sum_condition_frames
+        module = importlib.import_module(ANALYSIS_MODULE)
     except ModuleNotFoundError as exc:
-        raise AssertionError("analysis.sum_streak_condition is not implemented") from exc
-    return sum_condition_frames
+        raise AssertionError(f"{ANALYSIS_MODULE} is not implemented") from exc
+    return module.sum_condition_frames
 
 
 def load_render_api():
     try:
-        from analysis.sum_streak_condition import save_sum_figure
-    except ImportError as exc:
+        module = importlib.import_module(ANALYSIS_MODULE)
+        save_sum_figure = module.save_sum_figure
+    except (AttributeError, ModuleNotFoundError) as exc:
         raise AssertionError("save_sum_figure is not implemented") from exc
     return save_sum_figure
 
@@ -89,16 +100,10 @@ class SumStreakConditionTests(unittest.TestCase):
                 condition.create_dataset(
                     "frames", data=np.arange(96, dtype=np.uint16).reshape(2, 6, 8)
                 )
-            script = (
-                Path(__file__).resolve().parents[1]
-                / "analysis"
-                / "sum_streak_condition.py"
-            )
-
             result = subprocess.run(
                 [
                     sys.executable,
-                    str(script),
+                    str(ANALYSIS_SCRIPT),
                     str(input_path),
                     str(output_path),
                     "--central-dot-strength",

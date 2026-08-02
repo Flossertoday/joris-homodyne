@@ -19,7 +19,7 @@ HDF5 中每帧都能追溯到源 MAT 文件和源文件内帧号，并记录源�
 
 ## Python
 
-本地科学代码使用从机器 `sci` 环境克隆出的、位于非 OneDrive 路径的项目环境。所需核心库是 NumPy、SciPy 和 h5py。不要在仓库中提交环境目录。
+本地科学代码使用从机器 `sci` 环境克隆出的、位于非 OneDrive 路径的项目环境。所需核心库是 NumPy、SciPy、h5py 和 Matplotlib。不要在仓库中提交环境目录。受限沙盒中若 `python` 或 `conda` 不在 `PATH`，按 [沙盒初始化反馈](sandbox-initialization.md) 的预检顺序定位解释器和缺失依赖。
 
 运行转换器测试：
 

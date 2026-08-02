@@ -24,17 +24,18 @@
 - This acquisition is streak-only. Only `StreakCamImage` is analysis pixel payload; Main/Second camera arrays and Cam2 state are excluded.
 - `ZeroOrderPowerRatio` is the central-dot-strength field: the two conditions are 0.05 and 0.18, each with 1000 frames. Detector axes remain uncalibrated.
 - The single derived HDF5 is a multi-condition container: raw acquisition blocks 2 and 3 map to `central_dot_0p05` and `central_dot_0p18`, respectively; it is not one HDF5 per measurement condition.
-- The 0.18 condition's element-wise sum over 1000 streak frames shows four bright bands. The reproducible script, display rule and reviewed PNG live under `analysis/`.
+- The 0.18 condition's element-wise sum over 1000 streak frames shows four bright bands. Its script, display rule and reviewed PNG live under the matching `analysis/26-07-31-derived-single-sweep/` directory.
 
 ## Progress and detail index
 
-- The workspace is initialized as a Git repository on `main`; no initial commit has been created yet. `DATA/`, the pre-Git cleanup archive, caches, and local environments are excluded from version control.
+- The repository uses `main` as its stable integration branch. `DATA/`, the pre-Git cleanup archive, caches, and local environments are excluded from version control.
 - Project entry point and layout: `README.md`.
 - Project working and Git rules: `AGENTS.md`.
 - Staged experiment and decision gates: `docs/experiment-plan.md`.
 - Claim/evidence boundaries and equations: `docs/measurement-claims.md`.
 - Literature conclusions and primary sources: `docs/literature.md`.
 - Data format, environment and reproducibility rules: `docs/data.md`.
+- Managed-sandbox initialization observations and requirements: `docs/sandbox-initialization.md`.
 - Converter and tests: `scripts/convert_matlab_v73_to_analysis_hdf5.py`, `tests/test_convert_matlab_v73_to_analysis_hdf5.py`.
-- Central-dot frame-sum analysis: `analysis/README.md`, `analysis/sum_streak_condition.py`, `analysis/results/26-07-31_central_dot_0p18_sum.png`.
+- Central-dot frame-sum analysis: `analysis/26-07-31-derived-single-sweep/README.md`, `analysis/26-07-31-derived-single-sweep/sum_streak_condition.py`, `analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_sum.png`.
 - Exact derived-file integrity evidence: `DATA/26-07-31-derived-single-sweep/README.md`.
