@@ -51,6 +51,18 @@ class ProjectDataPathTests(unittest.TestCase):
         for legacy_path in LEGACY_ANALYSIS_PATHS[1:]:
             self.assertNotIn(legacy_path, content)
 
+    def test_maintained_environment_docs_use_the_sandbox_initializer(self):
+        initializer = "scripts/init_sandbox.ps1"
+        for relative_path in (
+            "AGENTS.md",
+            "README.md",
+            "docs/data.md",
+            "docs/sandbox-initialization.md",
+        ):
+            with self.subTest(relative_path=relative_path):
+                content = (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
+                self.assertIn(initializer, content)
+
 
 if __name__ == "__main__":
     unittest.main()

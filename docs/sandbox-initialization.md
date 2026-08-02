@@ -1,45 +1,65 @@
-# 沙盒初始化反馈
+# 沙盒初始化方法与反馈
 
-本页记录托管 Windows 沙盒中的实测摩擦和对后续初始化方案的要求，不把当前临时做法冻结为唯一方案。
+本页记录托管 Windows 沙盒中的实测摩擦、当前项目入口和仍需由外层权限模型解决的边界。
 
-## 2026-08-02 实测
+## 当前方法
 
-### Git 信任与写权限是两个独立问题
+从项目根目录运行 `scripts/init_sandbox.ps1`：
 
-工作树位于 `C:\Users\Soyo\.codex\worktrees\...`，所有者是宿主账户；命令实际由受限账户运行。普通 `git status` 因 `dubious ownership` 退出。以下命令可在不修改用户全局 Git 配置的前提下恢复单次只读操作；路径必须规范化为正斜杠，本次直接传入反斜杠路径没有匹配成功。
+```powershell
+.\scripts\init_sandbox.ps1
+```
+
+脚本可重复运行，并只改变当前 PowerShell 进程和被 Git 忽略的工作树 `.venv`：
+
+- 用进程级 `GIT_CONFIG_COUNT/GIT_CONFIG_KEY_n/GIT_CONFIG_VALUE_n` 注入当前工作树的精确 `safe.directory`，不修改用户全局 Git 配置；
+- 优先复用 `.venv`，否则从可用的 `sci` Python 建立 `--system-site-packages` 环境；
+- 根据 `requirements-analysis.txt` 探测依赖，只在非 `-CheckOnly` 模式安装缺失项，并禁用无关的 pip 版本检查；
+- 优先使用工作树 `DATA/`，否则从 Git 公共目录反查主项目的只读 `DATA/`；
+- 设置 `PROJECT_PYTHON`、`JORIS_DATA_ROOT` 和 `JORIS_SAFE_DIRECTORY`，并报告分支、Git 公共目录、依赖与数据状态。
+
+诊断模式：
+
+```powershell
+.\scripts\init_sandbox.ps1 -CheckOnly
+.\scripts\init_sandbox.ps1 -CheckOnly -AsJson
+```
+
+`-CheckOnly` 不创建环境、不安装依赖。`-AsJson` 便于沙盒启动器保存和解析预检证据。
+
+## 2026-08-02 实测与处理
+
+### Git 信任已自动化，写权限仍是独立边界
+
+工作树位于 `C:\Users\Soyo\.codex\worktrees\...`，所有者是宿主账户；命令实际由受限账户运行。普通 `git status` 曾因 `dubious ownership` 退出。原来的单命令回退路径是：
 
 ```powershell
 $worktree = (Get-Location).Path.Replace('\', '/')
 git -c "safe.directory=$worktree" status --short --branch
 ```
 
-这只解决 Git 的所有权信任检查。该工作树的共享 Git 元数据仍位于主仓库 `E:\Documents\Codex\joris-homodyne\.git\`，不在当前沙盒写入根中；切换任务分支时首次失败为无法创建 `.git/worktrees/.../index.lock`，提升该 Git 操作权限后才成功。提交也会同时写入工作树索引、公共 object store 和分支引用，不能把 `safe.directory` 当作写权限修复。
+初始化脚本现在把相同的精确工作树信任注入当前进程，使后续普通 Git 子进程直接复用，同时不扩大为全局或通配符信任。
 
-### Python 入口和依赖没有随项目进入沙盒
+这仍只解决 Git 的所有权检查。该工作树的共享 Git 元数据位于主仓库 `E:\Documents\Codex\joris-homodyne\.git\`，不在当前沙盒写入根中；切换任务分支时曾因无法创建 `.git/worktrees/.../index.lock` 而失败。提交还会写入公共 object store 和分支引用。脚本通过 `common_directory_external` 和 `metadata_write_may_require_approval` 报告这条边界，但不会自行扩大权限。
 
-沙盒启动后的 `PATH` 中不能直接调用 `python` 或 `conda`。Codex 自带 Python 可以运行，但没有 `h5py`；机器上的两个 `sci` 环境可以通过绝对路径启动，已有 NumPy、SciPy 和 Matplotlib，但同样缺少 `h5py`。因此项目文档中的裸 `python -m unittest ...` 不能作为全新沙盒的第一条命令。
+### Python 入口和依赖已收敛
 
-本次在非 OneDrive 的工作树内建立了被 `.gitignore` 排除的临时环境，复用 `sci` 的系统包并只补装缺失的 `h5py`：
+沙盒启动后的 `PATH` 中不能直接调用 `python` 或 `conda`。Codex 自带 Python 没有 `h5py`；机器上的 `sci` 环境已有 NumPy、SciPy 和 Matplotlib，但当时同样缺少 `h5py`。
+
+手工回退曾是在非 OneDrive 工作树中创建被 `.gitignore` 排除的 `.venv`，复用 `sci` 系统包并单独安装 `h5py`。当前脚本自动执行相同的最小策略，依赖清单由 `requirements-analysis.txt` 维护，并传入 `--disable-pip-version-check`，避免与任务无关的 pip 联网检查。
+
+初始化后使用明确入口运行测试：
 
 ```powershell
-& "$env:USERPROFILE\.conda\envs\sci\python.exe" -m venv --system-site-packages .venv
-.\.venv\Scripts\python.exe -m pip install h5py
-.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v
+& $env:PROJECT_PYTHON -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-安装成功；`pip` 只额外报告无法检查自身最新版本，不影响包安装或测试。该做法适合作为当前回退路径，但项目还没有机器可读的最小依赖清单，也没有决定是复用 `sci`、克隆环境还是维护专用环境。
+### 外部数据根已自动发现
 
-### 数据不会自动出现在任务工作树
+`DATA/` 被 Git 忽略，任务工作树中缺少它是预期行为；真实不可变数据仍在主项目树。初始化脚本先检查工作树 `DATA/`，再通过 Git 公共目录反查主项目 `DATA/` 并设置 `JORIS_DATA_ROOT`。若仍未发现，摘要会返回 `data_available=false`，而不是把“未挂载数据”误判为文件验证失败。
 
-`DATA/` 被 Git 忽略，任务工作树中缺少它是预期行为；真实不可变数据仍在主项目树。只运行使用临时 HDF5 的单元测试不受影响，但任何数据级验证都需要初始化阶段显式提供主项目 `DATA/` 的只读位置，不能把“工作树内不存在”误判为数据丢失。
+## 实现状态与剩余边界
 
-## 对后续初始化方案的要求
-
-建议把初始化拆成可独立诊断的预检，而不是用一个模糊的“环境失败”覆盖所有边界：
-
-1. 在进入受限沙盒前把工作树附着到任务分支，或为精确的公共 Git 元数据目录提供受控写权限。
-2. 以进程级配置注入当前工作树的 `safe.directory`；不要要求代理永久修改用户全局 Git 配置。
-3. 暴露一个明确的项目 Python 入口，并在创建环境前探测 `numpy`、`scipy`、`h5py`、`matplotlib`，只报告或补齐缺失项。
-4. 为核心依赖增加机器可读的最小清单；在方案确定前，保留 `sci` 加工作树 `.venv` 的回退路径。
-5. 向任务提供真实 `DATA/` 的只读根或明确的外部路径；初始化日志应区分“未挂载数据”和“文件验证失败”。
-6. 预检结束时输出工作树、分支、Git 公共目录、实际 Python、缺失依赖和数据根的简短摘要，便于后续任务直接复用证据。
+- 已实现：进程级精确 `safe.directory`、统一 Python 入口、依赖探测与最小安装、机器可读依赖清单、数据根发现、文本/JSON 预检摘要。
+- 仍由外层沙盒负责：进入受限环境前附着任务分支，或给精确的 Git 公共元数据目录提供受控写权限。
+- 初始化脚本不会修改全局 Git 信任，不会写原始数据，也不会自行扩大文件系统权限。

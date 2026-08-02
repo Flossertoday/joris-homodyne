@@ -18,6 +18,17 @@
 - `.codex/`：项目级 Codex 配置。
 - `MEMORY.md`：简短的项目状态和细节索引，不承载长篇论证。
 
+## 沙盒快速初始化
+
+在项目根目录运行 `scripts/init_sandbox.ps1`。它只修改当前 PowerShell 进程：为当前工作树注入精确的 Git `safe.directory`，复用或创建 `.venv`，按 `requirements-analysis.txt` 补齐缺失依赖，并发现真实 `DATA` 根。
+
+```powershell
+.\scripts\init_sandbox.ps1
+& $env:PROJECT_PYTHON -m unittest discover -s tests -p "test_*.py" -v
+```
+
+只做预检可加 `-CheckOnly`；供自动化读取可加 `-AsJson`。共享 Git 元数据若位于沙盒写入根之外，脚本会报告该边界，但不会尝试扩大权限。
+
 ## 当前数据
 
 - 原始数据：`DATA/26-07-31-single-sweep/`
@@ -34,5 +45,5 @@
 - [测量与物理主张](docs/measurement-claims.md)
 - [文献判断和来源](docs/literature.md)
 - [数据与环境约定](docs/data.md)
-- [沙盒初始化反馈](docs/sandbox-initialization.md)
+- [沙盒初始化方法与反馈](docs/sandbox-initialization.md)
 

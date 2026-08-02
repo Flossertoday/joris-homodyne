@@ -18,7 +18,7 @@
 ## Data rules and current dataset
 
 - Raw experimental files under `DATA/` are immutable and excluded from Git. Name raw directories `YY-MM-DD-<experiment>` and their distinct sibling analysis directories `YY-MM-DD-derived-<experiment>` rather than using a shared generic output folder.
-- Scientific Python work must use a clone of the local `sci` environment in a non-OneDrive path. Do not record machine-specific interpreter paths or transient package versions here.
+- Scientific Python work must use a clone of the local `sci` environment in a non-OneDrive path. Managed Windows sandboxes initialize it through `scripts/init_sandbox.ps1`; do not record machine-specific interpreter paths or transient package versions here.
 - Current raw data: `DATA/26-07-31-single-sweep/`; verified lossless analysis copy: `DATA/26-07-31-derived-single-sweep/26-07-31_single_sweep.h5`.
 - Treat an HDF5 `source_root` attribute as conversion-time provenance, not a live path after a directory rename; rebind embedded `source_files/relative_path` values to the current raw directory.
 - This acquisition is streak-only. Only `StreakCamImage` is analysis pixel payload; Main/Second camera arrays and Cam2 state are excluded.
@@ -36,6 +36,7 @@
 - Literature conclusions and primary sources: `docs/literature.md`.
 - Data format, environment and reproducibility rules: `docs/data.md`.
 - Managed-sandbox initialization observations and requirements: `docs/sandbox-initialization.md`.
+- Sandbox initializer and dependency contract: `scripts/init_sandbox.ps1`, `requirements-analysis.txt`, `tests/test_init_sandbox.py`.
 - Converter and tests: `scripts/convert_matlab_v73_to_analysis_hdf5.py`, `tests/test_convert_matlab_v73_to_analysis_hdf5.py`.
 - Central-dot frame-sum analysis: `analysis/26-07-31-derived-single-sweep/README.md`, `analysis/26-07-31-derived-single-sweep/sum_streak_condition.py`, `analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_sum.png`.
 - Exact derived-file integrity evidence: `DATA/26-07-31-derived-single-sweep/README.md`.

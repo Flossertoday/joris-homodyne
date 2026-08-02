@@ -3,7 +3,8 @@
 - `README.md` is the entry point; `MEMORY.md` holds current structural context; reviewable detail lives in `docs/`.
 - `DATA/` contains local raw experiments and experiment-specific derived copies and is ignored by Git.
 - Scientific Python uses a clone of the local `sci` environment outside OneDrive.
-- Test command: `python -m unittest discover -s tests -p "test_*.py" -v`.
+- In a managed Windows sandbox, run `scripts/init_sandbox.ps1` from the project root before Git, Python, or data-dependent work.
+- Test command after initialization: `& $env:PROJECT_PYTHON -m unittest discover -s tests -p "test_*.py" -v`.
 
 ## Git
 

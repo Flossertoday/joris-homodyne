@@ -19,13 +19,16 @@ HDF5 中每帧都能追溯到源 MAT 文件和源文件内帧号，并记录源�
 
 ## Python
 
-本地科学代码使用从机器 `sci` 环境克隆出的、位于非 OneDrive 路径的项目环境。所需核心库是 NumPy、SciPy、h5py 和 Matplotlib。不要在仓库中提交环境目录。受限沙盒中若 `python` 或 `conda` 不在 `PATH`，按 [沙盒初始化反馈](sandbox-initialization.md) 的预检顺序定位解释器和缺失依赖。
+本地科学代码使用从机器 `sci` 环境克隆出的、位于非 OneDrive 路径的项目环境。核心库由 `requirements-analysis.txt` 声明；不要在仓库中提交环境目录。受限沙盒统一从 `scripts/init_sandbox.ps1` 进入：脚本优先复用工作树 `.venv`，否则从 `sci` 建立带系统包的 `.venv`，然后只安装缺失依赖。
 
-运行转换器测试：
+初始化并运行完整测试：
 
 ```powershell
-python -m unittest discover -s tests -p "test_*.py" -v
+.\scripts\init_sandbox.ps1
+& $env:PROJECT_PYTHON -m unittest discover -s tests -p "test_*.py" -v
 ```
+
+初始化后，`PROJECT_PYTHON` 是权威解释器，`JORIS_DATA_ROOT` 是实际数据根。`-CheckOnly` 不创建环境或安装包；`-AsJson` 输出适合自动化保存的预检摘要。详见 [沙盒初始化方法与反馈](sandbox-initialization.md)。
 
 转换器拒绝覆盖既有输出，并先写 `.partial` 文件后原子改名。需要重新生成时，应指定新的输出文件名；不要覆盖已经验证的分析副本。
 
