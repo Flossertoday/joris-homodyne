@@ -12,8 +12,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\init_sandbox.ps1
 
 `scripts/init_sandbox.ps1` 会：
 
-- 优先复用 `.venv`，否则从可用的 `sci` Python 建立 `--system-site-packages` 环境；
-- 根据 `requirements-analysis.txt` 探测依赖，只安装缺失项，并禁用无关的 pip 版本检查；
+- 优先复用隔离的 `.venv`（不带 `--system-site-packages`）；仍共享基础环境 site-packages 的 `.venv` 会被删除重建；
+- 每次运行按钉版本的 `requirements.txt` 对工作树 `.venv` 做 `pip install -r` 同步（全部满足时 pip 本地 no-op），并禁用无关的 pip 版本检查；
 - 优先使用工作树 `DATA/`，否则从 Git 公共目录反查主项目的只读 `DATA/`；
 - 检查当前分支、Git 公共目录和精确的 `safe.directory`；
 - 把 Python、数据根、Git 边界和依赖状态原子写入忽略 Git 的 `tmp/sandbox-initialization.json`。
@@ -71,10 +71,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\init_sandbox.ps1
 
 - 目标是 `%USERPROFILE%\.conda\envs\sci`（Python 3.10.13；`.venv/pyvenv.cfg` 的 `home` 确认它是当前 `.venv` 的基础解释器，也是脚本 `Find-BasePython` 的第一候选）。pip 装入 h5py 3.16.0；已有 numpy 1.26.4 满足约束，未改动其他包。
 - 安装后基础 sci 可导入 numpy、scipy、h5py、matplotlib 全部四项。
-- 工作树模拟验证（`git worktree add --detach` 后在其中运行初始化）：`ready=true`、`environment_created=true`、`missing=[]`、`data_root` 正确回退主项目 `DATA`，输出无 pip install 记录——工作树 `.venv` 经 `--system-site-packages` 直接命中基础环境的 h5py。新工作树初始化从此零网络依赖；验证后工作树已移除。
+- 工作树模拟验证（`git worktree add --detach` 后在其中运行初始化）：`ready=true`、`environment_created=true`、`missing=[]`、`data_root` 正确回退主项目 `DATA`，输出无 pip install 记录——工作树 `.venv` 经 `--system-site-packages` 直接命中基础环境的 h5py。新工作树初始化从此零网络依赖（该结论基于当时的 `--system-site-packages` 架构；同日稍后改为隔离 `.venv`，见下节，不再适用）；验证后工作树已移除。
 - 主项目回归：`-CheckOnly -AsJson` 为 `ready=true`、`missing=[]`，完整测试套件 20 项全部通过。
 - 注意：fallback 候选 `%USERPROFILE%\anaconda3\envs\sci` 仍缺 h5py；只有 `.conda\envs\sci` 不可用时才会被解析到，届时需同样补齐。
 - 此前“安装目标是工作树自己的 site-packages，未污染 sci 环境”的原则随之改变：h5py 现在是基础 sci 环境契约的一部分。
+
+## 2026-08-03 补充：requirements.txt 钉版本与隔离 .venv
+
+用户同日把依赖契约改为标准钉版清单，并把工作树环境改为隔离架构：
+
+- `requirements-analysis.txt` 改名为 `requirements.txt`，依赖全部钉版：numpy 1.26.4、scipy 1.11.4、h5py 3.16.0、matplotlib 3.8.0、trackpy 0.7（trackpy 为当日新增）。
+- 初始化脚本重新设计：只复用“隔离”的 `.venv`（`pyvenv.cfg` 不含 `include-system-site-packages = true`）；仍共享基础环境 site-packages 的 `.venv` 会被删除重建，新环境不再使用 `--system-site-packages`。
+- 每次非 `-CheckOnly` 运行都按钉版清单对工作树 `.venv` 执行 `pip install -r`：全部满足时 pip 本地 no-op，版本不符时由 pip 修正；缺失探测保持按模块名存在性。显式外部 `-PythonPath` 永不安装。`-CheckOnly` 保持只读，对现有 `.venv` 出报告。
+- 后果与边界变化：新工作树首次初始化需要 pip 缓存或网络来安装全部钉版包——上节“零网络依赖”的结论不再适用。基础 sci 环境的 h5py 对工作树不再关键，但让“尚无 `.venv` 时的 `-CheckOnly`”仍能报告 ready。
+- 主项目 `.venv` 已于同日完成自动迁移：完整初始化删除旧共享 `.venv` 并重建隔离环境（`pyvenv.cfg` 为 `include-system-site-packages = false`），五项钉版依赖 pip 同步后 `ready=true`；新架构下完整测试套件 24 项全部通过（含当日新增、依赖 trackpy 的 4 项 find_frame_peaks 测试）。
+- 工作树模拟验证：分支尖端提交仍是旧脚本与 `requirements-analysis.txt`，故将新脚本和 `requirements.txt` 复制进 `git worktree add --detach` 的模拟工作树再运行初始化——其中旧的共享 `.venv` 被自动迁移为隔离环境，含 trackpy 的依赖全部同步成功，`DATA/` 正确回退主项目，`common_directory_external=true` 与 `metadata_write_may_require_approval=true` 标记正确；验证后工作树已移除。
 
 ## 剩余外层责任
 
