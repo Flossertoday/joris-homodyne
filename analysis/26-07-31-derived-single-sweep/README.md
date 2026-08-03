@@ -113,9 +113,9 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 
 ## 2026-08-03 central-dot 0.18 全量峰提取
 
-`extract_condition_peaks.py` 把 `find_frame_peaks.py` 的生产峰检测（默认参数直接 import，同审计脚本模式）跑遍 0.18 条件全部 1000 帧，把每帧的 `(frame, y, x, mass)` 汇总成单个 HDF5 峰表 [`peaks/26-07-31_central_dot_0p18_peaks.h5`](peaks/26-07-31_central_dot_0p18_peaks.h5)，作为后续分析的原始数据。根属性记录条件、检测参数、帧数、峰数、`frame_shape`、源 HDF5 文件名与 SHA-256 等 provenance。脚本打开输入文件一次逐帧读取，输出拒绝覆盖、先写 `.partial` 再原子改名（同转换器先例）。
+`extract_condition_peaks.py` 把 `find_frame_peaks.py` 的生产峰检测（默认参数直接 import，同审计脚本模式）跑遍 0.18 条件全部 1000 帧，把每帧的 `(frame, y, x, mass)` 汇总成单个 HDF5 峰表 [`detected-peaks/26-07-31_central_dot_0p18_peaks.h5`](detected-peaks/26-07-31_central_dot_0p18_peaks.h5)，作为后续分析的原始数据。根属性记录条件、检测参数、帧数、峰数、`frame_shape`、源 HDF5 文件名与 SHA-256 等 provenance。脚本打开输入文件一次逐帧读取，输出拒绝覆盖、先写 `.partial` 再原子改名（同转换器先例）。
 
-结果 30542 峰；逐帧计数中位 30、均值 30.54、范围 16–53（p1–p99：18–45），与此前试运行统计一致；帧 230 与已审阅 CSV 逐行一致（最大差 5e-5，即 CSV 舍入）。合成数据单元测试在 `tests/test_extract_condition_peaks.py`（逐帧对照直接调用 `find_peaks`、属性齐全、拒绝覆盖）。数据集说明与复现命令见 [`peaks/README.md`](peaks/README.md)。
+结果 30542 峰；逐帧计数中位 30、均值 30.54、范围 16–53（p1–p99：18–45），与此前试运行统计一致；帧 230 与已审阅 CSV 逐行一致（最大差 5e-5，即 CSV 舍入）。合成数据单元测试在 `tests/test_extract_condition_peaks.py`（逐帧对照直接调用 `find_peaks`、属性齐全、拒绝覆盖）。数据集说明与复现命令见 [`detected-peaks/README.md`](detected-peaks/README.md)。
 
 ## 2026-08-03 central-dot 0.18 峰 x 剖面四高斯拟合与接受范围
 
@@ -128,6 +128,6 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 - spot 3（condensate A arm B）：μ=657.03, σ=17.34 → [622.35, 691.70]
 - spot 4（condensate B arm B）：μ=734.24, σ=16.28 → [701.67, 766.81]
 
-背景 10.94 峰/bin（全探测器均匀分布的检出）。四区间互不重叠，保留 15958 / 30542 峰（52.2%）。诊断图（直方图 + 模型 + 分量 + 接受域 + 残差）：[`results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png`](results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png)；拟合参数与不确定度：[`results/26-07-31_central_dot_0p18_four_gaussians_fit.csv`](results/26-07-31_central_dot_0p18_four_gaussians_fit.csv)；筛选后峰表：[`peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5`](peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5)。
+背景 10.94 峰/bin（全探测器均匀分布的检出）。四区间互不重叠，保留 15958 / 30542 峰（52.2%）。诊断图（直方图 + 模型 + 分量 + 接受域 + 残差）：[`results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png`](results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png)；拟合参数与不确定度：[`results/26-07-31_central_dot_0p18_four_gaussians_fit.csv`](results/26-07-31_central_dot_0p18_four_gaussians_fit.csv)；筛选后峰表：[`detected-peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5`](detected-peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5)。
 
 残差在亮带内有轻微相关结构（光斑剖面并非完美高斯），对保守接受范围的定义无影响；`--sigma-multiple` 调起点倍数，`--allow-overlap` 可保留重叠区间。单元测试在 `tests/test_fit_spot_x_ranges.py`（合成四高斯剖面参数恢复、区间与重叠收缩逻辑、CLI 端到端）。

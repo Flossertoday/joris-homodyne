@@ -1,6 +1,13 @@
-# central_dot_0p18 峰数据集
+# detected-peaks：central_dot_0p18 原始帧的逐帧峰检测数据集
 
-本目录保存 0.18 条件全量 1000 帧的稀疏峰检测结果，作为后续分析（x 剖面拟合、关联等）的原始数据。
+## 这里面对 DATA 做了什么
+
+输入是 `DATA/26-07-31-derived-single-sweep/26-07-31_single_sweep.h5` 中 `central_dot_0p18` 条件的 1000 张原始探测器帧。本目录的数据是把这 1000 张帧**逐帧做稀疏峰检测**得到的峰坐标表：每张帧不再按像素存储，而是压缩成其中亮峰的亚像素坐标（每帧中位 30 个峰），作为后续分析（x 剖面拟合、关联等）的输入数据。处理分两步，各产生一个 HDF5 文件：
+
+1. `../extract_condition_peaks.py` 对全部 1000 帧逐帧运行 `find_frame_peaks.py` 的生产峰检测（trackpy Crocker–Grier），把每帧的 `(frame, y, x, mass)` 汇总成 `26-07-31_central_dot_0p18_peaks.h5`（全量峰表，30542 峰）；
+2. `../fit_spot_x_ranges.py` 把全量峰表按 x 做直方图并拟合"常数背景 + 四高斯"，只保留横坐标落在四个光斑接受区间内的峰，得到 `26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5`（x 范围筛选峰表，15958 峰）。
+
+两个文件的逐字段 schema、provenance、校验与复现命令如下。
 
 ## `26-07-31_central_dot_0p18_peaks.h5`（全量峰表）
 
@@ -21,7 +28,7 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 & $sandboxState.python `
   .\analysis/26-07-31-derived-single-sweep/extract_condition_peaks.py `
   (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
-  .\analysis/26-07-31-derived-single-sweep/peaks/26-07-31_central_dot_0p18_peaks.h5 `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks.h5 `
   --central-dot-strength 0.18
 ```
 
@@ -48,10 +55,10 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
 & $sandboxState.python `
   .\analysis/26-07-31-derived-single-sweep/fit_spot_x_ranges.py `
-  .\analysis/26-07-31-derived-single-sweep/peaks/26-07-31_central_dot_0p18_peaks.h5 `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks.h5 `
   --figure .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png `
   --fit-csv .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_four_gaussians_fit.csv `
-  --filtered-h5 .\analysis/26-07-31-derived-single-sweep/peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5
+  --filtered-h5 .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5
 ```
 
 筛选文件名记录了最终使用的判据倍数；若未来解决重叠归属问题并采用更宽区间，应以新文件名重新生成。
