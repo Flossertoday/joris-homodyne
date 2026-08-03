@@ -11,10 +11,13 @@ background plus four Gaussians ordered left to right:
     spot 4: condensate B, arm B
 
 Only peaks whose x falls inside one of the four fitted spot ranges can be
-real spot data. The conservative first-pass criterion is mu_i +/- k*sigma_i
-with k = 3 (about 99.7% containment per Gaussian); the acceptance region is
-the union of the four intervals. The script writes a diagnostic figure, a fit
-CSV, and the x-filtered peak table for downstream analysis.
+real spot data. The criterion is mu_i +/- k*sigma_i, starting from the
+conservative k = 3 (about 99.7% containment per Gaussian). If the resulting
+intervals of adjacent spots overlap, k is automatically reduced in steps
+until the four intervals are disjoint (see disjoint_intervals); the
+acceptance region is the union of the four disjoint intervals. The script
+writes a diagnostic figure, a fit CSV, and the x-filtered peak table for
+downstream analysis.
 
 Example:
 
@@ -50,6 +53,8 @@ SPOT_LABELS = (
 DEFAULT_SIGMA_MULTIPLE = 3.0
 DEFAULT_SMOOTH_SIGMA = 3.0
 DEFAULT_MIN_SEPARATION = 30
+SIGMA_MULTIPLE_STEP = 0.5
+SIGMA_MULTIPLE_MIN = 1.0
 
 
 def load_peaks(peaks_path: Path) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -193,6 +198,39 @@ def spot_intervals(popt: np.ndarray, sigma_multiple: float) -> np.ndarray:
     return np.array(intervals, dtype=np.float64)
 
 
+def intervals_are_disjoint(intervals: np.ndarray) -> bool:
+    """True when no two intervals share any x (touching edges allowed).
+
+    The spots are ordered left to right, so only adjacent pairs can overlap.
+    """
+    return bool(np.all(intervals[:-1, 1] <= intervals[1:, 0]))
+
+
+def disjoint_intervals(
+    popt: np.ndarray,
+    sigma_multiple: float,
+    step: float = SIGMA_MULTIPLE_STEP,
+    minimum: float = SIGMA_MULTIPLE_MIN,
+) -> tuple[float, np.ndarray]:
+    """Largest k <= sigma_multiple (in ``step`` decrements) with disjoint intervals.
+
+    Open problem (not yet solved): when the mu +/- k*sigma intervals of two
+    adjacent spots overlap, the shared x-region contains light from both
+    spots and we currently have no rule for assigning a peak there to one
+    spot or the other. Until such a separation rule exists, we avoid the
+    problem by shrinking k below the overlap threshold and accept losing the
+    outer Gaussian tails. If even ``minimum`` still overlaps (pathological
+    fit), that multiple is returned unchanged and the caller must warn.
+    """
+    k = float(sigma_multiple)
+    while k > minimum:
+        intervals = spot_intervals(popt, k)
+        if intervals_are_disjoint(intervals):
+            return k, intervals
+        k = round(k - step, 10)
+    return minimum, spot_intervals(popt, minimum)
+
+
 def acceptance_mask(x: np.ndarray, intervals: np.ndarray) -> np.ndarray:
     """Boolean mask: x inside any of the acceptance intervals (union)."""
     mask = np.zeros(len(x), dtype=bool)
@@ -333,7 +371,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--sigma-multiple", type=float, default=DEFAULT_SIGMA_MULTIPLE,
         help="half-width of each spot's acceptance interval in units of its "
-        "fitted sigma (default: %(default)s, conservative)",
+        "fitted sigma (default: %(default)s, conservative). If adjacent "
+        "intervals overlap, the multiple is reduced in steps of "
+        f"{SIGMA_MULTIPLE_STEP:g} until they are disjoint; see "
+        "--allow-overlap.",
+    )
+    parser.add_argument(
+        "--allow-overlap", action="store_true",
+        help="keep the requested --sigma-multiple even when adjacent "
+        "intervals overlap (overlap assignment is an unsolved problem; the "
+        "default is to shrink the multiple until intervals are disjoint)",
     )
     parser.add_argument("--smooth-sigma", type=float, default=DEFAULT_SMOOTH_SIGMA)
     parser.add_argument("--min-separation", type=int, default=DEFAULT_MIN_SEPARATION)
@@ -349,24 +396,39 @@ if __name__ == "__main__":
         smooth_sigma=arguments.smooth_sigma,
     )
     background, spots = unpack_components(popt, pcov)
-    intervals = spot_intervals(popt, arguments.sigma_multiple)
+    requested_multiple = arguments.sigma_multiple
+    if arguments.allow_overlap:
+        used_multiple = requested_multiple
+        intervals = spot_intervals(popt, used_multiple)
+    else:
+        used_multiple, intervals = disjoint_intervals(popt, requested_multiple)
 
     condition_name = attributes.get("condition_name", "unknown condition")
     print(f"{condition_name}: {len(x)} peaks, initial centers {mu0}")
-    print_summary(background, spots, intervals, x, arguments.sigma_multiple)
+    if used_multiple != requested_multiple:
+        print(
+            f"requested mu +/- {requested_multiple:g}*sigma intervals "
+            f"overlap; reduced to {used_multiple:g}*sigma so the four "
+            "acceptance intervals are disjoint"
+        )
+    print_summary(background, spots, intervals, x, used_multiple)
 
     if arguments.fit_csv is not None:
         print("saved", write_fit_csv(arguments.fit_csv, background, spots, intervals))
     if arguments.figure is not None:
         title = (
-            f"{condition_name} — summed peak x-profile, four-Gaussian fit, "
-            f"acceptance = mu +/- {arguments.sigma_multiple:g}*sigma"
+            f"{condition_name} — summed peak x-profile, four-Gaussian fit\n"
+            f"acceptance = mu +/- {used_multiple:g}*sigma"
         )
+        if used_multiple != requested_multiple:
+            title += (
+                f" (reduced from {requested_multiple:g}*sigma to avoid overlap)"
+            )
         print(
             "saved",
             save_fit_figure(
                 centers, counts, popt, pcov, intervals,
-                arguments.sigma_multiple, title, arguments.figure,
+                used_multiple, title, arguments.figure,
             ),
         )
     if arguments.filtered_h5 is not None:
@@ -377,9 +439,11 @@ if __name__ == "__main__":
             "central_dot_strength": float(attributes["central_dot_strength"]),
             "source_peaks_h5": Path(arguments.peaks_h5).name,
             "x_range_filter": (
-                f"union of {N_SPOTS} mu +/- {arguments.sigma_multiple:g}*sigma "
+                f"union of {N_SPOTS} mu +/- {used_multiple:g}*sigma "
                 "intervals from the four-Gaussian x-profile fit"
             ),
+            "sigma_multiple_requested": requested_multiple,
+            "sigma_multiple_used": used_multiple,
             "x_range_intervals": np.asarray(intervals, dtype=np.float64),
             "spot_labels": ",".join(SPOT_LABELS),
             "peak_count": int(mask.sum()),

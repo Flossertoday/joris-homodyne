@@ -102,6 +102,43 @@ class FitSpotXRangesTests(unittest.TestCase):
             [[35.0, 65.0], [120.0, 180.0], [226.0, 274.0], [332.0, 368.0]],
         )
 
+    def test_intervals_are_disjoint_checks_adjacent_pairs(self):
+        fit = load_fit_module()
+        self.assertTrue(
+            fit.intervals_are_disjoint(np.array([[0.0, 10.0], [10.0, 20.0]]))
+        )
+        self.assertFalse(
+            fit.intervals_are_disjoint(np.array([[0.0, 11.0], [10.0, 20.0]]))
+        )
+
+    def test_disjoint_intervals_shrinks_until_no_overlap(self):
+        fit = load_fit_module()
+        # Spots 1-2 are 50 px apart with sigma 10: k=3 overlaps ([70,130]
+        # vs [120,180]), k=2.5 just touches, k=2 is strictly disjoint.
+        popt = np.array(
+            [10.0, 100.0, 100.0, 10.0, 200.0, 150.0, 10.0,
+             300.0, 300.0, 8.0, 400.0, 380.0, 6.0]
+        )
+
+        used, intervals = fit.disjoint_intervals(popt, 3.0)
+
+        self.assertEqual(2.5, used)
+        self.assertTrue(fit.intervals_are_disjoint(intervals))
+        np.testing.assert_allclose(intervals[0], [75.0, 125.0])
+        np.testing.assert_allclose(intervals[1], [125.0, 175.0])
+
+    def test_disjoint_intervals_keeps_multiple_when_already_disjoint(self):
+        fit = load_fit_module()
+        popt = np.array(
+            [10.0, 100.0, 50.0, 5.0, 200.0, 150.0, 10.0,
+             300.0, 250.0, 8.0, 400.0, 350.0, 6.0]
+        )
+
+        used, intervals = fit.disjoint_intervals(popt, 3.0)
+
+        self.assertEqual(3.0, used)
+        np.testing.assert_allclose(intervals, fit.spot_intervals(popt, 3.0))
+
     def test_acceptance_mask_is_union_of_intervals(self):
         fit = load_fit_module()
         intervals = np.array([[10.0, 20.0], [30.0, 40.0]])
@@ -186,6 +223,59 @@ class FitSpotXRangesTests(unittest.TestCase):
             self.assertTrue(bool(mask.all()))
             # The conservative 3-sigma union should keep most signal peaks.
             self.assertGreater(len(filtered_x) / n, 0.6)
+
+    def test_cli_shrinks_multiple_when_intervals_overlap(self):
+        fit = load_fit_module()
+        rng = np.random.default_rng(41)
+        # Spots 1-2 only 50 px apart with sigma ~10: the default 3*sigma
+        # intervals overlap, so the CLI must reduce the multiple.
+        close_spots = (
+            (300.0, 100.0, 10.0),
+            (500.0, 150.0, 10.0),
+            (450.0, 300.0, 9.0),
+            (350.0, 380.0, 12.0),
+        )
+        n_signal = 6000
+        component = rng.choice(4, size=n_signal, p=[0.25, 0.25, 0.28, 0.22])
+        x = np.array(
+            [rng.normal(close_spots[c][1], close_spots[c][2]) for c in component]
+        )
+        x = x[(x >= 0) & (x < WIDTH)]
+        n = len(x)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            peaks_path = Path(tmp) / "peaks.h5"
+            filtered_path = Path(tmp) / "filtered.h5"
+            with h5py.File(peaks_path, "w") as handle:
+                handle.create_dataset("frame", data=rng.integers(0, 10, n))
+                handle.create_dataset("y", data=rng.uniform(0, 50, n))
+                handle.create_dataset("x", data=x)
+                handle.create_dataset("mass", data=rng.uniform(300, 3000, n))
+                handle.attrs["condition_name"] = "central_dot_0p18"
+                handle.attrs["central_dot_strength"] = 0.18
+                handle.attrs["frame_shape"] = np.array([50, WIDTH])
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(FIT_SCRIPT),
+                    str(peaks_path),
+                    "--filtered-h5",
+                    str(filtered_path),
+                ],
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertIn("reduced", result.stdout)
+
+            with h5py.File(filtered_path, "r") as handle:
+                intervals = np.asarray(handle.attrs["x_range_intervals"])
+                requested = float(handle.attrs["sigma_multiple_requested"])
+                used = float(handle.attrs["sigma_multiple_used"])
+            self.assertEqual(3.0, requested)
+            self.assertLess(used, requested)
+            self.assertTrue(fit.intervals_are_disjoint(intervals))
 
 
 if __name__ == "__main__":

@@ -25,22 +25,24 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
   --central-dot-strength 0.18
 ```
 
-## `26-07-31_central_dot_0p18_peaks_xrange3p0sigma.h5`（x 范围筛选峰表）
+## `26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5`（x 范围筛选峰表）
 
-由 `../fit_spot_x_ranges.py` 生成：把全量峰表按 x 做 1 px 直方图（跨帧求和、压缩纵轴），用"常数背景 + 四高斯"拟合；四个高斯从左到右对应 condensate A arm A、condensate B arm A、condensate A arm B、condensate B arm B。保守判据取每高斯 μ ± 3σ，接受域为四区间并集；只保留横坐标落在接受域内的峰（schema 与全量峰表相同，另附筛选描述与区间属性）。
+由 `../fit_spot_x_ranges.py` 生成：把全量峰表按 x 做 1 px 直方图（跨帧求和、压缩纵轴），用"常数背景 + 四高斯"拟合；四个高斯从左到右对应 condensate A arm A、condensate B arm A、condensate A arm B、condensate B arm B。只有横坐标落在四个高斯接受区间内的峰才可能是真实数据；本文件只保留这些峰（schema 与全量峰表相同，另附筛选描述与区间属性）。
+
+判据与重叠处理：保守起点取每高斯 μ ± 3σ。但 3σ 下同一 arm 内两个光斑的区间重叠（spot 1–2 共享 [446.50, 464.00]，spot 3–4 共享 [685.39, 709.04]），而重叠区内一个峰属于哪个光斑目前**没有解决办法**（脚本 `disjoint_intervals` 的注释记录了这一点）。因此脚本自动把倍数按 0.5 步长收缩到区间互不重叠为止：本数据集落在 **μ ± 2σ**。`--allow-overlap` 可关闭收缩（保留重叠区间）。
 
 拟合结果（30542 峰，背景 10.94 峰/bin；完整不确定度见 `../results/26-07-31_central_dot_0p18_four_gaussians_fit.csv`，诊断图见 `../results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png`）：
 
-| 光斑 | 物理对应 | μ [px] | σ [px] | 接受区间 [px] |
+| 光斑 | 物理对应 | μ [px] | σ [px] | 接受区间 (2σ) [px] |
 |---|---|---|---|---|
-| 1 | condensate A arm A | 425.93 | 12.69 | [387.86, 464.00] |
-| 2 | condensate B arm A | 489.83 | 14.44 | [446.50, 533.16] |
-| 3 | condensate A arm B | 657.03 | 17.34 | [605.02, 709.04] |
-| 4 | condensate B arm B | 734.24 | 16.28 | [685.39, 783.09] |
+| 1 | condensate A arm A | 425.93 | 12.69 | [400.55, 451.31] |
+| 2 | condensate B arm A | 489.83 | 14.44 | [460.95, 518.72] |
+| 3 | condensate A arm B | 657.03 | 17.34 | [622.35, 691.70] |
+| 4 | condensate B arm B | 734.24 | 16.28 | [701.67, 766.81] |
 
-成对区间相互重叠，并集实际为两段连续区域：约 [387.9, 533.2]（arm A）与 [605.0, 783.1]（arm B）。保留 17481 / 30542 峰（57.2%）；被排除的主要是全探测器均匀分布的背景检出（约 11 峰/bin）。
+四个区间互不重叠，保留 15958 / 30542 峰（52.2%）；被排除的主要是全探测器均匀分布的背景检出（约 11 峰/bin）和各高斯 2σ 以外的尾部。
 
-复现（同样拒绝覆盖）：
+复现（同样拒绝覆盖；收缩是自动的，起点倍数可用 `--sigma-multiple` 调）：
 
 ```powershell
 $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
@@ -49,8 +51,7 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
   .\analysis/26-07-31-derived-single-sweep/peaks/26-07-31_central_dot_0p18_peaks.h5 `
   --figure .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png `
   --fit-csv .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_four_gaussians_fit.csv `
-  --filtered-h5 .\analysis/26-07-31-derived-single-sweep/peaks/26-07-31_central_dot_0p18_peaks_xrange3p0sigma.h5 `
-  --sigma-multiple 3.0
+  --filtered-h5 .\analysis/26-07-31-derived-single-sweep/peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5
 ```
 
-`--sigma-multiple` 可调（如更严的 2.5 或更宽的 3.5），改判据倍数不需要改代码；筛选文件名应随之改名以保留判据记录。
+筛选文件名记录了最终使用的判据倍数；若未来解决重叠归属问题并采用更宽区间，应以新文件名重新生成。

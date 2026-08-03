@@ -121,13 +121,13 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 
 `fit_spot_x_ranges.py` 读入全量峰表，把全部 30542 个峰按横坐标做 1 px 直方图（跨帧求和、压缩纵轴），用"常数背景 + 四高斯"拟合（`scipy.optimize.curve_fit`，Poisson 权重；μ 初值取平滑剖面四个间距 ≥30 px 的最强局部极大，μ 界限取相邻初值中点以固定从左到右顺序）。四个高斯从左到右对应两个 condensate 经 beam splitter 的四个光斑：condensate A arm A、condensate B arm A、condensate A arm B、condensate B arm B。
 
-只有横坐标落在四个高斯范围内的峰才可能是真实数据。保守判据取每高斯 μ ± 3σ（约 99.7% 容纳），接受域为四区间并集：
+只有横坐标落在四个高斯范围内的峰才可能是真实数据。保守起点为每高斯 μ ± 3σ；但 3σ 下同一 arm 内两个光斑的区间重叠（spot 1–2 共享 [446.50, 464.00]，spot 3–4 共享 [685.39, 709.04]），重叠区的峰归属哪个光斑目前未解决（`disjoint_intervals` 注释记录），因此脚本自动按 0.5 步长收缩倍数至区间互不重叠，本数据集落在 **μ ± 2σ**：
 
-- spot 1（condensate A arm A）：μ=425.93, σ=12.69 → [387.86, 464.00]
-- spot 2（condensate B arm A）：μ=489.83, σ=14.44 → [446.50, 533.16]
-- spot 3（condensate A arm B）：μ=657.03, σ=17.34 → [605.02, 709.04]
-- spot 4（condensate B arm B）：μ=734.24, σ=16.28 → [685.39, 783.09]
+- spot 1（condensate A arm A）：μ=425.93, σ=12.69 → [400.55, 451.31]
+- spot 2（condensate B arm A）：μ=489.83, σ=14.44 → [460.95, 518.72]
+- spot 3（condensate A arm B）：μ=657.03, σ=17.34 → [622.35, 691.70]
+- spot 4（condensate B arm B）：μ=734.24, σ=16.28 → [701.67, 766.81]
 
-背景 10.94 峰/bin（全探测器均匀分布的检出）。成对区间重叠，并集为两段连续区域 [387.9, 533.2] 与 [605.0, 783.1]，保留 17481 / 30542 峰（57.2%）。诊断图（直方图 + 模型 + 分量 + 接受域 + 残差）：[`results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png`](results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png)；拟合参数与不确定度：[`results/26-07-31_central_dot_0p18_four_gaussians_fit.csv`](results/26-07-31_central_dot_0p18_four_gaussians_fit.csv)；筛选后峰表：[`peaks/26-07-31_central_dot_0p18_peaks_xrange3p0sigma.h5`](peaks/26-07-31_central_dot_0p18_peaks_xrange3p0sigma.h5)。
+背景 10.94 峰/bin（全探测器均匀分布的检出）。四区间互不重叠，保留 15958 / 30542 峰（52.2%）。诊断图（直方图 + 模型 + 分量 + 接受域 + 残差）：[`results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png`](results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png)；拟合参数与不确定度：[`results/26-07-31_central_dot_0p18_four_gaussians_fit.csv`](results/26-07-31_central_dot_0p18_four_gaussians_fit.csv)；筛选后峰表：[`peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5`](peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5)。
 
-残差在亮带内有轻微相关结构（光斑剖面并非完美高斯），对保守接受范围的定义无影响；如需更严或更宽判据，调 `--sigma-multiple` 即可。单元测试在 `tests/test_fit_spot_x_ranges.py`（合成四高斯剖面参数恢复、区间与并集逻辑、CLI 端到端）。
+残差在亮带内有轻微相关结构（光斑剖面并非完美高斯），对保守接受范围的定义无影响；`--sigma-multiple` 调起点倍数，`--allow-overlap` 可保留重叠区间。单元测试在 `tests/test_fit_spot_x_ranges.py`（合成四高斯剖面参数恢复、区间与重叠收缩逻辑、CLI 端到端）。
