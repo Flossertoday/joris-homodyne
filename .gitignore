@@ -15,6 +15,7 @@ __pycache__/
 
 # Local scratch and logs
 tmp/
+drafts/
 .agents/
 .codex/archive/
 *.log
