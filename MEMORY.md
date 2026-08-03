@@ -40,4 +40,5 @@
 - Converter and tests: `scripts/convert_matlab_v73_to_analysis_hdf5.py`, `tests/test_convert_matlab_v73_to_analysis_hdf5.py`.
 - Central-dot frame-sum analysis: `analysis/26-07-31-derived-single-sweep/README.md`, `analysis/26-07-31-derived-single-sweep/sum_streak_condition.py`, `analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_sum.png`.
 - Single-frame sparse peak detection (trackpy Crocker-Grier): `analysis/26-07-31-derived-single-sweep/find_frame_peaks.py`, `tests/test_find_frame_peaks.py`, reviewed overlay `analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_frame0230_peaks.png`.
+- Peak-localization methodology audit (pipeline visualization + 2D Gaussian fit cross-check, 50 frames seed 20260803): `analysis/26-07-31-derived-single-sweep/visualize_peak_pipeline.py`, `analysis/26-07-31-derived-single-sweep/compare_gauss_refinement.py`, write-up `docs/peak-localization.md`.
 - Exact derived-file integrity evidence: `DATA/26-07-31-derived-single-sweep/README.md`.
