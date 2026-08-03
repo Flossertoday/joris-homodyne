@@ -52,6 +52,30 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\init_sandbox.ps1
 
 任务工作树中缺少 `DATA/` 是预期行为。脚本自动发现主项目数据根并写入状态；找不到时返回 `data_available=false`，不会把“未挂载数据”误判为文件丢失。
 
+## 2026-08-03 复核：模拟沙盒全流程
+
+### 验证步骤与结果
+
+- 主项目直接运行初始化脚本：READY；`-CheckOnly -AsJson` 诊断输出正确；`tmp/sandbox-initialization.json` 状态与实测一致。
+- 测试套件 18 项全部通过。
+- 用 `git worktree add --detach tmp/sandbox-test-worktree` 模拟 Codex 托管工作树并在其中运行初始化：自动创建 `--system-site-packages` `.venv`，探测到缺失依赖后 pip 补齐，`DATA/` 正确回退到主项目，`common_directory_external=true` 与 `metadata_write_may_require_approval=true` 正确标记外部 Git 元数据边界，状态文件原子写入工作树 `tmp/`。工作树 Python 可导入 numpy、scipy、h5py、matplotlib。验证后工作树已移除。
+
+### 发现的问题
+
+- `sci` 机器环境仍缺 `h5py`：每个新工作树 `.venv` 都要 pip 安装一次 h5py（本次使用 3.2 MB 本地缓存 wheel）。安装目标是工作树自己的 site-packages，未污染 `sci` 环境；但缓存被清或离线时，新沙盒初始化会在这一步失败。（2026-08-03 已解决，见下节。）
+- detached HEAD 的工作树状态中 `branch` 为 `null`（人类可读输出为空行）。真实 Codex 工作树带分支，此处不算缺陷，但状态消费方不能假设 `branch` 非空。
+
+## 2026-08-03 处理：基础 sci 环境补齐 h5py
+
+经用户决定，h5py 直接装入基础环境，而不是仓库内置 wheelhouse：
+
+- 目标是 `%USERPROFILE%\.conda\envs\sci`（Python 3.10.13；`.venv/pyvenv.cfg` 的 `home` 确认它是当前 `.venv` 的基础解释器，也是脚本 `Find-BasePython` 的第一候选）。pip 装入 h5py 3.16.0；已有 numpy 1.26.4 满足约束，未改动其他包。
+- 安装后基础 sci 可导入 numpy、scipy、h5py、matplotlib 全部四项。
+- 工作树模拟验证（`git worktree add --detach` 后在其中运行初始化）：`ready=true`、`environment_created=true`、`missing=[]`、`data_root` 正确回退主项目 `DATA`，输出无 pip install 记录——工作树 `.venv` 经 `--system-site-packages` 直接命中基础环境的 h5py。新工作树初始化从此零网络依赖；验证后工作树已移除。
+- 主项目回归：`-CheckOnly -AsJson` 为 `ready=true`、`missing=[]`，完整测试套件 20 项全部通过。
+- 注意：fallback 候选 `%USERPROFILE%\anaconda3\envs\sci` 仍缺 h5py；只有 `.conda\envs\sci` 不可用时才会被解析到，届时需同样补齐。
+- 此前“安装目标是工作树自己的 site-packages，未污染 sci 环境”的原则随之改变：h5py 现在是基础 sci 环境契约的一部分。
+
 ## 剩余外层责任
 
 - Codex Desktop 负责保存 Local environment 选择，并在创建新工作树时执行已激活的 setup。
