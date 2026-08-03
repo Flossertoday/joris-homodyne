@@ -58,7 +58,7 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 
 ## 2026-08-03 central-dot 0.18 单帧峰检测
 
-`find_frame_peaks.py` 定位单帧中的稀疏类高斯峰。核心是 `trackpy.locate`（Crocker–Grier）：带通滤波后在滤波域取局部极大，再在原图上以质心精修到亚像素。`find_peaks(frame)` 返回每峰一行 `(y, x, mass)`；`mass` 是带通后的积分亮度，只作诊断，峰的亮度与直径不进入结果。
+`find_frame_peaks.py` 定位单帧中的稀疏类高斯峰。核心是 `trackpy.locate`（Crocker–Grier）：带通滤波后在滤波域取局部极大，再在带通图上以质心精修到亚像素。`find_peaks(frame)` 返回每峰一行 `(y, x, mass)`；`mass` 是带通后的积分亮度，只作诊断，峰的亮度与直径不进入结果。
 
 默认参数按 0.18 条件的实测特性标定（背景全局平坦 ~105 counts、读出噪声 σ≈3、峰 FWHM≈6–7 px、每帧 ~500 个单像素脉冲噪声、脉冲最大仅 ~110 counts 超出背景）：
 
@@ -83,3 +83,30 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 ```
 
 CSV 每行一个峰 `y,x,mass`；`--diameter` 与 `--minmass` 可调，其余行为与条件选择逻辑同 `sum_streak_condition.py`。
+
+## 2026-08-03 峰定位方法学审计：流程可视化与高斯拟合对照
+
+两个审计脚本为方法学报告服务（结论与引用见 [`docs/peak-localization.md`](../../docs/peak-localization.md)），默认参数直接 import 自 `find_frame_peaks.py`，不会与被审计的生产参数发生漂移：
+
+- `visualize_peak_pipeline.py` 逐步复现 `tp.locate` 在单帧上的操作并渲染审查图：全帧六联版（原始帧 → 高斯低通 → boxcar 背景 → 带通 → 候选检出与 minmass 筛选 → 精修质心叠加）加两个峰的逐像素质心迭代放大。frame 230：29 个候选、7 个被 minmass 拒绝、22 个保留。注意精修在带通图上进行；脚本为可视化用浮点带通图，而 `locate` 内部用 uint8 量化副本（对质心影响 <0.02 px）。
+- `compare_gauss_refinement.py` 对可复现抽样（`--n-frames 50 --seed 20260803`，脚本会打印帧号清单）逐峰对照 Crocker–Grier 质心与 `tp.refine_leastsq` 二维高斯拟合位置，输出逐峰 CSV、全部审计统计（终端打印）、四联总结图与最大离群峰放大图。1518 峰：92.2% 差值 ≤0.2 px（中位 0.052 px，无系统偏差）；离群全部是高斯拟合撞到 ±3 px 位置边界（非高斯形态斑），质心始终留在亮核上。
+
+在项目根目录运行：
+
+```powershell
+$sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
+& $sandboxState.python `
+  .\analysis/26-07-31-derived-single-sweep/visualize_peak_pipeline.py `
+  (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
+  --central-dot-strength 0.18 --frame-index 230 `
+  --steps-png .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_frame0230_pipeline_steps.png `
+  --zoom-png .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_frame0230_refinement_zoom.png
+
+& $sandboxState.python `
+  .\analysis/26-07-31-derived-single-sweep/compare_gauss_refinement.py `
+  (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
+  .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_gauss_vs_centroid_peaks.csv `
+  --central-dot-strength 0.18 --n-frames 50 --seed 20260803 `
+  --figure .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_gauss_vs_centroid.png `
+  --outliers-figure .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_gauss_outliers_zoom.png
+```
