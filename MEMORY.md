@@ -39,4 +39,5 @@
 - Automatic sandbox environment, initializer and dependency contract: `.codex/environments/environment.toml`, `scripts/init_sandbox.ps1`, `requirements.txt`, `tests/test_init_sandbox.py`.
 - Converter and tests: `scripts/convert_matlab_v73_to_analysis_hdf5.py`, `tests/test_convert_matlab_v73_to_analysis_hdf5.py`.
 - Central-dot frame-sum analysis: `analysis/26-07-31-derived-single-sweep/README.md`, `analysis/26-07-31-derived-single-sweep/sum_streak_condition.py`, `analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_sum.png`.
+- Single-frame sparse peak detection (trackpy Crocker-Grier): `analysis/26-07-31-derived-single-sweep/find_frame_peaks.py`, `tests/test_find_frame_peaks.py`, reviewed overlay `analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_frame0230_peaks.png`.
 - Exact derived-file integrity evidence: `DATA/26-07-31-derived-single-sweep/README.md`.

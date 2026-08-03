@@ -55,3 +55,31 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
   .\drafts\26-07-31_central_dot_0p18_frames `
   --central-dot-strength 0.18
 ```
+
+## 2026-08-03 central-dot 0.18 单帧峰检测
+
+`find_frame_peaks.py` 定位单帧中的稀疏类高斯峰。核心是 `trackpy.locate`（Crocker–Grier）：带通滤波后在滤波域取局部极大，再在原图上以质心精修到亚像素。`find_peaks(frame)` 返回每峰一行 `(y, x, mass)`；`mass` 是带通后的积分亮度，只作诊断，峰的亮度与直径不进入结果。
+
+默认参数按 0.18 条件的实测特性标定（背景全局平坦 ~105 counts、读出噪声 σ≈3、峰 FWHM≈6–7 px、每帧 ~500 个单像素脉冲噪声、脉冲最大仅 ~110 counts 超出背景）：
+
+- `diameter=7`：匹配实测峰宽；
+- `percentile=0`：关闭 trackpy 默认的 64 百分位亮度截断。该截断在这类稀疏帧上会误删峰顶仅超背景 ~110–150 counts 的真实暗峰；
+- `minmass=300`：带通后积分亮度下限。实测脉冲噪声的 mass ≲85，余量充足。
+
+灵敏度下限约为峰顶超出背景 ~110–150 counts；比这更暗的斑不计入。抽验帧（0/230/500/700/999）按"7×7 窗口内超阈像素数 ≥5"的独立判据核对，检出零误检。
+
+验证：合成数据单元测试在 `tests/test_find_frame_peaks.py`（含暗峰、贴边峰、空帧与实测强度的脉冲噪声）。对 0.18 条件全部 1000 帧运行：每帧检出数中位 30、均值 30.5、范围 16–53（p1–p99：18–45），与单帧 ~20 个量级一致。帧 230 的叠加图（22 峰）与 `drafts/26-07-31_central_dot_0p18_frames/frame_0230.png` 目检一致：圈全部落在可见峰上、无空圈；仅一个峰顶 ~108 counts 的极暗斑低于灵敏度下限未检出。
+
+在项目根目录运行：
+
+```powershell
+$sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
+& $sandboxState.python `
+  .\analysis/26-07-31-derived-single-sweep/find_frame_peaks.py `
+  (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
+  .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_frame0230_peaks.csv `
+  --central-dot-strength 0.18 --frame-index 230 `
+  --overlay-png .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_frame0230_peaks.png
+```
+
+CSV 每行一个峰 `y,x,mass`；`--diameter` 与 `--minmass` 可调，其余行为与条件选择逻辑同 `sum_streak_condition.py`。
