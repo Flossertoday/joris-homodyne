@@ -9,9 +9,15 @@
 
 两个文件的逐字段 schema、provenance、校验与复现命令如下。
 
-概览图（`../visualize_detected_peaks.py` 生成；左：全量检出，淡蓝色带为四个保留 x 区间；右：筛选后只剩四条亮带）：
+概览图（就在本目录内，由 `../visualize_detected_peaks.py` 生成）：
 
-![detected-peaks 概览：全量峰表 vs x 范围筛选峰表](../results/26-07-31_central_dot_0p18_detected_peaks_density.png)
+![全量峰表 vs x 范围筛选峰表的探测器密度对照](26-07-31_central_dot_0p18_detected_peaks_density.png)
+
+左：全量检出，四条亮带叠加在全探测器均匀背景检出上，淡蓝色带为四个保留 x 区间；右：筛选后只剩四条亮带。
+
+每个峰都带帧号（`frame` 列，0–999；两个表都覆盖全部 1000 帧），因此可以还原任意单帧的检出。下面六帧单帧散点是"单帧的处理"：每帧只有约 20–40 个稀疏峰点；红色为落入四个保留 x 区间的峰，灰色为被筛选排除的全探测器背景检出。
+
+![六帧单帧检出散点：红色为筛选保留的峰，灰色为被排除的峰](26-07-31_central_dot_0p18_detected_peaks_frames.png)
 
 ## `26-07-31_central_dot_0p18_peaks.h5`（全量峰表）
 

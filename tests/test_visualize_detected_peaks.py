@@ -25,11 +25,13 @@ def load_module():
         raise AssertionError(f"{ANALYSIS_MODULE} is not implemented") from exc
 
 
-def write_peak_table(path: Path, xs, ys, attrs: dict) -> None:
+def write_peak_table(path: Path, xs, ys, attrs: dict, frames=None) -> None:
     xs = np.asarray(xs, dtype=np.float64)
     ys = np.asarray(ys, dtype=np.float64)
+    if frames is None:
+        frames = np.zeros(len(xs), dtype=np.int32)
     with h5py.File(path, "w") as handle:
-        handle.create_dataset("frame", data=np.zeros(len(xs), dtype=np.int32))
+        handle.create_dataset("frame", data=np.asarray(frames, dtype=np.int32))
         handle.create_dataset("x", data=xs)
         handle.create_dataset("y", data=ys)
         handle.create_dataset("mass", data=np.ones(len(xs), dtype=np.float64))
@@ -193,6 +195,111 @@ class CliTests(unittest.TestCase):
             self.assertTrue(output_path.exists())
             self.assertIn("3 peaks full", result.stdout)
             self.assertIn("2 peaks filtered", result.stdout)
+
+    def test_cli_writes_the_frames_png_when_requested(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            full_path = Path(tmp) / "full.h5"
+            filtered_path = Path(tmp) / "filtered.h5"
+            output_path = Path(tmp) / "overview.png"
+            frames_path = Path(tmp) / "frames.png"
+            write_peak_table(
+                full_path,
+                xs=[4.0, 6.0, 18.0, 20.0],
+                ys=[3.0, 9.0, 12.0, 2.0],
+                attrs={
+                    "peak_count": 4,
+                    "frame_count": 2,
+                    "frame_shape": np.array([16, 24]),
+                },
+                frames=[0, 0, 1, 1],
+            )
+            write_peak_table(
+                filtered_path,
+                xs=[4.0, 6.0],
+                ys=[3.0, 9.0],
+                attrs={
+                    "peak_count": 2,
+                    "x_range_intervals": np.array([[2.0, 8.0]]),
+                    "sigma_multiple_used": 2.0,
+                    "source_peak_count": 4,
+                },
+                frames=[0, 1],
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(ANALYSIS_SCRIPT),
+                    str(full_path),
+                    str(filtered_path),
+                    str(output_path),
+                    "--bin-size",
+                    "2",
+                    "--frames-png",
+                    str(frames_path),
+                    "--frames",
+                    "0",
+                    "1",
+                ],
+                text=True,
+                capture_output=True,
+            )
+
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertTrue(output_path.exists())
+            self.assertTrue(frames_path.exists())
+            self.assertIn("per-frame panels", result.stdout)
+
+
+class DefaultFramesTests(unittest.TestCase):
+    def test_spans_the_acquisition_with_six_uniform_frames(self):
+        default_frames = load_module().default_frames
+        self.assertEqual([0, 200, 400, 599, 799, 999], default_frames(1000))
+
+
+class SaveFramesFigureTests(unittest.TestCase):
+    def build_tables(self):
+        full = {
+            "frame": np.array([0, 0, 1, 1], dtype=np.int32),
+            "x": np.array([4.0, 18.0, 6.0, 20.0]),
+            "y": np.array([3.0, 9.0, 12.0, 2.0]),
+            "peak_count": 4,
+            "frame_count": 2,
+            "frame_shape": (16, 24),
+        }
+        filtered = {
+            "frame": np.array([0, 1], dtype=np.int32),
+            "x": np.array([4.0, 6.0]),
+            "y": np.array([3.0, 12.0]),
+            "peak_count": 2,
+            "x_range_intervals": np.array([[2.0, 8.0]]),
+            "sigma_multiple_used": 2.0,
+            "source_peak_count": 4,
+        }
+        return full, filtered
+
+    def test_writes_a_png_for_explicit_frames(self):
+        save_frames_figure = load_module().save_frames_figure
+        full, filtered = self.build_tables()
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = Path(tmp) / "nested" / "frames.png"
+
+            created = save_frames_figure(full, filtered, output_path, frames=[0, 1])
+
+            self.assertEqual(output_path, created)
+            self.assertEqual(b"\x89PNG\r\n\x1a\n", output_path.read_bytes()[:8])
+
+    def test_refuses_to_overwrite_an_existing_figure(self):
+        save_frames_figure = load_module().save_frames_figure
+        full, filtered = self.build_tables()
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = Path(tmp) / "frames.png"
+            output_path.write_bytes(b"existing")
+
+            with self.assertRaises(FileExistsError):
+                save_frames_figure(full, filtered, output_path, frames=[0])
+
+            self.assertEqual(b"existing", output_path.read_bytes())
 
 
 if __name__ == "__main__":

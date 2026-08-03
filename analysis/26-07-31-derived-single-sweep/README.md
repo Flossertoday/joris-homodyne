@@ -132,11 +132,14 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 
 残差在亮带内有轻微相关结构（光斑剖面并非完美高斯），对保守接受范围的定义无影响；`--sigma-multiple` 调起点倍数，`--allow-overlap` 可保留重叠区间。单元测试在 `tests/test_fit_spot_x_ranges.py`（合成四高斯剖面参数恢复、区间与重叠收缩逻辑、CLI 端到端）。
 
-## 2026-08-03 detected-peaks 概览密度图
+## 2026-08-03 detected-peaks 概览图：密度对照与单帧散点
 
-`visualize_detected_peaks.py` 把 `detected-peaks/` 里两个 HDF5 峰表画成探测器网格上的二维密度对照图（4×4 px 分箱，两面板共享 sqrt 色标）：左面板为全量峰表全部 30542 个检出，四条亮带叠加在全探测器均匀分布的背景检出之上，并用淡蓝色带标出筛选保留的四个 x 接受区间（μ ± 2σ）；右面板为 x 范围筛选后的 15958 个峰，背景检出被排除，只剩四条亮带。结果见 [`results/26-07-31_central_dot_0p18_detected_peaks_density.png`](results/26-07-31_central_dot_0p18_detected_peaks_density.png)。
+`visualize_detected_peaks.py` 为 `detected-peaks/` 里的两个 HDF5 峰表生成两张可直接查看的 PNG（图就放在 `detected-peaks/` 里）：
 
-画布尺寸取全量峰表根属性的 `frame_shape`（筛选峰表不记录该属性）；保留区间与所用倍数读自筛选峰表的 `x_range_intervals`、`sigma_multiple_used` 属性。`--bin-size` 调分箱；输出拒绝覆盖。单元测试在 `tests/test_visualize_detected_peaks.py`（分箱坐标、属性读取、拒绝覆盖、CLI 端到端）。
+- [`detected-peaks/26-07-31_central_dot_0p18_detected_peaks_density.png`](detected-peaks/26-07-31_central_dot_0p18_detected_peaks_density.png)：探测器网格上的二维密度对照（4×4 px 分箱，两面板共享 sqrt 色标）。左面板为全量峰表全部 30542 个检出，四条亮带叠加在全探测器均匀分布的背景检出之上，淡蓝色带标出筛选保留的四个 x 接受区间（μ ± 2σ）；右面板为筛选后的 15958 个峰，只剩四条亮带。
+- [`detected-peaks/26-07-31_central_dot_0p18_detected_peaks_frames.png`](detected-peaks/26-07-31_central_dot_0p18_detected_peaks_frames.png)：单帧散点（默认均匀取 6 帧，可用 `--frames` 指定）。峰表的 `frame` 列记录每个峰的帧号，两个表都覆盖全部 1000 帧，因此可还原任意单帧：每帧仅约 20–40 个稀疏峰点，红色为落入保留区间的峰，灰色为被排除的背景检出。保留判据直接 import 自 `fit_spot_x_ranges.py` 的 `acceptance_mask`，不会与生产筛选漂移。
+
+画布尺寸取全量峰表根属性的 `frame_shape`（筛选峰表不记录该属性）；保留区间与所用倍数读自筛选峰表的 `x_range_intervals`、`sigma_multiple_used` 属性。`--bin-size` 调分箱；输出拒绝覆盖。单元测试在 `tests/test_visualize_detected_peaks.py`（分箱坐标、属性读取、默认帧选取、拒绝覆盖、CLI 端到端）。
 
 在项目根目录运行：
 
@@ -146,5 +149,6 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
   .\analysis/26-07-31-derived-single-sweep/visualize_detected_peaks.py `
   .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks.h5 `
   .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5 `
-  .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_detected_peaks_density.png
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_detected_peaks_density.png `
+  --frames-png .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_detected_peaks_frames.png
 ```
