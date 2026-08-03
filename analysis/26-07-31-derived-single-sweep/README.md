@@ -131,3 +131,20 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 背景 10.94 峰/bin（全探测器均匀分布的检出）。四区间互不重叠，保留 15958 / 30542 峰（52.2%）。诊断图（直方图 + 模型 + 分量 + 接受域 + 残差）：[`results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png`](results/26-07-31_central_dot_0p18_xprofile_four_gaussians.png)；拟合参数与不确定度：[`results/26-07-31_central_dot_0p18_four_gaussians_fit.csv`](results/26-07-31_central_dot_0p18_four_gaussians_fit.csv)；筛选后峰表：[`detected-peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5`](detected-peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5)。
 
 残差在亮带内有轻微相关结构（光斑剖面并非完美高斯），对保守接受范围的定义无影响；`--sigma-multiple` 调起点倍数，`--allow-overlap` 可保留重叠区间。单元测试在 `tests/test_fit_spot_x_ranges.py`（合成四高斯剖面参数恢复、区间与重叠收缩逻辑、CLI 端到端）。
+
+## 2026-08-03 detected-peaks 概览密度图
+
+`visualize_detected_peaks.py` 把 `detected-peaks/` 里两个 HDF5 峰表画成探测器网格上的二维密度对照图（4×4 px 分箱，两面板共享 sqrt 色标）：左面板为全量峰表全部 30542 个检出，四条亮带叠加在全探测器均匀分布的背景检出之上，并用淡蓝色带标出筛选保留的四个 x 接受区间（μ ± 2σ）；右面板为 x 范围筛选后的 15958 个峰，背景检出被排除，只剩四条亮带。结果见 [`results/26-07-31_central_dot_0p18_detected_peaks_density.png`](results/26-07-31_central_dot_0p18_detected_peaks_density.png)。
+
+画布尺寸取全量峰表根属性的 `frame_shape`（筛选峰表不记录该属性）；保留区间与所用倍数读自筛选峰表的 `x_range_intervals`、`sigma_multiple_used` 属性。`--bin-size` 调分箱；输出拒绝覆盖。单元测试在 `tests/test_visualize_detected_peaks.py`（分箱坐标、属性读取、拒绝覆盖、CLI 端到端）。
+
+在项目根目录运行：
+
+```powershell
+$sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
+& $sandboxState.python `
+  .\analysis/26-07-31-derived-single-sweep/visualize_detected_peaks.py `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks.h5 `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5 `
+  .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_detected_peaks_density.png
+```

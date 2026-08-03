@@ -9,6 +9,10 @@
 
 两个文件的逐字段 schema、provenance、校验与复现命令如下。
 
+概览图（`../visualize_detected_peaks.py` 生成；左：全量检出，淡蓝色带为四个保留 x 区间；右：筛选后只剩四条亮带）：
+
+![detected-peaks 概览：全量峰表 vs x 范围筛选峰表](../results/26-07-31_central_dot_0p18_detected_peaks_density.png)
+
 ## `26-07-31_central_dot_0p18_peaks.h5`（全量峰表）
 
 由 `../extract_condition_peaks.py` 生成：对 `DATA/26-07-31-derived-single-sweep/26-07-31_single_sweep.h5` 的 `central_dot_0p18` 条件逐帧运行 `find_frame_peaks.py` 的生产峰检测（trackpy Crocker–Grier，`diameter=7, minmass=300, percentile=0`）。每个峰一行：
