@@ -19,7 +19,7 @@ HDF5 中每帧都能追溯到源 MAT 文件和源文件内帧号，并记录源�
 
 ## Python
 
-本地科学代码使用从机器 `sci` 环境克隆出的、位于非 OneDrive 路径的项目环境。核心库由 `requirements-analysis.txt` 声明；不要在仓库中提交环境目录。Codex Desktop 激活 `.codex/environments/environment.toml` 时会自动调用 `scripts/init_sandbox.ps1`；若未激活或 setup 失败，代理按 `AGENTS.md` 自行调用。脚本优先复用工作树 `.venv`，否则从 `sci` 建立带系统包的 `.venv`，然后只安装缺失依赖。
+本地科学代码使用从机器 `sci` 环境克隆出的、位于非 OneDrive 路径的项目环境。核心库由钉版本的 `requirements.txt` 声明；不要在仓库中提交环境目录。Codex Desktop 激活 `.codex/environments/environment.toml` 时会自动调用 `scripts/init_sandbox.ps1`；若未激活或 setup 失败，代理按 `AGENTS.md` 自行调用。脚本优先复用隔离的工作树 `.venv`，否则从 `sci` 重建不带系统包的隔离 `.venv`，并在每次运行时按钉版清单 pip 同步（全部满足时 pip 本地 no-op）。
 
 自动初始化后运行完整测试：
 

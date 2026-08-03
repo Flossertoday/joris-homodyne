@@ -1,4 +1,5 @@
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -9,7 +10,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 INIT_SCRIPT = PROJECT_ROOT / "scripts" / "init_sandbox.ps1"
-REQUIREMENTS = PROJECT_ROOT / "requirements-analysis.txt"
+REQUIREMENTS = PROJECT_ROOT / "requirements.txt"
 LOCAL_ENVIRONMENT = PROJECT_ROOT / ".codex" / "environments" / "environment.toml"
 
 
@@ -55,7 +56,18 @@ class SandboxInitializationTests(unittest.TestCase):
             if line.strip() and not line.lstrip().startswith("#")
         ]
 
-        self.assertEqual(["numpy", "scipy", "h5py", "matplotlib"], packages)
+        self.assertEqual(
+            [
+                "numpy==1.26.4",
+                "scipy==1.11.4",
+                "h5py==3.16.0",
+                "matplotlib==3.8.0",
+                "trackpy==0.7",
+            ],
+            packages,
+        )
+        module_names = [re.split(r"[=<>\[;\s!]", line)[0] for line in packages]
+        self.assertEqual(["numpy", "scipy", "h5py", "matplotlib", "trackpy"], module_names)
 
     def test_initializer_runs_under_windows_powershell(self):
         executable = shutil.which("powershell")
@@ -87,9 +99,9 @@ class SandboxInitializationTests(unittest.TestCase):
             project_root = Path(tmp)
             data_root = project_root / "DATA"
             data_root.mkdir()
-            requirements = project_root / "requirements-analysis.txt"
+            requirements = project_root / "requirements.txt"
             requirements.write_text(
-                "numpy\nscipy\nh5py\nmatplotlib\n",
+                "numpy==1.26.4\nscipy==1.11.4\nh5py==3.16.0\nmatplotlib==3.8.0\n",
                 encoding="utf-8",
             )
             command = " ".join(
@@ -128,9 +140,9 @@ class SandboxInitializationTests(unittest.TestCase):
             project_root = Path(tmp)
             data_root = project_root / "DATA"
             data_root.mkdir()
-            requirements = project_root / "requirements-analysis.txt"
+            requirements = project_root / "requirements.txt"
             requirements.write_text(
-                "numpy\nscipy\nh5py\nmatplotlib\n",
+                "numpy==1.26.4\nscipy==1.11.4\nh5py==3.16.0\nmatplotlib==3.8.0\n",
                 encoding="utf-8",
             )
             command = " ".join(

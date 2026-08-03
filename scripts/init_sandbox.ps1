@@ -66,6 +66,21 @@ function Test-PythonCommand {
     return $LASTEXITCODE -eq 0
 }
 
+function Test-VenvIsolated {
+    param([Parameter(Mandatory)][string]$VenvDirectory)
+
+    $pyvenvCfg = Join-Path $VenvDirectory "pyvenv.cfg"
+    if (-not (Test-Path -LiteralPath $pyvenvCfg -PathType Leaf)) {
+        return $false
+    }
+    foreach ($line in Get-Content -LiteralPath $pyvenvCfg) {
+        if ($line -match '^\s*include-system-site-packages\s*=\s*true\s*$') {
+            return $false
+        }
+    }
+    return $true
+}
+
 function Find-BasePython {
     param([Parameter(Mandatory)][string]$Root)
 
@@ -113,35 +128,50 @@ $resolvedProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $safeDirectory = Add-ProcessGitSafeDirectory -Directory $resolvedProjectRoot
 
 if (-not $RequirementsPath) {
-    $RequirementsPath = Join-Path $resolvedProjectRoot "requirements-analysis.txt"
+    $RequirementsPath = Join-Path $resolvedProjectRoot "requirements.txt"
 }
 $resolvedRequirements = (Resolve-Path -LiteralPath $RequirementsPath).Path
 $requiredModules = @(
     Get-Content -LiteralPath $resolvedRequirements |
         ForEach-Object { $_.Trim() } |
-        Where-Object { $_ -and -not $_.StartsWith("#") }
+        Where-Object { $_ -and -not $_.StartsWith("#") } |
+        ForEach-Object { ($_ -split '[=<>!\[;\s]')[0] } |
+        Where-Object { $_ }
 )
 if ($requiredModules.Count -eq 0) {
     throw "No Python dependencies were declared in $resolvedRequirements"
 }
 
 $environmentCreated = $false
-$venvPython = Join-Path $resolvedProjectRoot ".venv\Scripts\python.exe"
+$venvDirectory = Join-Path $resolvedProjectRoot ".venv"
+$venvPython = Join-Path $venvDirectory "Scripts\python.exe"
 if ($PythonPath) {
     if (-not (Test-PythonCommand -Candidate $PythonPath)) {
         throw "The requested Python is not usable: $PythonPath"
     }
     $resolvedPython = (Resolve-Path -LiteralPath $PythonPath).Path
 }
-elseif (Test-PythonCommand -Candidate $venvPython) {
+elseif ((Test-PythonCommand -Candidate $venvPython) -and (Test-VenvIsolated -VenvDirectory $venvDirectory)) {
     $resolvedPython = (Resolve-Path -LiteralPath $venvPython).Path
 }
 elseif ($CheckOnly) {
-    $resolvedPython = Find-BasePython -Root $resolvedProjectRoot
+    if (Test-PythonCommand -Candidate $venvPython) {
+        # CheckOnly stays read-only: report against the existing .venv even if
+        # it still shares the base environment's site-packages.
+        $resolvedPython = (Resolve-Path -LiteralPath $venvPython).Path
+    }
+    else {
+        $resolvedPython = Find-BasePython -Root $resolvedProjectRoot
+    }
 }
 else {
+    # Recreate from scratch: the previous .venv is either unusable or still
+    # leaks the base environment through --system-site-packages.
+    if (Test-Path -LiteralPath $venvDirectory -PathType Container) {
+        Remove-Item -LiteralPath $venvDirectory -Recurse -Force
+    }
     $basePython = Find-BasePython -Root $resolvedProjectRoot
-    & $basePython -m venv --system-site-packages (Join-Path $resolvedProjectRoot ".venv")
+    & $basePython -m venv $venvDirectory
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to create the worktree .venv with $basePython"
     }
@@ -150,7 +180,11 @@ else {
 }
 
 $missingModules = @(Get-MissingPythonModules -Python $resolvedPython -Modules $requiredModules)
-if ($missingModules.Count -gt 0 -and -not $CheckOnly) {
+$isWorktreeVenv = $resolvedPython.StartsWith($venvDirectory, [StringComparison]::OrdinalIgnoreCase)
+if (-not $CheckOnly -and $isWorktreeVenv) {
+    # The worktree .venv is synced from the pinned requirements on every run;
+    # pip no-ops locally when every pin is already satisfied. An explicit
+    # external -PythonPath is never installed into.
     $installOutput = @(
         & $resolvedPython -m pip install --disable-pip-version-check -r $resolvedRequirements 2>&1
     )

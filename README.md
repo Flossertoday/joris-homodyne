@@ -20,7 +20,7 @@
 
 ## Codex 自动初始化
 
-用户不需要运行初始化命令。项目提供 `.codex/environments/environment.toml`：Codex Desktop 激活该 Local environment 时，会在新聊天创建工作树阶段调用 `scripts/init_sandbox.ps1`。脚本复用或创建 `.venv`，按 `requirements-analysis.txt` 补齐缺失依赖，发现真实 `DATA` 根，并把可复用结果写到忽略 Git 的 `tmp/sandbox-initialization.json`。
+用户不需要运行初始化命令。项目提供 `.codex/environments/environment.toml`：Codex Desktop 激活该 Local environment 时，会在新聊天创建工作树阶段调用 `scripts/init_sandbox.ps1`。脚本复用或重建隔离的 `.venv`，按钉版本的 `requirements.txt` 同步依赖，发现真实 `DATA` 根，并把可复用结果写到忽略 Git 的 `tmp/sandbox-initialization.json`。
 
 `AGENTS.md` 要求后续 Codex 代理先消费这份状态；即使 App 未激活项目环境，或 setup 失败，代理也必须自行运行同一脚本恢复并反馈，不把环境管理转交给用户。共享 Git 元数据若位于沙盒写入根之外，状态会明确报告，但初始化不会自行扩大权限。
 

@@ -1,0 +1,5 @@
+numpy==1.26.4
+scipy==1.11.4
+h5py==3.16.0
+matplotlib==3.8.0
+trackpy==0.7
