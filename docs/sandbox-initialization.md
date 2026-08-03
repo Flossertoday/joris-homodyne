@@ -84,7 +84,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\init_sandbox.ps1
 - 初始化脚本重新设计：只复用“隔离”的 `.venv`（`pyvenv.cfg` 不含 `include-system-site-packages = true`）；仍共享基础环境 site-packages 的 `.venv` 会被删除重建，新环境不再使用 `--system-site-packages`。
 - 每次非 `-CheckOnly` 运行都按钉版清单对工作树 `.venv` 执行 `pip install -r`：全部满足时 pip 本地 no-op，版本不符时由 pip 修正；缺失探测保持按模块名存在性。显式外部 `-PythonPath` 永不安装。`-CheckOnly` 保持只读，对现有 `.venv` 出报告。
 - 后果与边界变化：新工作树首次初始化需要 pip 缓存或网络来安装全部钉版包——上节“零网络依赖”的结论不再适用。基础 sci 环境的 h5py 对工作树不再关键，但让“尚无 `.venv` 时的 `-CheckOnly`”仍能报告 ready。
-- 主项目 `.venv` 目前仍是旧的共享架构，已补装 trackpy 0.7 使清单闭合；下一次完整初始化会自动把它迁移为隔离 `.venv`。
+- 主项目 `.venv` 已于同日完成自动迁移：完整初始化删除旧共享 `.venv` 并重建隔离环境（`pyvenv.cfg` 为 `include-system-site-packages = false`），五项钉版依赖 pip 同步后 `ready=true`；新架构下完整测试套件 24 项全部通过（含当日新增、依赖 trackpy 的 4 项 find_frame_peaks 测试）。
+- 工作树模拟验证：分支尖端提交仍是旧脚本与 `requirements-analysis.txt`，故将新脚本和 `requirements.txt` 复制进 `git worktree add --detach` 的模拟工作树再运行初始化——其中旧的共享 `.venv` 被自动迁移为隔离环境，含 trackpy 的依赖全部同步成功，`DATA/` 正确回退主项目，`common_directory_external=true` 与 `metadata_write_may_require_approval=true` 标记正确；验证后工作树已移除。
 
 ## 剩余外层责任
 
