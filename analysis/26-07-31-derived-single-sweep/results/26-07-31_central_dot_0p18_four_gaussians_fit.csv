@@ -1,0 +1,6 @@
+component,label,amplitude,amplitude_std,mu,mu_std,sigma,sigma_std,range_lo,range_hi
+background,,10.9425,0.1343,,,,,,
+spot1,condensate A arm A,110.9831,3.3529,425.9273,0.3468,12.6893,0.3035,400.5487,451.3059
+spot2,condensate B arm A,97.0219,2.9782,489.8334,0.4013,14.4438,0.3583,460.9459,518.7210
+spot3,condensate A arm B,79.4829,2.5090,657.0269,0.5028,17.3366,0.4576,622.3537,691.7001
+spot4,condensate B arm B,77.2199,2.5510,734.2396,0.4990,16.2838,0.4531,701.6721,766.8072
