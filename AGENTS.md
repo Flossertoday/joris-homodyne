@@ -16,3 +16,4 @@
 - An independent task normally has its own branch and worktree, based on current `main`.
 - A useful handoff is a focused commit plus branch name, commit hash, verification evidence, risks, and relevant untracked files.
 - Task branches are integrated into `main` with a regular merge that preserves their commits. Pushing and worktree cleanup are separate follow-on actions.
+- Kimi Code must commit through `scripts/kimi-commit.sh` (Git Bash), never bare `git commit`. The script sets author and committer to `Kimi K3 <kimi-k3@users.noreply.github.com>` and appends `Model:` / `Thinking:` trailers parsed from `~/.kimi-code/config.toml`; if the session switched model or thinking effort mid-run, pass the real values via the `KIMI_MODEL` / `KIMI_THINKING` environment variables.
