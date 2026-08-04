@@ -8,6 +8,7 @@
 - Do not ask the user to initialize the sandbox or manage its Python dependencies.
 - Use the recorded `git.safe_directory` with command-local `git -c safe.directory=...` when ownership checks require it. The initializer does not grant access to external shared Git metadata.
 - Test command after initialization: `.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v`.
+- Matrix-valued figures (camera frames, heatmaps, density maps, frame sums) must include a colorbar making the intensity mapping (LUT) explicit: the colormap, the normalization (linear, sqrt, log, percentile clipping), and the displayed value range.
 
 ## Git
 
