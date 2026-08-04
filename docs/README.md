@@ -6,6 +6,7 @@
 - [measurement-claims.md](measurement-claims.md)：Josephson 动力学、强度关联、CSI 与 squeezing 各自能支持什么结论。
 - [literature.md](literature.md)：核心论文、相邻先例及其对本项目的实际约束。
 - [data.md](data.md)：原始 MAT、分析 HDF5、环境和可重复性约定。
+- [streak-time-axis.md](streak-time-axis.md)：streak 纵轴时间窗的 metadata 调查、1 ns 窗口依据与轴约定。
 - [peak-localization.md](peak-localization.md)：单帧峰定位算法（Crocker–Grier/trackpy）、圆心语义与二维高斯拟合对照证据。
 - [sandbox-initialization.md](sandbox-initialization.md)：托管 Windows 沙盒的初始化入口、实测问题和剩余权限边界。
 

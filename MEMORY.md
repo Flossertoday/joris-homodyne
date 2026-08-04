@@ -22,7 +22,7 @@
 - Current raw data: `DATA/26-07-31-single-sweep/`; verified lossless analysis copy: `DATA/26-07-31-derived-single-sweep/26-07-31_single_sweep.h5`.
 - Treat an HDF5 `source_root` attribute as conversion-time provenance, not a live path after a directory rename; rebind embedded `source_files/relative_path` values to the current raw directory.
 - This acquisition is streak-only. Only `StreakCamImage` is analysis pixel payload; Main/Second camera arrays and Cam2 state are excluded.
-- `ZeroOrderPowerRatio` is the central-dot-strength field: the two conditions are 0.05 and 0.18, each with 1000 frames. Detector axes remain uncalibrated.
+- `ZeroOrderPowerRatio` is the central-dot-strength field: the two conditions are 0.05 and 0.18, each with 1000 frames. The vertical frame axis is the streak time axis (26-07-31 window: 1 ns over 1016 px; `StreakRange` device setting 5 per the acquisition README); the horizontal axis stays uncalibrated detector pixels. Agreed metadata mappings live in the root `metadata-conventions.toml`.
 - The single derived HDF5 is a multi-condition container: raw acquisition blocks 2 and 3 map to `central_dot_0p05` and `central_dot_0p18`, respectively; it is not one HDF5 per measurement condition.
 - The 0.18 condition's element-wise sum over 1000 streak frames shows four bright bands. Its script, display rule and reviewed PNG live under the matching `analysis/26-07-31-derived-single-sweep/` directory.
 
@@ -35,6 +35,7 @@
 - Claim/evidence boundaries and equations: `docs/measurement-claims.md`.
 - Literature conclusions and primary sources: `docs/literature.md`.
 - Data format, environment and reproducibility rules: `docs/data.md`.
+- Streak vertical-axis time-window investigation and axis conventions: `docs/streak-time-axis.md`, agreed quantities `metadata-conventions.toml`.
 - Managed-sandbox initialization observations and requirements: `docs/sandbox-initialization.md`.
 - Automatic sandbox environment, initializer and dependency contract: `.codex/environments/environment.toml`, `scripts/init_sandbox.ps1`, `requirements.txt`, `tests/test_init_sandbox.py`.
 - Converter and tests: `scripts/convert_matlab_v73_to_analysis_hdf5.py`, `tests/test_convert_matlab_v73_to_analysis_hdf5.py`.

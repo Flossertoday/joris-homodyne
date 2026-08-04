@@ -17,6 +17,7 @@
 - `tests/`：脚本测试。
 - `.codex/`：项目级 Codex 配置。
 - `MEMORY.md`：简短的项目状态和细节索引，不承载长篇论证。
+- `metadata-conventions.toml`：采集 metadata 的约定量（central-dot 条件字段、streak 轴语义与时间窗）。
 
 ## Codex 自动初始化
 
@@ -40,5 +41,6 @@
 - [测量与物理主张](docs/measurement-claims.md)
 - [文献判断和来源](docs/literature.md)
 - [数据与环境约定](docs/data.md)
+- [streak 纵轴时间窗调查与约定](docs/streak-time-axis.md)
 - [沙盒初始化方法与反馈](docs/sandbox-initialization.md)
 
