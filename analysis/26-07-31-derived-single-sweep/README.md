@@ -180,3 +180,50 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
   --central-dot-strength 0.18 `
   --figure .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_artificial_spot_errors.png
 ```
+
+## 2026-08-04 central-dot 0.18 g2 关联矩阵(HBT + streak 光子计数)
+
+`compute_g2_matrix.py` 按 Adiyatullin et al. 2017(Nat. Commun. 8:1329)Supplementary Note 1 的方法,从 x 范围筛选峰表计算时间分辨二阶关联矩阵,并扩展到跨 condensate 关联。四个光斑(左→右 = condensate A/B × HBT arm 1/2)天然给出论文同款 HBT 几何:
+
+- **同 condensate(AA、BB)**:两臂互相关 `g2(t1,t2) = <n1(t1)·n2(t2)> / (<n1(t1)><n2(t2)>)`,平均对全部 1000 帧进行;两臂独立探测使估计自动为正常序(无自重合项)。
+- **跨 condensate(AB)**:臂求和后的总计数互相关,所有项同样跨探测器;`g2_BA(t1,t2) = g2_AB(t2,t1)`(τ 剖面两个取向都存,二维图只存 AB)。
+- **背景修正**(默认开,`--no-background-correction` 可关):用全量峰表四个 x 区间**之外**的检出估计逐 y-bin 均匀背景密度,β_class(t) = ρ(y)·窗宽·bin 宽;按 `n = s + b`、背景与信号及臂间独立代数修正 `<s1s2>` 与 `<s_i>`。本数据集窗口内背景占保留计数的 17–23%,背景 y 平坦性 chi2/ndf ≈ 1.1–1.8。
+- **误差**:二维 map 与零延迟对角用 `<n1>`、`<n2>`、`<n1·n2>` 的 standard error 一阶传播(论文方法;本占据率下被忽略的协方差项 <1%);聚合量(g2(τ) 剖面与其 τ=0 处的全窗口 pooled g2(0))用 leave-one-frame-out jackknife,自动包含全部协方差。
+
+**统计局限(重要)**:论文有 390 万脉冲,本数据集只有 1000 帧。用户指定 bin 宽 1/3/6 px(≈1/3/6 ps)下,同 condensate 对每帧每 bin 的重合事件 ~0.02 次,**逐 bin 的 g2(0)(t) 曲线 SEM 远大于任何物理信号,只作展示**(图中 SEM>0.5 区域按论文 Fig.2a 的方式灰显);有统计意义的只有聚合量。pooled g2(0)(jackknife SEM):
+
+| bin 宽 | AA | BB | AB |
+|---|---|---|---|
+| 1 px (0.98 ps) | 0.96 ± 0.39 | 0.76 ± 0.37 | 1.04 ± 0.20 |
+| 3 px (2.95 ps) | 1.06 ± 0.23 | 1.09 ± 0.23 | 0.98 ± 0.12 |
+| 6 px (5.91 ps) | 1.07 ± 0.16 | 1.15 ± 0.17 | 0.95 ± 0.08 |
+
+三档 bin 宽下全部 pooled g2(0) 与 Poisson(g2=1)在约 1σ 内一致——**当前 1000 帧统计量下未探测到偏离 Poisson 的关联**。bin 宽可用 `--time-bins-px` 任意改(更宽 bin 换统计量)。
+
+**宽 bin 扫描(8/16/32/64 px,2026-08-04 补档)**:为了用统计量换分辨率,追加一档宽 bin 运行,pooled g2(0)(jackknife SEM):
+
+| bin 宽 | AA | BB | AB |
+|---|---|---|---|
+| 8 px (7.87 ps) | 1.12 ± 0.14 | 1.03 ± 0.15 | 0.94 ± 0.07 |
+| 16 px (15.75 ps) | 1.06 ± 0.10 | 1.18 ± 0.11 | 0.98 ± 0.05 |
+| 32 px (31.50 ps) | 1.08 ± 0.07 | 1.07 ± 0.07 | 1.00 ± 0.04 |
+| 64 px (62.99 ps) | 1.05 ± 0.05 | 1.01 ± 0.05 | 0.97 ± 0.02 |
+
+结论仍是没有可称探测的偏离:同 condensate 的 pooled 值在全部 8 档 bin 宽(1–64 px)中 7 档略高于 1(+0.05 ~ +0.08,约 1–1.5σ),与帧级 condensate 总数经典涨落的预期方向一致,但跨 condensate AB 始终贴 1(0.97–1.00)、τ 剖面平坦,不能称为探测;若该 excess 为真,约 4000 帧可推到 ~3σ。这组结果 HDF5 在 `DATA/26-07-31-derived-single-sweep/g2/26-07-31_central_dot_0p18_g2_bin8_16_32_64px.h5`,16 张 PNG 同命名规则在 `results/`。26-07-31 数据组的 g2 分析到此为止,后续时间分辨关联测量转到带脉冲标定的 26-08-04 数据集。
+
+输出:结果 HDF5(数组 + provenance)写到 git 忽略的 `DATA/26-07-31-derived-single-sweep/g2/26-07-31_central_dot_0p18_g2.h5`(每 bin 宽一组:强度、不平衡、四种 g2 的二维 map+SEM、零延迟曲线、τ 剖面、pooled 标量);每 bin 宽 4 张 PNG(强度+z、零延迟、二维 map、τ 剖面)在 `results/`(命名 `26-07-31_central_dot_0p18_g2_{intensities,zero_delay,map,tau}_bin{w}px.png`)。二维 map 用 RdBu_r、以 g2=1 为中心的双段线性归一化,colorbar 标明色标与值域(遵守项目 LUT 规则);NaN(修正后强度 ≤0 的 bin)显示为浅灰。单元测试在 `tests/test_compute_g2_matrix.py`(Poisson/bunched 合成恢复、背景修正代数、jackknife 与 map SEM 对 Monte Carlo、CLI 端到端与拒绝覆盖)。
+
+在项目根目录运行(输出拒绝覆盖,重跑需先改名):
+
+```powershell
+$sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
+& $sandboxState.python `
+  .\analysis/26-07-31-derived-single-sweep/compute_g2_matrix.py `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks_xrange2p0sigma.h5 `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks.h5 `
+  --output-h5 (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\g2\26-07-31_central_dot_0p18_g2.h5") `
+  --figure-dir .\analysis/26-07-31-derived-single-sweep/results `
+  --time-bins-px 1 3 6
+```
+
+宽 bin 补档用同一命令,改 `--time-bins-px 8 16 32 64`,输出文件名为 `26-07-31_central_dot_0p18_g2_bin8_16_32_64px.h5`。
