@@ -257,6 +257,39 @@ class DefaultFramesTests(unittest.TestCase):
         self.assertEqual([0, 200, 400, 599, 799, 999], default_frames(1000))
 
 
+class ShadeXRangesTests(unittest.TestCase):
+    def test_shades_one_band_per_interval_with_label_on_the_first(self):
+        shade_x_ranges = load_module().shade_x_ranges
+        from matplotlib import pyplot as plt
+
+        figure, axis = plt.subplots()
+        shade_x_ranges(
+            axis,
+            np.array([[2.0, 8.0], [12.0, 18.0]]),
+            label="x-range (ROI)",
+        )
+
+        self.assertEqual(2, len(axis.patches))
+        xs = axis.patches[0].get_path().vertices[:, 0]
+        self.assertEqual((2.0, 8.0), (float(xs.min()), float(xs.max())))
+        xs = axis.patches[1].get_path().vertices[:, 0]
+        self.assertEqual((12.0, 18.0), (float(xs.min()), float(xs.max())))
+        self.assertEqual("x-range (ROI)", axis.patches[0].get_label())
+        self.assertIsNone(axis.patches[1].get_label())
+        plt.close(figure)
+
+    def test_omits_the_legend_entry_without_a_label(self):
+        shade_x_ranges = load_module().shade_x_ranges
+        from matplotlib import pyplot as plt
+
+        figure, axis = plt.subplots()
+        shade_x_ranges(axis, np.array([[2.0, 8.0]]))
+
+        self.assertEqual(1, len(axis.patches))
+        self.assertIsNone(axis.patches[0].get_label())
+        plt.close(figure)
+
+
 class SaveFramesFigureTests(unittest.TestCase):
     def build_tables(self):
         full = {
