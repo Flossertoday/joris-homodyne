@@ -17,6 +17,7 @@
 - `tests/`：脚本测试。
 - `.codex/`：项目级 Codex 配置。
 - `MEMORY.md`：简短的项目状态和细节索引，不承载长篇论证。
+- `metadata-conventions.toml`：采集 metadata 的约定量（central-dot 条件字段、streak 轴语义与时间窗）。
 
 ## Codex 自动初始化
 

@@ -1,0 +1,33 @@
+# Agreed meanings of acquisition-metadata quantities.
+#
+# Extracted once from the raw MATLAB structVar metadata and the acquisition
+# notes so that scripts and figures use these mappings instead of re-deriving
+# them per task. Sources: DATA/26-07-31-single-sweep/ (raw, git-ignored) and
+# its README.txt.
+
+[conditions.central_dot_strength]
+# structVar field carrying the central-dot strength that defines the conditions.
+field = "ZeroOrderPowerRatio"
+# Recorded values in the 2026-07-31 batch -> derived conditions
+# central_dot_0p05 and central_dot_0p18.
+values = [0.05, 0.18]
+
+[streak_camera.axes]
+# Streak frame layout: the vertical axis is time; the horizontal axis is plain
+# detector pixels and needs no coordinate transform.
+vertical_axis = "time"
+horizontal_axis = "detector_pixels"
+# Axis indices in the derived frames datasets (frames[acquisition_frame, y, x]).
+time_axis_index = 1
+pixel_axis_index = 2
+
+[streak_camera.time_range]
+# structVar field carrying the HPD-TA "Time Range" device setting. The setting
+# is device-enumerated (an index into the sweep unit's range list), so the
+# actual window is taken from the acquisition notes, not from the raw number.
+field = "StreakRange"
+device_setting = 5
+# Time window spanned by the full vertical frame, from the acquisition notes.
+window_ns = 1.0
+window_source = "DATA/26-07-31-single-sweep/README.txt: 'Scan of 1 ns window'"
+# 2026-07-31 batch: 1016 vertical pixels span 1 ns -> ~0.984 ps/px.

@@ -33,5 +33,5 @@ HDF5 中每帧都能追溯到源 MAT 文件和源文件内帧号，并记录源�
 
 ## 轴标定
 
-当前 HDF5 的两个 detector axes 仍标记为 `uncalibrated`。在获得实验记录或标定图前，不应擅自把它们写成 time、space、energy、left/right 或确定方向的 x/y。
+纵轴（detector axis 1）已确认为 streak 时间轴：整帧高度对应采集时间窗，窗口由源 metadata 的 `StreakRange` 字段（HPD-TA "Time Range" 设备档位，枚举值）配合采集 README 的记录确定；26-07-31 批次为 1 ns（1016 px，约 0.984 ps/px）。约定映射集中在根目录 `metadata-conventions.toml`。横轴（detector axis 2）仍是未标定的探测器像素，不应写成 space、energy、left/right 或确定方向。派生 HDF5 中的 `axis_semantics_status="uncalibrated"` 是转换时的保守标签，轴语义以本节和 `metadata-conventions.toml` 为准。
 
