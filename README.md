@@ -41,5 +41,6 @@
 - [测量与物理主张](docs/measurement-claims.md)
 - [文献判断和来源](docs/literature.md)
 - [数据与环境约定](docs/data.md)
+- [streak 纵轴时间窗调查与约定](docs/streak-time-axis.md)
 - [沙盒初始化方法与反馈](docs/sandbox-initialization.md)
 

@@ -35,6 +35,7 @@
 - Claim/evidence boundaries and equations: `docs/measurement-claims.md`.
 - Literature conclusions and primary sources: `docs/literature.md`.
 - Data format, environment and reproducibility rules: `docs/data.md`.
+- Streak vertical-axis time-window investigation and axis conventions: `docs/streak-time-axis.md`, agreed quantities `metadata-conventions.toml`.
 - Managed-sandbox initialization observations and requirements: `docs/sandbox-initialization.md`.
 - Automatic sandbox environment, initializer and dependency contract: `.codex/environments/environment.toml`, `scripts/init_sandbox.ps1`, `requirements.txt`, `tests/test_init_sandbox.py`.
 - Converter and tests: `scripts/convert_matlab_v73_to_analysis_hdf5.py`, `tests/test_convert_matlab_v73_to_analysis_hdf5.py`.
