@@ -403,6 +403,15 @@ def summarize(rows, minmass=DEFAULT_MINMASS):
     dy, dx = matched[:, col["dy"]], matched[:, col["dx"]]
     radial = np.hypot(dy, dx)
     ratio = radial / matched[:, col["ep_det"]]
+    # Subpixel-phase bias: fit err = a*sin(2*pi*phase) + b*cos(2*pi*phase) and
+    # report the residual; the window-truncated centroid bias is only partly
+    # sinusoidal, so the residual keeps the higher harmonics.
+    bias = []
+    for err, truth in ((dy, "y"), (dx, "x")):
+        phase = matched[:, col[f"{truth}_true"]] % 1
+        design = np.column_stack([np.sin(2 * np.pi * phase), np.cos(2 * np.pi * phase)])
+        coef, *_ = np.linalg.lstsq(design, err, rcond=None)
+        bias.append((np.hypot(*coef), np.sqrt(np.mean((err - design @ coef) ** 2))))
     return (
         f"{len(table)} injections, {len(matched)} matched "
         f"({len(matched) / len(table):.1%}); completeness above "
@@ -413,7 +422,10 @@ def summarize(rows, minmass=DEFAULT_MINMASS):
         f"radial error: median {np.median(radial):.4f} px, "
         f"p90 {np.percentile(radial, 90):.4f} px, max {radial.max():.4f} px; "
         f"radial/ep ratio median {np.median(ratio):.2f} "
-        f"(p16–p84 {np.percentile(ratio, 16):.2f}–{np.percentile(ratio, 84):.2f})"
+        f"(p16–p84 {np.percentile(ratio, 16):.2f}–{np.percentile(ratio, 84):.2f})\n"
+        f"subpixel-phase bias (sin/cos fit): amplitude {bias[0][0]:.4f} (y) / "
+        f"{bias[1][0]:.4f} (x) px, residual RMS {bias[0][1]:.4f} (y) / "
+        f"{bias[1][1]:.4f} (x) px"
     )
 
 

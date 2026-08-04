@@ -72,3 +72,28 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 ```
 
 筛选文件名记录了最终使用的判据倍数；若未来解决重叠归属问题并采用更宽区间，应以新文件名重新生成。
+
+## `26-07-31_central_dot_0p18_peaks_ep.h5`（带逐峰定位不确定度的峰表）
+
+由 `../localization_uncertainty.py` 生成：在全量峰表基础上逐峰附 Savin–Doyle 静态误差 `ep`（误差分析的完整记录见 [`docs/peak-localization-error.md`](../../../docs/peak-localization-error.md)）。schema 为全量峰表四列（`frame, y, x, mass`）加：
+
+- `ep`（float64）：逐峰静态定位误差估计 [px]，`ep = (noise/mass) × noise_size × √(Σx² over mask)`，`diameter=7, noise_size=1`；
+- `frame_noise`（float64，1000 行）：逐帧带通背景噪声（未截零带通图的 MAD 标准差，带通 counts），`ep` 计算所用的逐帧输入。
+
+根属性记录条件、检测 `diameter`、`noise_size`、噪声方法、trackpy 版本、源峰表文件名与 SHA-256、帧源 HDF5 名与 SHA-256、生成时间与脚本名。
+
+**注意**：`ep` 只代表背景噪声经质心的传播下界（中位 0.0019 px），不是总定位误差；注入已知真值的人工斑测试测得总误差为每轴 RMS ≈ 0.16–0.17 px（由有限掩膜质心的确定性亚像素偏差主导）。另注意 `mass` 列带 `locate` 内部 uint8 量化的 ×0.80–0.84 比例因子。
+
+校验（2026-08-04）：30542 行与全量峰表逐行一致；`ep` 全部有限且为正，中位 0.0019 px（p5–p95：0.0006–0.0115）；`frame_noise` 中位 0.737（p5–p95：0.731–0.743）。
+
+复现（拒绝覆盖既有输出，重跑需先改名）：
+
+```powershell
+$sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
+& $sandboxState.python `
+  .\analysis/26-07-31-derived-single-sweep/localization_uncertainty.py `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks.h5 `
+  (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks_ep.h5 `
+  --figure .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_ep_vs_mass.png
+```

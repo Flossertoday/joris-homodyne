@@ -152,3 +152,31 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
   .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_detected_peaks_density.png `
   --frames-png .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_detected_peaks_frames.png
 ```
+
+## 2026-08-04 峰定位误差分析：逐峰 ep 与人工斑注入验证
+
+两个脚本把峰定位从"算法审计"推进到"误差量化"（结论与社区方法调查见 [`docs/peak-localization-error.md`](../../docs/peak-localization-error.md)）：
+
+- `localization_uncertainty.py` 对全量峰表逐峰计算 Savin–Doyle 静态误差 `ep`（`trackpy.uncertainty.static_error`，`diameter=7, noise_size=1`）。噪声逐帧取**未截零带通图**（与 `locate` 内部相同的 `gaussian(σ=1) − 7×7 boxcar`）的 MAD 稳健标准差——不用 trackpy 的 `measure_noise`（其背景掩膜在稀疏帧上退化，且它测的原始图标准差与带通量纲的 `mass` 不匹配）。输出 [`detected-peaks/26-07-31_central_dot_0p18_peaks_ep.h5`](detected-peaks/26-07-31_central_dot_0p18_peaks_ep.h5)（`frame, y, x, mass, ep` + 逐帧 `frame_noise`，完整 provenance）与汇总图 `results/26-07-31_central_dot_0p18_ep_vs_mass.png`。结果：逐帧噪声中位 0.737 带通 counts；`ep` 中位 0.0019 px，严格 ∝1/mass。
+- `artificial_spot_test.py` 是 ADDSTAR 式注入测试：把已知亚像素真值的椭圆高斯斑（σ ~ U(2.4,3.0)、ecc ~ U(0,0.6)、随机取向、目标带通 mass 对数均匀 250–30000、注入噪声按探测器方差匹配 `Poisson(counts×11.7)/11.7`）注入**真实帧**（每帧 4 斑 × 200 帧，`--seed 20260804` 可复现），重跑生产 `find_peaks` 并匹配 ≤2 px，输出逐注入 CSV（含检出 mass 与 `ep`）`results/26-07-31_central_dot_0p18_artificial_spots.csv` 与四联图 `results/26-07-31_central_dot_0p18_artificial_spot_errors.png`。结果：800 注入、701 匹配；阈值以上完整性 92.1%；每轴 RMS 0.167/0.161 px 且与 mass 无关——主导项是确定性亚像素窗截断偏差（sin 拟合幅度 0.136/0.141 px），而非探测器噪声（`ep` 低 1–2 个数量级）。副产品：`locate` 的 uint8 量化使记录 mass 系统性 ×0.80–0.84（`minmass=300` ≈ 未量化带通 counts 360）。
+
+单元测试在 `tests/test_localization_uncertainty.py`（噪声尺度恢复、亮斑不污染估计、ep 单调性与 1/mass 标度、CLI 端到端与拒绝覆盖）和 `tests/test_artificial_spot_test.py`（单位带通质量、注入间距与范围、亮/暗注入的匹配行为、CLI 端到端与拒绝覆盖）。
+
+在项目根目录运行：
+
+```powershell
+$sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom-Json
+& $sandboxState.python `
+  .\analysis/26-07-31-derived-single-sweep/localization_uncertainty.py `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks.h5 `
+  (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
+  .\analysis/26-07-31-derived-single-sweep/detected-peaks/26-07-31_central_dot_0p18_peaks_ep.h5 `
+  --figure .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_ep_vs_mass.png
+
+& $sandboxState.python `
+  .\analysis/26-07-31-derived-single-sweep/artificial_spot_test.py `
+  (Join-Path $sandboxState.data_root "26-07-31-derived-single-sweep\26-07-31_single_sweep.h5") `
+  .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_artificial_spots.csv `
+  --central-dot-strength 0.18 `
+  --figure .\analysis/26-07-31-derived-single-sweep/results/26-07-31_central_dot_0p18_artificial_spot_errors.png
+```
