@@ -158,6 +158,32 @@ def default_frames(frame_count: int, panels: int = 6) -> list[int]:
     return np.linspace(0, frame_count - 1, panels).round().astype(int).tolist()
 
 
+# Same left-to-right spot colors as the fit figure in fit_spot_x_ranges.py.
+SPOT_COLORS = ("tab:blue", "tab:orange", "tab:green", "tab:purple")
+
+
+def shade_x_ranges(
+    axis: plt.Axes,
+    intervals: np.ndarray,
+    label: str | None = None,
+) -> None:
+    """Shade the x-acceptance intervals (the ROI) on a detector-grid panel.
+
+    The intervals come from the filtered peak table's ``x_range_intervals``
+    attribute at render time, so any future change of the x-range definition
+    is reflected by re-rendering, with no edit here.
+    """
+    for index, (lower, upper) in enumerate(intervals):
+        axis.axvspan(
+            lower,
+            upper,
+            color=SPOT_COLORS[index % len(SPOT_COLORS)],
+            alpha=0.10,
+            zorder=0,
+            label=label if index == 0 else None,
+        )
+
+
 def save_frames_figure(
     full: dict,
     filtered: dict,
@@ -185,6 +211,11 @@ def save_frames_figure(
     frames = [int(frame_index) for frame_index in frames]
 
     intervals = filtered.get("x_range_intervals")
+    multiple = filtered.get("sigma_multiple_used")
+    if intervals is not None and multiple is not None:
+        range_label = f"x-range (ROI), μ ± {multiple:g}σ"
+    else:
+        range_label = "x-range (ROI)"
     rows = int(np.ceil(len(frames) / 3))
     figure, axes = plt.subplots(
         rows,
@@ -197,6 +228,8 @@ def save_frames_figure(
     )
     for panel, frame_index in enumerate(frames):
         axis = axes[panel // 3, panel % 3]
+        if intervals is not None:
+            shade_x_ranges(axis, intervals, label=range_label)
         in_frame = full["frame"] == frame_index
         xs = full["x"][in_frame]
         ys = full["y"][in_frame]
