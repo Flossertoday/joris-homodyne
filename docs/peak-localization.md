@@ -45,3 +45,5 @@
 ## 可直接用于报告的表述
 
 > Spots were located with the Crocker–Grier algorithm (Crocker & Grier, J. Colloid Interface Sci. 179, 298 (1996)) as implemented in trackpy v0.7: bandpass filter (Gaussian σ = 1 px minus 7×7 boxcar), local-maxima detection with an 8 px minimum separation, and iterative brightness-centroid refinement to subpixel precision within a circular mask of radius 3 px (diameter 7 px, minmass 300, percentile filter disabled). Cross-validation against circular 2D Gaussian least-squares fits on a 50-frame sample (1518 spots) shows agreement with a median deviation of 0.05 px for Gaussian-like spots; the few percent of non-Gaussian, elongated events where the fit diverges are localized robustly by the centroid.
+
+定位误差的完整量化（逐峰 Savin–Doyle `ep`、ADDSTAR 式人工斑注入验证、亚像素窗截断偏差的发现）见 [peak-localization-error.md](peak-localization-error.md)。

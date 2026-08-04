@@ -8,6 +8,7 @@
 - [data.md](data.md)：原始 MAT、分析 HDF5、环境和可重复性约定。
 - [streak-time-axis.md](streak-time-axis.md)：streak 纵轴时间窗的 metadata 调查、1 ns 窗口依据与轴约定。
 - [peak-localization.md](peak-localization.md)：单帧峰定位算法（Crocker–Grier/trackpy）、圆心语义与二维高斯拟合对照证据。
+- [peak-localization-error.md](peak-localization-error.md)：峰定位误差分析——社区做法调查（Savin–Doyle/trackpy、DAOPHOT artificial star tests、SMLM）、逐峰 `ep` 与人工斑注入验证结果。
 - [sandbox-initialization.md](sandbox-initialization.md)：托管 Windows 沙盒的初始化入口、实测问题和剩余权限边界。
 
 精确哈希、文件数量和逐像素验证结果放在对应实验的 derived 目录中，不在这里重复，以免多处副本逐渐不一致。
