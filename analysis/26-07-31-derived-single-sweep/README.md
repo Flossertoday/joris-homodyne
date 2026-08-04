@@ -172,6 +172,17 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 
 三档 bin 宽下全部 pooled g2(0) 与 Poisson(g2=1)在约 1σ 内一致——**当前 1000 帧统计量下未探测到偏离 Poisson 的关联**。bin 宽可用 `--time-bins-px` 任意改(更宽 bin 换统计量)。
 
+**宽 bin 扫描(8/16/32/64 px,2026-08-04 补档)**:为了用统计量换分辨率,追加一档宽 bin 运行,pooled g2(0)(jackknife SEM):
+
+| bin 宽 | AA | BB | AB |
+|---|---|---|---|
+| 8 px (7.87 ps) | 1.12 ± 0.14 | 1.03 ± 0.15 | 0.94 ± 0.07 |
+| 16 px (15.75 ps) | 1.06 ± 0.10 | 1.18 ± 0.11 | 0.98 ± 0.05 |
+| 32 px (31.50 ps) | 1.08 ± 0.07 | 1.07 ± 0.07 | 1.00 ± 0.04 |
+| 64 px (62.99 ps) | 1.05 ± 0.05 | 1.01 ± 0.05 | 0.97 ± 0.02 |
+
+结论仍是没有可称探测的偏离:同 condensate 的 pooled 值在全部 8 档 bin 宽(1–64 px)中 7 档略高于 1(+0.05 ~ +0.08,约 1–1.5σ),与帧级 condensate 总数经典涨落的预期方向一致,但跨 condensate AB 始终贴 1(0.97–1.00)、τ 剖面平坦,不能称为探测;若该 excess 为真,约 4000 帧可推到 ~3σ。这组结果 HDF5 在 `DATA/26-07-31-derived-single-sweep/g2/26-07-31_central_dot_0p18_g2_bin8_16_32_64px.h5`,16 张 PNG 同命名规则在 `results/`。26-07-31 数据组的 g2 分析到此为止,后续时间分辨关联测量转到带脉冲标定的 26-08-04 数据集。
+
 输出:结果 HDF5(数组 + provenance)写到 git 忽略的 `DATA/26-07-31-derived-single-sweep/g2/26-07-31_central_dot_0p18_g2.h5`(每 bin 宽一组:强度、不平衡、四种 g2 的二维 map+SEM、零延迟曲线、τ 剖面、pooled 标量);每 bin 宽 4 张 PNG(强度+z、零延迟、二维 map、τ 剖面)在 `results/`(命名 `26-07-31_central_dot_0p18_g2_{intensities,zero_delay,map,tau}_bin{w}px.png`)。二维 map 用 RdBu_r、以 g2=1 为中心的双段线性归一化,colorbar 标明色标与值域(遵守项目 LUT 规则);NaN(修正后强度 ≤0 的 bin)显示为浅灰。单元测试在 `tests/test_compute_g2_matrix.py`(Poisson/bunched 合成恢复、背景修正代数、jackknife 与 map SEM 对 Monte Carlo、CLI 端到端与拒绝覆盖)。
 
 在项目根目录运行(输出拒绝覆盖,重跑需先改名):
@@ -186,3 +197,5 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
   --figure-dir .\analysis/26-07-31-derived-single-sweep/results `
   --time-bins-px 1 3 6
 ```
+
+宽 bin 补档用同一命令,改 `--time-bins-px 8 16 32 64`,输出文件名为 `26-07-31_central_dot_0p18_g2_bin8_16_32_64px.h5`。
