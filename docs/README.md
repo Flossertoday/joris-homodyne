@@ -7,6 +7,7 @@
 - [literature.md](literature.md)：核心论文、相邻先例及其对本项目的实际约束。
 - [data.md](data.md)：原始 MAT、分析 HDF5、环境和可重复性约定。
 - [streak-time-axis.md](streak-time-axis.md)：streak 纵轴时间窗的 metadata 调查、1 ns 窗口依据与轴约定。
+- [26-08-04-fig2a.md](26-08-04-fig2a.md)：26-08-04 HBT 批次复刻 Adiyatullin 2017 Fig. 2(a) 的管线、配对证据与交替振荡零结果（含灵敏度验证）。
 - [peak-localization.md](peak-localization.md)：单帧峰定位算法（Crocker–Grier/trackpy）、圆心语义与二维高斯拟合对照证据。
 - [peak-localization-error.md](peak-localization-error.md)：峰定位误差分析——社区做法调查（Savin–Doyle/trackpy、DAOPHOT artificial star tests、SMLM）、逐峰 `ep` 与人工斑注入验证结果。
 - [sandbox-initialization.md](sandbox-initialization.md)：托管 Windows 沙盒的初始化入口、实测问题和剩余权限边界。
