@@ -39,8 +39,8 @@ CAPTION = (
     "Right = B2+B4). The per-frame time zero is calibrated by CFD50, leading-edge constant-fraction discrimination on the reference\n"
     "pulse (50%-of-peak crossing, sub-row interpolated), placing the origin ~2.7 ps earlier than the former half-max centroid definition;\n"
     "the measured StreakCamBackG background is subtracted. Outcome: no anti-phase oscillation — cross-arm z fluctuations are\n"
-    "uncorrelated (r=0.03–0.10, p>0.14); the 95% upper limit on a phase-locked sinusoidal z amplitude is 0.012–0.019 for 3–200 ps\n"
-    "periods (~1–2% intensity modulation); the t≤150 ps left-side dip is an overdamped monotonic recovery, not an oscillation."
+    "uncorrelated (r=0.03–0.10, p>0.14); the 95% upper limit on a phase-locked sinusoidal z amplitude is 0.008–0.019 over 3–200 ps\n"
+    "periods (median 0.012; ~1–2% intensity modulation); the t≤150 ps left-side dip is an overdamped monotonic recovery, not an oscillation."
 )
 
 
