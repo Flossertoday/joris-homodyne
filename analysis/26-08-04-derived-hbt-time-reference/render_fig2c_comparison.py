@@ -40,12 +40,12 @@ def build_caption(width, pooled_l, pooled_r, ul95_text):
         "(Suppl. Note 1) on the 26-08-04 HBT batch (19992 single-sweep frames, CFD50 time-zero, measured-background subtraction, "
         f"{width} px bins).\n"
         "The per-bin regime is statistics-limited: ~50% of detected events are residual detector-noise clusters and the per-bin\n"
-        "occupancy is ~1e-3 events/frame, so per-bin g2 is a heavy-tailed statistic (shown for the record with plug-in ±1 s.e.m. bands\n"
-        "validated by Monte Carlo; gray strip: s.e.m. > 0.5). Coherent endpoints: window-pooled "
-        f"g2(0) = {pooled_l[0]:.2f} ± {pooled_l[1]:.2f} (L), {pooled_r[0]:.2f} ± {pooled_r[1]:.2f} (R) (jackknife s.e.m.);\n"
-        f"95% upper limit on a reference-locked sinusoidal g2-1 oscillation (3-200 ps): {ul95_text}. No bunching oscillation at the\n"
-        "paper's amplitudes (0.2-1.2) is resolvable below the upper edge of that range with 20k frames; ~3e5 frames would be needed\n"
-        "for 95% sensitivity to |A| = 0.2 (G3 power gate, docs/26-08-04-fig2c.md)."
+        "occupancy is ~1e-3 events/frame, so per-bin g2 is a heavy-tailed statistic. Points are per-bin estimates (clipped to [0, 4]);\n"
+        "shaded bands are the plug-in ±1 s.e.m. resolution around the Poisson reference (Monte-Carlo validated), not error bars on the\n"
+        f"points. Outcome: no significant deviation from Poisson — window-pooled g2(0) = {pooled_l[0]:.2f} ± {pooled_l[1]:.2f} (L), "
+        f"{pooled_r[0]:.2f} ± {pooled_r[1]:.2f} (R) (jackknife s.e.m.); oscillation scan (3-200 ps, reference-locked) not significant\n"
+        f"(p = 0.15); 95% upper limits on the g2-1 amplitude: {ul95_text}. With 20k frames only the upper part of the paper's amplitude\n"
+        "range (0.2-1.2) is resolvable; ~3e5 frames would be needed for 95% sensitivity to |A| = 0.2 (G3 power gate, docs/26-08-04-fig2c.md)."
     )
 
 

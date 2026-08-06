@@ -291,6 +291,12 @@ def fit_matrices(t_ps, sem, bin_ps, periods=PERIODS_PS):
     mats = []
     for period in periods:
         attenuation = np.sinc(bin_ps / period)
+        if abs(attenuation) < 0.05:
+            # Bin averaging kills the basis (period ~ bin width / k): the
+            # weighted problem is numerically degenerate and carries no
+            # sensitivity; skip (NaN) instead of inverting near-singular.
+            mats.append(None)
+            continue
         basis = attenuation * np.exp(2j * np.pi * t / period)
         design = np.column_stack(
             [np.ones_like(t), t, t**2, basis.real, basis.imag]

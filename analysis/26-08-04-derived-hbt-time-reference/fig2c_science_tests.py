@@ -35,11 +35,7 @@ from matplotlib import pyplot as plt
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fig2c_g2_estimator as est  # noqa: E402
-from fig2c_power_gate import (  # noqa: E402
-    PERIODS_PS,
-    fit_amplitudes_from,
-    fit_matrices,
-)
+from fig2c_power_gate import fit_matrices  # noqa: E402
 
 DEFAULT_OUT_DIR = Path("drafts/26-08-06_fig2c")
 WINDOW_PS = (0.0, 820.0)
@@ -47,6 +43,13 @@ EARLY_PS = (0.0, 400.0)
 LATE_PS = (400.0, 820.0)
 PRIOR_PERIODS_PS = (9.84, 37.2, 41.8)
 N_SURROGATES = 200
+# Scan grid: over an 820 ps window the frequency resolution is ~1.2e-3 /ps;
+# the fig2a-era 0.5 ps spacing below 20 ps undersamples it by ~4x (a 9.84 ps
+# line would lose ~80% of its amplitude at the nearest grid point). The
+# null calibration is unaffected (surrogates see the same grid).
+SCAN_PERIODS_PS = np.concatenate(
+    [np.arange(3.0, 20.0, 0.1), np.arange(20.0, 200.0, 0.5)]
+)
 
 
 def load_width(out_dir, width):
@@ -65,7 +68,7 @@ def per_bin_z_stat(g2, sem, mask):
     return float(np.max(np.abs(z[mask]))), z
 
 
-def fit_complex(t_ps, g2, sem, bin_ps, mats):
+def fit_complex(t_ps, g2, sem, bin_ps, mats, periods=SCAN_PERIODS_PS):
     """Complex two-quadrature amplitudes per period, NaN-safe.
 
     Fast path uses the precomputed matrices (requires all-finite g2 on the
@@ -86,8 +89,10 @@ def fit_complex(t_ps, g2, sem, bin_ps, mats):
     y = g2[finite]
     w = 1.0 / sem[finite] ** 2
     out = np.full(len(mats), np.nan + 0j)
-    for k, period in enumerate(PERIODS_PS):
+    for k, period in enumerate(periods):
         attenuation = np.sinc(bin_ps / period)
+        if abs(attenuation) < 0.05:
+            continue  # degenerate under bin averaging; no sensitivity
         basis = attenuation * np.exp(2j * np.pi * t / period)
         design = np.column_stack([np.ones_like(t), t, t**2, basis.real, basis.imag])
         xt_w = design.T * w
@@ -177,8 +182,8 @@ def evaluate_width(out_dir, width, n_surr, seed):
         g2 = np.asarray(results[f"g2_{pair}"], dtype=np.float64)
         sem = np.asarray(results[f"sem_plugin_{pair}"], dtype=np.float64)
         curves[pair] = (g2, sem)
-        mats[pair] = fit_matrices(t_ps, sem, bin_ps)
-        sig = np.full(PERIODS_PS.size, np.nan)
+        mats[pair] = fit_matrices(t_ps, sem, bin_ps, SCAN_PERIODS_PS)
+        sig = np.full(SCAN_PERIODS_PS.size, np.nan)
         for k, entry in enumerate(mats[pair]):
             if entry is not None:
                 cov = entry[0]
@@ -261,32 +266,60 @@ def evaluate_width(out_dir, width, n_surr, seed):
     out["tests"] = verdicts
 
     # --- oscillation upper limits (fig2a convention: |A| + 2 sigma) ---
+    # Targeted fits at the exact prior periods (the scan grid point nearest
+    # to 9.84 ps would lose ~80% of a line's amplitude over this window).
+    prior = np.asarray(PRIOR_PERIODS_PS, dtype=np.float64)
     for pair in est.SAME_MESA_PAIRS:
         amps = per_pair[pair]["amps"]
         ul95 = amps + 2.0 * sigmas[pair]
+        mats_t = fit_matrices(t_ps, curves[pair][1], bin_ps, prior)
+        z_t = fit_complex(t_ps, curves[pair][0], curves[pair][1], bin_ps,
+                          mats_t, prior)
+        sig_t = np.array([
+            np.sqrt(max(entry[0][3, 3], entry[0][4, 4])) if entry else np.nan
+            for entry in mats_t
+        ])
         entry = {
             "ul95_median": float(np.nanmedian(ul95)),
-            "targeted": {},
+            "targeted": {
+                f"{period}ps": {
+                    "amplitude": float(abs(z_t[j])),
+                    "sigma": float(sig_t[j]),
+                    "ul95": float(abs(z_t[j]) + 2.0 * sig_t[j]),
+                }
+                for j, period in enumerate(PRIOR_PERIODS_PS)
+            },
         }
-        for period in PRIOR_PERIODS_PS:
-            k = int(np.argmin(np.abs(PERIODS_PS - period)))
-            entry["targeted"][f"{period}ps"] = {
-                "period_grid": float(PERIODS_PS[k]),
-                "amplitude": float(amps[k]),
-                "ul95": float(ul95[k]),
-            }
         per_pair[pair]["ul95"] = entry
     ul95_comb = comb_amps + 2.0 * comb_sig
-    combined_entry = {"ul95_median": float(np.nanmedian(ul95_comb)), "targeted": {}}
-    for period in PRIOR_PERIODS_PS:
-        k = int(np.argmin(np.abs(PERIODS_PS - period)))
-        combined_entry["targeted"][f"{period}ps"] = {
-            "period_grid": float(PERIODS_PS[k]),
-            "amplitude": float(comb_amps[k]),
-            "ul95": float(ul95_comb[k]),
-        }
+    # combined targeted: inverse-variance combination of the exact fits
+    mats_tl = fit_matrices(t_ps, curves["L"][1], bin_ps, prior)
+    mats_tr = fit_matrices(t_ps, curves["R"][1], bin_ps, prior)
+    z_tl = fit_complex(t_ps, curves["L"][0], curves["L"][1], bin_ps, mats_tl, prior)
+    z_tr = fit_complex(t_ps, curves["R"][0], curves["R"][1], bin_ps, mats_tr, prior)
+    sig_tl = np.array([
+        np.sqrt(max(e[0][3, 3], e[0][4, 4])) if e else np.nan for e in mats_tl
+    ])
+    sig_tr = np.array([
+        np.sqrt(max(e[0][3, 3], e[0][4, 4])) if e else np.nan for e in mats_tr
+    ])
+    w_l = 1.0 / sig_tl**2
+    w_r = 1.0 / sig_tr**2
+    z_comb = (z_tl * w_l - z_tr * w_r) / (w_l + w_r)
+    sig_comb = 1.0 / np.sqrt(w_l + w_r)
+    combined_entry = {
+        "ul95_median": float(np.nanmedian(ul95_comb)),
+        "targeted": {
+            f"{period}ps": {
+                "amplitude": float(abs(z_comb[j])),
+                "sigma": float(sig_comb[j]),
+                "ul95": float(abs(z_comb[j]) + 2.0 * sig_comb[j]),
+            }
+            for j, period in enumerate(PRIOR_PERIODS_PS)
+        },
+    }
     out["oscillation"] = {
-        "periods_ps": [float(v) for v in PERIODS_PS],
+        "periods_ps": [float(v) for v in SCAN_PERIODS_PS],
         "pairs": {
             pair: {
                 "amplitudes": [float(v) for v in per_pair[pair]["amps"]],
@@ -315,13 +348,13 @@ def evaluate_width(out_dir, width, n_surr, seed):
 
     # --- surrogate diagnostic figure ---
     figure, axes = plt.subplots(1, 2, figsize=(12.5, 4.6), constrained_layout=True)
-    axes[0].semilogy(PERIODS_PS, per_pair["L"]["amps"], lw=1.0, color="tab:blue",
+    axes[0].semilogy(SCAN_PERIODS_PS, per_pair["L"]["amps"], lw=1.0, color="tab:blue",
                      label="pair L |A|")
-    axes[0].semilogy(PERIODS_PS, per_pair["R"]["amps"], lw=1.0, color="tab:red",
+    axes[0].semilogy(SCAN_PERIODS_PS, per_pair["R"]["amps"], lw=1.0, color="tab:red",
                      label="pair R |A|")
-    axes[0].semilogy(PERIODS_PS, comb_amps, lw=1.2, color="tab:purple",
+    axes[0].semilogy(SCAN_PERIODS_PS, comb_amps, lw=1.2, color="tab:purple",
                      label="anti-phase L+R |A|")
-    axes[0].semilogy(PERIODS_PS, ul95_comb, lw=0.9, ls="--", color="gray",
+    axes[0].semilogy(SCAN_PERIODS_PS, ul95_comb, lw=0.9, ls="--", color="gray",
                      label="combined UL95 = |A|+2σ")
     for period in PRIOR_PERIODS_PS:
         axes[0].axvline(period, color="black", ls=":", lw=0.7)

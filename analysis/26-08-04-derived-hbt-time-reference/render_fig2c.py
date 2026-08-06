@@ -28,7 +28,15 @@ Y_LIMITS = (0.0, 4.0)
 
 def draw_fig2c_panel(axis, t_ps, g2_l, sem_l, g2_r, sem_r, window=WINDOW_PS,
                      y_limits=Y_LIMITS, pooled=None, title_suffix=""):
-    """Paper-style g2(0)(t) panel: L blue, R red, +/-1 SEM bands, g2=1 line."""
+    """g2(0)(t) panel for the statistics-limited regime.
+
+    Per-bin estimates are degenerate at this occupancy (most bins exactly 0,
+    rare large spikes), so the panel shows per-bin points plus the plug-in
+    ±1 SEM band drawn around the Poisson reference g2 = 1: the band is the
+    resolution of the experiment, and a paper-strength bunching peak would
+    have to poke out of it. The gray strip marks bins whose plug-in SEM
+    exceeds MAX_DISPLAY_SEM (statistics-limited).
+    """
     mask = (t_ps >= window[0]) & (t_ps <= window[1])
     t = t_ps[mask]
 
@@ -36,34 +44,31 @@ def draw_fig2c_panel(axis, t_ps, g2_l, sem_l, g2_r, sem_r, window=WINDOW_PS,
         return np.clip(values[mask], y_limits[0], y_limits[1])
 
     for g2, sem, color, label in (
-        (g2_l, sem_l, "tab:blue", "L (B1$\\times$B3)"),
-        (g2_r, sem_r, "tab:red", "R (B2$\\times$B4)"),
+        (g2_l, sem_l, "tab:blue", "L = B1\u00d7B3"),
+        (g2_r, sem_r, "tab:red", "R = B2\u00d7B4"),
     ):
-        sem_w = sem[mask]
-        limited = sem_w > est.MAX_DISPLAY_SEM
-        axis.plot(t, clip(g2), color=color, lw=0.9, label=f"$g^{{(2)}}_{label}(0)$")
-        axis.fill_between(
-            t, clip(g2 - sem), clip(g2 + sem), color=color, alpha=0.22, lw=0,
-        )
-        if np.any(limited):
-            axis.fill_between(
-                t[limited], y_limits[0], y_limits[0] + 0.06 * np.ptp(y_limits),
-                color="gray", alpha=0.5, lw=0,
-            )
+        band_lo = np.maximum(1.0 - sem[mask], y_limits[0])
+        band_hi = np.minimum(1.0 + sem[mask], y_limits[1])
+        axis.fill_between(t, band_lo, band_hi, color=color, alpha=0.18, lw=0)
+        axis.plot(t, clip(g2), ".", color=color, ms=3.5, alpha=0.75,
+                  label=f"$g^{{(2)}}(0)$ {label}")
     axis.axhline(1.0, color="black", lw=0.9, ls="--")
     axis.set_ylim(*y_limits)
     axis.set_xlim(window)
     axis.set_xlabel("time relative to reference pulse [ps]")
     axis.set_ylabel("$g^{(2)}(0)$")
-    frac_limited = float(np.mean(sem_l[mask] > est.MAX_DISPLAY_SEM))
+    sem_med_l = float(np.nanmedian(sem_l[mask]))
+    sem_med_r = float(np.nanmedian(sem_r[mask]))
     note = (
-        f"gray strip: plug-in SEM > {est.MAX_DISPLAY_SEM:g} (statistics-limited): "
-        f"{frac_limited:.0%} of bins"
+        f"shaded: plug-in ±1 SEM around the Poisson reference "
+        f"(median {sem_med_l:.1f} L / {sem_med_r:.1f} R); per-bin points "
+        f"clipped to {list(y_limits)};\nall bins statistics-limited "
+        f"(SEM > {est.MAX_DISPLAY_SEM:g})"
     )
     if pooled is not None:
         note += (
-            f"\npooled g2(0): L = {pooled['L'][0]:.2f} ± {pooled['L'][1]:.2f}, "
-            f"R = {pooled['R'][0]:.2f} ± {pooled['R'][1]:.2f} (±1 jackknife SEM)"
+            f"\nwindow-pooled g2(0): L = {pooled['L'][0]:.2f} ± {pooled['L'][1]:.2f}, "
+            f"R = {pooled['R'][0]:.2f} ± {pooled['R'][1]:.2f} (jackknife SEM)"
         )
     axis.text(0.02, 0.02, note, transform=axis.transAxes, fontsize=7.5,
               va="bottom", ha="left",
