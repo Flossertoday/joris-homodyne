@@ -5,7 +5,8 @@ Top-left: cropped original Fig. 2(a) of Adiyatullin et al. 2017 (tracked PNG
 tracked paper PDF). Top-right: the replica re-rendered from the extracted
 trace archive via render_fig2a primitives (same band selection and rebin as
 the standalone definitive render). The caption block below the panels states
-the dataset, the per-frame CFD50 time-zero calibration, and the outcome.
+the dataset, the band-to-mesa summation, the per-frame CFD50 time-zero
+calibration, and the outcome.
 
 Default output overwrites the definitive `fig2a_replica.png`/`.pdf` next to
 this script. The caption is plain English (academic presentation use).
@@ -33,12 +34,13 @@ DEFAULT_OUT = SCRIPT_DIR / "fig2a_replica.png"
 CAPTION = (
     "Left: original Fig. 2(a) of Adiyatullin et al. 2017 (Nat. Commun. 8:1329) — accumulated emission intensity of the left (blue) and right\n"
     "(red) mesa on a logarithmic scale, showing anti-phase population oscillations; the gray band marks the low-confidence SNR<20 region.\n"
-    "Right: this work — replication on the 26-08-04 HBT batch (20000 single-sweep frames; photon-event source, rebin 8 ≈ 7.9 ps/bin,\n"
-    "peak-normalized). The per-frame time zero is calibrated by CFD50, leading-edge constant-fraction discrimination on the reference pulse\n"
-    "(50%-of-peak crossing, sub-row interpolated), placing the origin ~2.7 ps earlier than the former half-max centroid definition; the\n"
-    "measured StreakCamBackG background is subtracted. Outcome: no anti-phase oscillation — cross-arm z fluctuations are uncorrelated\n"
-    "(r=0.03–0.10, p>0.14); the 95% upper limit on a phase-locked sinusoidal z amplitude is 0.012–0.019 for 3–200 ps periods (~1–2%\n"
-    "intensity modulation); the t≤150 ps left-side dip is an overdamped monotonic recovery, not an oscillation."
+    "Right: this work — replication on the 26-08-04 HBT batch (20000 single-sweep frames; photon-event source, rebin 8 ≈ 7.9 ps/bin, peak-\n"
+    "normalized). Each mesa is recorded simultaneously by both HBT arms; the plotted intensity sums its two arm bands (Left = B1+B3,\n"
+    "Right = B2+B4). The per-frame time zero is calibrated by CFD50, leading-edge constant-fraction discrimination on the reference\n"
+    "pulse (50%-of-peak crossing, sub-row interpolated), placing the origin ~2.7 ps earlier than the former half-max centroid definition;\n"
+    "the measured StreakCamBackG background is subtracted. Outcome: no anti-phase oscillation — cross-arm z fluctuations are\n"
+    "uncorrelated (r=0.03–0.10, p>0.14); the 95% upper limit on a phase-locked sinusoidal z amplitude is 0.012–0.019 for 3–200 ps\n"
+    "periods (~1–2% intensity modulation); the t≤150 ps left-side dip is an overdamped monotonic recovery, not an oscillation."
 )
 
 
@@ -68,7 +70,9 @@ def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
         "Adiyatullin et al. 2017 (Nat. Commun. 8:1329), Fig. 2(a)", fontsize=8.5
     )
     rf.draw_fig2a_panel(
-        ax_ours, time_ps, trace_l, trace_r, sem_l, sem_r, snr_threshold
+        ax_ours, time_ps, trace_l, trace_r, sem_l, sem_r, snr_threshold,
+        label_l=rf.band_label("Left", bands_l),
+        label_r=rf.band_label("Right", bands_r),
     )
     ax_ours.set_title(
         "This work: 26-08-04 HBT, 20000 frames, CFD50-timed", fontsize=8.5, loc="left"

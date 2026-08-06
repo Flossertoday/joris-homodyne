@@ -52,6 +52,15 @@ def parse_band_selection(text: str) -> list[int]:
     return indices
 
 
+def band_label(prefix: str, indices: list[int]) -> str:
+    """Curve label stating the summed bands, e.g. 'Left (B1+B3)' for [0, 2].
+
+    Bands are numbered B1..B4 by ascending detector column, matching the
+    extraction report (bands_report.json) and the quicklook figures.
+    """
+    return f"{prefix} (" + "+".join(f"B{index + 1}" for index in indices) + ")"
+
+
 def _scalar_text(value: np.ndarray) -> str:
     """Return a stored JSON string from a 0-d or bytes npz scalar."""
     if isinstance(value, np.ndarray) and value.shape == ():
@@ -173,41 +182,6 @@ def snr_shade_ceiling(
     return float(max(levels.max() for levels in low_levels))
 
 
-def _place_curve_label(
-    axis,
-    time_ps: np.ndarray,
-    trace: np.ndarray,
-    x_fraction: float,
-    text: str,
-    color: str,
-    y_offset: float = 1.5,
-) -> None:
-    """Put a colored curve name just above the trace's local maximum.
-
-    The anchor bin is the one nearest `x_fraction` of the displayed range; the
-    text sits above the highest positive bin within +/-5% of the range around
-    it, so oscillation peaks cannot overlap the label.
-    """
-    valid = np.flatnonzero(trace > 0)
-    if not valid.size:
-        return
-    span = time_ps[-1] - time_ps[0]
-    target = time_ps[0] + x_fraction * span
-    index = valid[np.argmin(np.abs(time_ps[valid] - target))]
-    window = np.abs(time_ps - time_ps[index]) <= 0.05 * span
-    window &= trace > 0
-    local_peak = float(trace[window].max()) if np.any(window) else float(trace[index])
-    axis.text(
-        time_ps[index],
-        local_peak * y_offset,
-        text,
-        color=color,
-        fontsize=8,
-        ha="center",
-        va="bottom",
-    )
-
-
 def draw_fig2a_panel(
     axis,
     time_ps: np.ndarray,
@@ -216,8 +190,13 @@ def draw_fig2a_panel(
     sem_l: np.ndarray,
     sem_r: np.ndarray,
     snr_threshold: float,
+    label_l: str = "Left",
+    label_r: str = "Right",
 ) -> float | None:
     """Draw the Fig. 2(a)-style panel content onto an existing axis.
+
+    label_l/label_r name the two traces in the legend; pass band_label()
+    output so the panel states which bands are summed.
 
     Returns the SNR shade ceiling (None when every bin clears the threshold).
     """
@@ -253,10 +232,12 @@ def draw_fig2a_panel(
     mask_l = trace_l > 0
     mask_r = trace_r > 0
     axis.scatter(
-        time_ps[mask_l], trace_l[mask_l], s=7, c=LEFT_COLOR, edgecolors="none", zorder=3
+        time_ps[mask_l], trace_l[mask_l], s=7, c=LEFT_COLOR, edgecolors="none",
+        zorder=3, label=label_l,
     )
     axis.scatter(
-        time_ps[mask_r], trace_r[mask_r], s=7, c=RIGHT_COLOR, edgecolors="none", zorder=3
+        time_ps[mask_r], trace_r[mask_r], s=7, c=RIGHT_COLOR, edgecolors="none",
+        zorder=3, label=label_r,
     )
 
     axis.set_yscale("log")
@@ -274,8 +255,12 @@ def draw_fig2a_panel(
     for spine in axis.spines.values():
         spine.set_linewidth(0.8)
 
-    _place_curve_label(axis, time_ps, trace_l, 0.26, "Left", LEFT_COLOR)
-    _place_curve_label(axis, time_ps, trace_r, 0.36, "Right", RIGHT_COLOR, y_offset=1.25)
+    # Legend in the empty lower region of the panel: states which bands each
+    # trace sums (the flat replica traces leave that area free of data).
+    axis.legend(
+        loc="lower left", fontsize=7, frameon=False, scatterpoints=1,
+        markerscale=2.5, handletextpad=0.4, borderaxespad=0.3,
+    )
     return ceiling
 
 
@@ -287,14 +272,18 @@ def render_fig2a(
     sem_r: np.ndarray,
     snr_threshold: float,
     output_path: Path,
+    label_l: str = "Left",
+    label_r: str = "Right",
 ) -> tuple[Path, Path, float | None]:
     """Render the Fig. 2(a)-style panel; write PNG (dpi 300) and PDF alongside.
 
-    Returns (png_path, pdf_path, snr_shade_ceiling).
+    label_l/label_r annotate the curves (pass band_label() output to state
+    the summed bands). Returns (png_path, pdf_path, snr_shade_ceiling).
     """
     figure, axis = plt.subplots(figsize=(3.5, 2.7), constrained_layout=True)
     ceiling = draw_fig2a_panel(
-        axis, time_ps, trace_l, trace_r, sem_l, sem_r, snr_threshold
+        axis, time_ps, trace_l, trace_r, sem_l, sem_r, snr_threshold,
+        label_l=label_l, label_r=label_r,
     )
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -379,7 +368,8 @@ def main(argv: list[str] | None = None) -> None:
         normalize=arguments.normalize,
     )
     png_path, pdf_path, ceiling = render_fig2a(
-        time_ps, trace_l, trace_r, sem_l, sem_r, arguments.snr_threshold, arguments.out
+        time_ps, trace_l, trace_r, sem_l, sem_r, arguments.snr_threshold, arguments.out,
+        label_l=band_label("Left", bands_l), label_r=band_label("Right", bands_r),
     )
 
     bin_width = (time_ps[-1] - time_ps[0]) / max(len(time_ps) - 1, 1)
