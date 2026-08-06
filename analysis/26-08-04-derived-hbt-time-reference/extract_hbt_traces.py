@@ -31,6 +31,7 @@ Outputs (under --out-dir, default drafts/26-08-04_fig2a):
 """
 
 import argparse
+import hashlib
 import json
 import time
 from datetime import datetime, timezone
@@ -53,6 +54,18 @@ DEFAULT_OUT_DIR = Path("drafts/26-08-04_fig2a")
 FRAMES_DATASET = "conditions/hbt_condensate_josephson_regime/frames"
 BACKGROUND_DATASET = "conditions/background_and_streak_pulses_delay_calibration/background"
 H5_SHA256 = "905672dc098474e59584749f689af48ed19c1e6f06ed2fff7ce7ac4e703be65d"
+
+
+def resolve_h5_sha256(h5_path) -> str:
+    """SHA-256 recorded in output metadata: the known constant for DEFAULT_H5,
+    computed on the fly for any other analysis file (e.g. the supplement)."""
+    if Path(h5_path).resolve() == DEFAULT_H5.resolve():
+        return H5_SHA256
+    digest = hashlib.sha256()
+    with open(h5_path, "rb") as stream:
+        while chunk := stream.read(8 * 1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 # Acquisition metadata (metadata-conventions.toml): 1 ns window over 1016 rows.
 N_ROWS = 1016
@@ -892,7 +905,7 @@ def run(args):
 
     meta = {
         "h5_path": str(args.h5),
-        "h5_sha256": H5_SHA256,
+        "h5_sha256": resolve_h5_sha256(args.h5),
         "background_source": BACKGROUND_DATASET,
         "frames_dataset": FRAMES_DATASET,
         "roi": list(T0_ROI),

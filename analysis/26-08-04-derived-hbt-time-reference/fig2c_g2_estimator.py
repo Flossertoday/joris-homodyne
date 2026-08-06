@@ -26,15 +26,34 @@ Conventions match compute_g2_matrix.py: N1, N2 are (frames, bins) per-frame
 count matrices; beta1, beta2 are per-frame background expectations per bin;
 bins with non-positive background-corrected intensity are NaN.
 """
+import os
+
 import numpy as np
 
 # Acquisition metadata (metadata-conventions.toml): 1 ns window over 1016 rows.
 PS_PER_PX = 1000.0 / 1016.0
 
-# Definitive band windows from the Fig. 2(a) pipeline (docs/26-08-04-fig2a.md).
-BAND_WINDOWS = np.array(
-    [[380, 450], [570, 680], [810, 880], [1010, 1110]], dtype=np.float64
-)
+
+def _band_windows() -> np.ndarray:
+    """Definitive band windows from the Fig. 2(a) pipeline (docs/26-08-04-fig2a.md).
+
+    The 2026-08-06 supplement acquisition (New folder (10), 72000 frames) shows
+    the same four-band geometry but with slightly shifted/wider bump edges; set
+    FIG2C_BAND_WINDOWS to a comma list of 2N column edges (e.g.
+    "370,450,540,680,800,870,980,1100") to override for that dataset.
+    """
+    override = os.environ.get("FIG2C_BAND_WINDOWS")
+    if override:
+        values = [float(item) for item in override.split(",") if item.strip()]
+        if len(values) % 2 or not values:
+            raise ValueError(f"FIG2C_BAND_WINDOWS needs an even number of edges: {override!r}")
+        return np.asarray(values, dtype=np.float64).reshape(-1, 2)
+    return np.array(
+        [[380, 450], [570, 680], [810, 880], [1010, 1110]], dtype=np.float64
+    )
+
+
+BAND_WINDOWS = _band_windows()
 BAND_NAMES = ("B1", "B2", "B3", "B4")
 # Same-mesa pairs correlate the two independent HBT arms of one mesa:
 # L = B1 x B3, R = B2 x B4.

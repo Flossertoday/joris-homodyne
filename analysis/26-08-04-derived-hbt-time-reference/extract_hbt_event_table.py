@@ -246,7 +246,7 @@ def main():
 
     attributes = {
         "source_h5": str(args.h5),
-        "source_h5_sha256": eht.H5_SHA256,
+        "source_h5_sha256": eht.resolve_h5_sha256(args.h5),
         "frames_dataset": eht.FRAMES_DATASET,
         "background_dataset": eht.BACKGROUND_DATASET,
         "threshold": float(args.threshold),
