@@ -209,19 +209,21 @@ def detect_events(
     min_size: int = 2,
     min_counts: float = 0.0,
     col_range=EVENT_COL_RANGE,
+    with_counts: bool = False,
 ) -> tuple:
     """Photon events: 8-connected components above threshold after bg subtraction.
 
     Only columns col_range are considered. Components need >= min_size pixels
     and >= min_counts integrated counts. Returns count-weighted subpixel
-    centroid (rows, cols) arrays.
+    centroid (rows, cols) arrays; with ``with_counts=True`` also returns the
+    per-event integrated counts above background as a third array.
     """
     mask = np.zeros(frame_bg.shape, dtype=bool)
     mask[:, col_range[0] : col_range[1]] = frame_bg[:, col_range[0] : col_range[1]] > threshold
     labels, n_labels = ndimage.label(mask, structure=np.ones((3, 3), dtype=int))
     if n_labels == 0:
         empty = np.empty(0, dtype=np.float64)
-        return empty, empty
+        return (empty, empty, empty) if with_counts else (empty, empty)
     labels_flat = labels.ravel()
     weights = np.where(mask, frame_bg, 0.0)
     counts = np.bincount(labels_flat, weights=weights.ravel(), minlength=n_labels + 1)
@@ -230,7 +232,7 @@ def detect_events(
     keep[0] = False
     if not keep.any():
         empty = np.empty(0, dtype=np.float64)
-        return empty, empty
+        return (empty, empty, empty) if with_counts else (empty, empty)
     row_index = np.arange(frame_bg.shape[0], dtype=np.float64)[:, None]
     col_index = np.arange(frame_bg.shape[1], dtype=np.float64)[None, :]
     row_sums = np.bincount(
@@ -242,6 +244,8 @@ def detect_events(
     with np.errstate(invalid="ignore", divide="ignore"):
         rows = row_sums[keep] / counts[keep]
         cols = col_sums[keep] / counts[keep]
+    if with_counts:
+        return rows, cols, counts[keep]
     return rows, cols
 
 
