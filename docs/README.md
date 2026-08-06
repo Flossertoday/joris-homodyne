@@ -11,6 +11,7 @@
 - [adiyatullin2017-fig2c.md](adiyatullin2017-fig2c.md)：Fig. 2(c)（g⁽²⁾(0) 时间演化）论文侧事实存档与复刻目标分解（G1–G9）；G3 统计功效门槛已执行（borderline），经确认降级为上限报告。
 - [26-08-04-fig2a.md](26-08-04-fig2a.md)：26-08-04 HBT 批次复刻 Adiyatullin 2017 Fig. 2(a) 的管线、配对证据与交替振荡零结果（含灵敏度验证）。
 - [26-08-04-fig2c.md](26-08-04-fig2c.md)：26-08-04 HBT 批次复刻 Fig. 2(c)（g⁽²⁾(0)(t)）的执行文档：G3 门槛结论、G6 判据预登记、上限报告结果（四项检验全部零结果）与复现命令。
+- [sem-limitations.md](sem-limitations.md)：g2 测量 SEM 的限制因素分解（帧数/信号率/底噪/bin 宽×周期/t0）、底噪问题的证据与量级、帧数需求表。
 - [peak-localization.md](peak-localization.md)：单帧峰定位算法（Crocker–Grier/trackpy）、圆心语义与二维高斯拟合对照证据。
 - [peak-localization-error.md](peak-localization-error.md)：峰定位误差分析——社区做法调查（Savin–Doyle/trackpy、DAOPHOT artificial star tests、SMLM）、逐峰 `ep` 与人工斑注入验证结果。
 - [sandbox-initialization.md](sandbox-initialization.md)：托管 Windows 沙盒的初始化入口、实测问题和剩余权限边界。
