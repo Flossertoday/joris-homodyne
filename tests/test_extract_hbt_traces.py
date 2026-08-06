@@ -44,6 +44,31 @@ def make_spot_frame(row0, seed, col0=SPOT_COL, amplitude=20000.0, sigma=3.0):
     return rng.poisson(lam).astype(np.float64) - BACKGROUND
 
 
+def make_edge_pulse_frame(row0, seed, amplitude=20000.0, edge_sigma=2.0,
+                          tail_sigma=None):
+    """Poisson-noise frame with an asymmetric reference-pulse-like spot.
+
+    The row profile is a cumulative-Gaussian leading edge (erf with width
+    edge_sigma, half-height at row0) saturating at `amplitude`; with
+    tail_sigma given, the part above row0 + 3*edge_sigma is multiplied by an
+    exponential decay, mimicking the streak-camera IRF trailing tail. The
+    spot spans the T0_ROI columns uniformly. CFD50 must return row0
+    regardless of the trailing-side shape.
+    """
+    from scipy.special import erf
+
+    rng = np.random.default_rng(seed)
+    rows = np.arange(FRAME_SHAPE[0], dtype=np.float64)
+    profile = 0.5 * (1.0 + erf((rows - row0) / (edge_sigma * np.sqrt(2.0))))
+    if tail_sigma is not None:
+        decay_start = row0 + 3.0 * edge_sigma
+        decay = np.exp(-np.maximum(rows - decay_start, 0.0) / tail_sigma)
+        profile = profile * np.where(rows > decay_start, decay, 1.0)
+    lam = np.full(FRAME_SHAPE, BACKGROUND)
+    lam[:, 170:215] += (amplitude * profile)[:, None] / 45.0
+    return rng.poisson(lam).astype(np.float64) - BACKGROUND
+
+
 def make_band_frame(seed, band_x0=600, band_x1=630, row_center=400.0,
                     row_sigma=8.0, col_amplitude=200.0):
     """Band spanning columns [band_x0, band_x1) with a Gaussian row profile.
@@ -107,6 +132,60 @@ class TestEstimateT0(unittest.TestCase):
         frame = background_frame(np.random.default_rng(105))
         t0 = eht.estimate_t0(frame)
         self.assertTrue(np.isnan(t0))
+
+
+class TestEstimateT0Cfd(unittest.TestCase):
+    def test_gaussian_spot_crosses_leading_half_max(self):
+        # CFD50 of a symmetric Gaussian lands FWHM/2 = 1.1774*sigma before the
+        # centroid: it times the leading edge, not the pulse centre.
+        for row0 in (160.3, 167.7):
+            with self.subTest(row0=row0):
+                frame = make_spot_frame(row0, seed=117, sigma=3.0)
+                t0 = eht.estimate_t0_cfd(frame)
+                self.assertTrue(np.isfinite(t0))
+                self.assertLess(abs(t0 - (row0 - 1.1774 * 3.0)), 0.5)
+
+    def test_erf_edge_recovers_half_height_row(self):
+        # Cumulative-Gaussian edge with half-height at row0: CFD50 = row0.
+        for row0 in (155.4, 172.6):
+            with self.subTest(row0=row0):
+                frame = make_edge_pulse_frame(row0, seed=119)
+                t0 = eht.estimate_t0_cfd(frame)
+                self.assertTrue(np.isfinite(t0))
+                self.assertLess(abs(t0 - row0), 0.3)
+
+    def test_trailing_tail_does_not_move_cfd50(self):
+        # Same leading edge, heavy exponential tail added: CFD50 must stay
+        # put (a centroid would be dragged late by the tail).
+        row0 = 163.2
+        bare = eht.estimate_t0_cfd(make_edge_pulse_frame(row0, seed=121))
+        tailed = eht.estimate_t0_cfd(
+            make_edge_pulse_frame(row0, seed=123, tail_sigma=4.0)
+        )
+        self.assertLess(abs(tailed - bare), 0.3)
+        self.assertLess(abs(tailed - row0), 0.5)
+
+    def test_amplitude_walk_is_small(self):
+        # Doubling the pulse amplitude must not shift the constant-fraction
+        # crossing (CFD is built to reject amplitude walk).
+        row0 = 163.2
+        low = eht.estimate_t0_cfd(make_edge_pulse_frame(row0, seed=125, amplitude=10000.0))
+        high = eht.estimate_t0_cfd(make_edge_pulse_frame(row0, seed=127, amplitude=40000.0))
+        self.assertLess(abs(high - low), 0.2)
+
+    def test_pure_background_returns_nan(self):
+        frame = background_frame(np.random.default_rng(129))
+        self.assertTrue(np.isnan(eht.estimate_t0_cfd(frame)))
+
+    def test_peak_before_roi_returns_nan(self):
+        # Pulse centred above the ROI: its maximum inside the ROI is the
+        # first row, so no leading edge is resolved inside the ROI.
+        frame = make_spot_frame(107.0, seed=131)
+        self.assertTrue(np.isnan(eht.estimate_t0_cfd(frame)))
+
+    def test_methods_registry(self):
+        self.assertIs(eht.T0_METHODS["cfd50"], eht.estimate_t0_cfd)
+        self.assertIs(eht.T0_METHODS["centroid"], eht.estimate_t0)
 
 
 class TestBandTrace(unittest.TestCase):

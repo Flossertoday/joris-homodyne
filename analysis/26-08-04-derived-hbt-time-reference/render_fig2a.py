@@ -208,18 +208,18 @@ def _place_curve_label(
     )
 
 
-def render_fig2a(
+def draw_fig2a_panel(
+    axis,
     time_ps: np.ndarray,
     trace_l: np.ndarray,
     trace_r: np.ndarray,
     sem_l: np.ndarray,
     sem_r: np.ndarray,
     snr_threshold: float,
-    output_path: Path,
-) -> tuple[Path, Path, float | None]:
-    """Render the Fig. 2(a)-style panel; write PNG (dpi 300) and PDF alongside.
+) -> float | None:
+    """Draw the Fig. 2(a)-style panel content onto an existing axis.
 
-    Returns (png_path, pdf_path, snr_shade_ceiling).
+    Returns the SNR shade ceiling (None when every bin clears the threshold).
     """
     snr_l = compute_snr(trace_l, sem_l)
     snr_r = compute_snr(trace_r, sem_r)
@@ -235,7 +235,6 @@ def render_fig2a(
         max(Y_BOTTOM_FLOOR_FRAC * peak, 0.6 * float(positive.min())),
     )
 
-    figure, axis = plt.subplots(figsize=(3.5, 2.7), constrained_layout=True)
     if ceiling is not None and ceiling > y_bottom:
         shade_top = min(ceiling, y_top)
         axis.axhspan(y_bottom, shade_top, color=SHADE_COLOR, zorder=0)
@@ -277,7 +276,26 @@ def render_fig2a(
 
     _place_curve_label(axis, time_ps, trace_l, 0.26, "Left", LEFT_COLOR)
     _place_curve_label(axis, time_ps, trace_r, 0.36, "Right", RIGHT_COLOR, y_offset=1.25)
+    return ceiling
 
+
+def render_fig2a(
+    time_ps: np.ndarray,
+    trace_l: np.ndarray,
+    trace_r: np.ndarray,
+    sem_l: np.ndarray,
+    sem_r: np.ndarray,
+    snr_threshold: float,
+    output_path: Path,
+) -> tuple[Path, Path, float | None]:
+    """Render the Fig. 2(a)-style panel; write PNG (dpi 300) and PDF alongside.
+
+    Returns (png_path, pdf_path, snr_shade_ceiling).
+    """
+    figure, axis = plt.subplots(figsize=(3.5, 2.7), constrained_layout=True)
+    ceiling = draw_fig2a_panel(
+        axis, time_ps, trace_l, trace_r, sem_l, sem_r, snr_threshold
+    )
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     pdf_path = output_path.with_suffix(".pdf")

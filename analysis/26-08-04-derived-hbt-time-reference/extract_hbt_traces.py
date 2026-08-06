@@ -2,12 +2,14 @@
 
 Replicates the Fig. 2(a) measurement recipe of Adiyatullin et al. 2017
 (Nat. Commun. 8:1329) on the 20000-frame HBT condensate condition: every frame
-carries a fixed-position pulsed-laser reference spot whose row centroid marks
+carries a fixed-position pulsed-laser reference spot whose leading edge marks
 per-frame time zero (t0), and four vertical data bands (2 mesas x 2 HBT arms)
 hold the time-resolved emission. Per frame the script
 
   1. subtracts the measured StreakCamBackG background,
-  2. estimates t0 from the reference spot (centroid above half-max),
+  2. estimates t0 from the reference spot (leading-edge constant-fraction
+     crossing at 50% of peak, CFD50; --t0-method centroid selects the legacy
+     centroid above half-max),
   3. integrates background-subtracted counts in 80 column sub-windows of 10 px
      (analog traces) via one column cumsum,
   4. detects photon events (8-connected components above threshold) and
@@ -65,6 +67,14 @@ SPOT_ROI = (145, 190, 170, 215)
 # at the ROI edge (t0 piled up at exactly 145.0) or fail the noise floor. The
 # widened row range tracks the spot over its full wander.
 T0_ROI = (110, 210, 170, 215)
+
+# Constant-fraction discrimination (CFD) level for the reference-pulse leading
+# edge: t0 is the sub-row interpolated crossing of CFD_FRACTION * peak. The
+# reference pulse is non-Gaussian and its shape breathes by ~1.3 ps frame to
+# frame (flat top, shouldered trailing tail = streak-camera IRF decay, not
+# synchronized with the arrival time); only a leading-edge estimator is
+# blind to that breathing. See docs/08-04_sync_oscillation.md (2026-08-06).
+CFD_FRACTION = 0.5
 
 # Sample-pulse vs reference-spot delay from the calibration condition (ps).
 DELAY_PS = 0.32
@@ -135,6 +145,45 @@ def estimate_t0(frame_bg: np.ndarray, roi=SPOT_ROI) -> float:
         return float("nan")
     rows = np.arange(row0, row1, dtype=np.float64)
     return float(np.dot(rows, weights) / total)
+
+
+def estimate_t0_cfd(frame_bg: np.ndarray, roi=T0_ROI, fraction=CFD_FRACTION) -> float:
+    """Leading-edge constant-fraction (CFD) time of the reference pulse.
+
+    Baseline, noise floor and 5-sigma peak detection are identical to
+    estimate_t0, but t0 is the sub-row linear-interpolated crossing of
+    fraction * peak on the leading edge: the last row below the threshold
+    before the peak row and the first row at/above it. The leading edge is
+    the causal marker of the laser arrival time; estimators weighting the
+    trailing side (centroid, Gaussian center) track the streak-camera IRF
+    decay instead, whose shape breathes ~1.3 ps frame to frame on this
+    dataset (docs/08-04_sync_oscillation.md, 2026-08-06). Returns NaN when
+    the peak fails the noise floor or the leading edge is not resolved
+    inside the ROI.
+    """
+    row0, row1, col0, col1 = roi
+    profile = frame_bg[row0:row1, col0:col1].sum(axis=1)
+    baseline = float(np.percentile(profile, 20.0))
+    low = profile[profile <= baseline]
+    noise = 2.4 * float(low.std(ddof=1)) if low.size > 1 else 0.0
+    signal = profile - baseline
+    peak = float(signal.max())
+    imax = int(signal.argmax())
+    if not np.isfinite(peak) or peak <= max(5.0 * noise, 1.0) or imax == 0:
+        return float("nan")
+    threshold = fraction * peak
+    below = np.flatnonzero(signal[:imax] < threshold)
+    if below.size == 0:
+        return float("nan")
+    i = int(below[-1])
+    s0, s1 = float(signal[i]), float(signal[i + 1])
+    if s1 <= s0:
+        return float("nan")
+    return float(row0 + i + (threshold - s0) / (s1 - s0))
+
+
+# Per-frame t0 estimators selectable via --t0-method.
+T0_METHODS = {"cfd50": estimate_t0_cfd, "centroid": estimate_t0}
 
 
 def subwindow_traces(frame_bg: np.ndarray, edges=SUBWINDOW_EDGES) -> np.ndarray:
@@ -265,13 +314,14 @@ def pick_threshold(study, stable_drop=THRESHOLD_STABLE_DROP):
 
 def accumulate(h5_path, background, frame_indices, threshold, tau_grid=TAU_GRID,
                edges=SUBWINDOW_EDGES, batch=BATCH_FRAMES, progress_every=1000,
-               t0_roi=T0_ROI):
+               t0_roi=T0_ROI, t0_method="cfd50"):
     """Single pass over frames: accumulate t0-referenced traces and aligned sum.
 
     Returns a dict with NaN-aware sum/sumsq/count arrays per (sub-window, tau)
     for analog and photon traces, the aligned-sum canvas, per-frame t0 rows and
     kept frame indices, and the t0 failure count.
     """
+    estimate = T0_METHODS[t0_method]
     n_windows = edges.size - 1
     n_tau = tau_grid.size
     analog_sum = np.zeros((n_windows, n_tau))
@@ -305,7 +355,7 @@ def accumulate(h5_path, background, frame_indices, threshold, tau_grid=TAU_GRID,
                 block = [(int(index), frames[int(index)]) for index in block_indices]
             for frame_index, raw_frame in block:
                 frame_bg = raw_frame.astype(np.float64) - background
-                t0 = estimate_t0(frame_bg, roi=t0_roi)
+                t0 = estimate(frame_bg, roi=t0_roi)
                 if not np.isfinite(t0):
                     n_failures += 1
                     continue
@@ -800,7 +850,8 @@ def run(args):
     print(f"Event threshold: {threshold:g} ({method})", flush=True)
     save_threshold_figure(study, threshold, method, out_dir / "threshold_sensitivity.png")
 
-    acc = accumulate(args.h5, background, frame_indices, threshold)
+    acc = accumulate(args.h5, background, frame_indices, threshold,
+                     t0_method=args.t0_method)
     print(
         f"Accumulation done in {acc['elapsed_s']:.0f} s: "
         f"{acc['frame_indices'].size} frames kept, {acc['n_failures']} t0 failures",
@@ -842,6 +893,8 @@ def run(args):
         "frames_dataset": FRAMES_DATASET,
         "roi": list(T0_ROI),
         "spot_roi_constant": list(SPOT_ROI),
+        "t0_method": args.t0_method,
+        "cfd_fraction": CFD_FRACTION if args.t0_method == "cfd50" else None,
         "ps_per_px": PS_PER_PX,
         "delay_ps": DELAY_PS,
         "threshold": {
@@ -942,6 +995,10 @@ def main():
     parser.add_argument("--threshold", type=float, default=None,
                         help="photon-event threshold in counts above background "
                              "(default: auto from the sensitivity study)")
+    parser.add_argument("--t0-method", choices=sorted(T0_METHODS), default="cfd50",
+                        help="reference-pulse t0 estimator: cfd50 = leading-edge "
+                             "constant-fraction crossing at 50%% of peak "
+                             "(default), centroid = legacy half-max centroid")
     run(parser.parse_args())
 
 
