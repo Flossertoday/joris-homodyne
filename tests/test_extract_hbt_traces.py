@@ -264,6 +264,23 @@ class TestDetectEvents(unittest.TestCase):
         self.assertEqual(0, len(rows))
         self.assertEqual(0, len(cols))
 
+    def test_with_counts_returns_integrated_amplitudes(self):
+        frame = make_event_frame(seed=117)
+        rows, cols, amps = eht.detect_events(frame, threshold=45.0, with_counts=True)
+        self.assertEqual(2, len(amps))
+        order = np.argsort(rows)
+        amps = amps[order]
+        # Cluster A: 3x3 at +100 counts above the flat background level.
+        self.assertLess(abs(amps[0] - 900.0), 120.0)
+        # Cluster B: 2x2 at +150.
+        self.assertLess(abs(amps[1] - 600.0), 100.0)
+        # Empty frame returns three empty arrays.
+        empty = background_frame(np.random.default_rng(119))
+        rows_e, cols_e, amps_e = eht.detect_events(
+            empty, threshold=45.0, with_counts=True
+        )
+        self.assertEqual(0, len(amps_e))
+
 
 class TestInterpRows(unittest.TestCase):
     def setUp(self):
