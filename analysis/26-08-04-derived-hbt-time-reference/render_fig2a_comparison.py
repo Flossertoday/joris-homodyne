@@ -47,7 +47,7 @@ CAPTION = (
 def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
                       bands_l, bands_r, rebin, t_min, t_max, snr_threshold):
     data = rf.load_band_traces(npz_path, "photon")
-    time_ps, trace_l, trace_r, sem_l, sem_r = rf.build_lr_traces(
+    time_ps, trace_l, trace_r, sem_l, sem_r, _match_factor = rf.build_lr_traces(
         data, bands_l, bands_r, t_min, t_max, rebin, "peak"
     )
     paper = mpimg.imread(paper_image)

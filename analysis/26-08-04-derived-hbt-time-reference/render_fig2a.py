@@ -8,6 +8,13 @@ intensity axis peak-normalized to a 10^0 top, with gray horizontal shading
 over the intensity region where the per-bin signal-to-noise ratio
 (trace / SEM) falls below the SNR threshold.
 
+Vertical normalization (`--normalize`): 'peak' (default) divides both traces
+by the larger of the two peaks; 'matched' first rescales the right trace and
+its SEM by sum(L)/sum(R) over the common positive bins of the plotted window
+— removing the constant left/right brightness offset so fractional dynamics
+sit on a common scale — then applies the same peak scaling; 'none' plots raw
+values.
+
 Rebinning merges `k` adjacent time bins as their count-weighted mean
 (trace_merged = sum(trace) / k) with independent-bin SEM propagation
 (sem_merged = sqrt(sum(sem^2)) / k), matching the paper's 2-streak-pixel time
@@ -158,6 +165,24 @@ def normalize_peak(
     return trace_l / peak, trace_r / peak, sem_l / peak, sem_r / peak
 
 
+def normalize_matched(
+    trace_l: np.ndarray, trace_r: np.ndarray, sem_l: np.ndarray, sem_r: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float]:
+    """Scale the right trace/SEM by sum(L)/sum(R) over common positive bins.
+
+    Removes the constant left/right brightness offset (collection-efficiency
+    or excitation asymmetry) so both arms share the same window-integrated
+    level. Returns the scaled arrays and the applied factor.
+    """
+    positive = (trace_l > 0) & (trace_r > 0)
+    if not np.any(positive):
+        raise ValueError("Cannot match arms: no bin with both traces positive")
+    factor = float(trace_l[positive].sum() / trace_r[positive].sum())
+    if factor <= 0:
+        raise ValueError(f"Cannot match arms: non-positive sum ratio {factor}")
+    return trace_l, trace_r * factor, sem_l, sem_r * factor, factor
+
+
 def compute_snr(trace: np.ndarray, sem: np.ndarray) -> np.ndarray:
     """Per-bin SNR = trace / sem; bins with sem <= 0 get SNR 0."""
     snr = np.zeros_like(trace)
@@ -302,10 +327,12 @@ def build_lr_traces(
     t_max: float | None,
     rebin: int,
     normalize: str,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, float | None]:
     """Combine bands, apply the time window and rebinning, and normalize.
 
-    Returns (time_ps, trace_l, trace_r, sem_l, sem_r).
+    Returns (time_ps, trace_l, trace_r, sem_l, sem_r, match_factor);
+    match_factor is the right-arm scaling applied by 'matched' normalization,
+    None for the other modes.
     """
     band_count = data["traces"].shape[0]
     for index in bands_l + bands_r:
@@ -322,9 +349,14 @@ def build_lr_traces(
     _, trace_r, sem_r = select_time_window(data["time_ps"], trace_r, sem_r, t_min, t_max)
     time_ps, trace_l, sem_l = rebin_trace(time_win, trace_l, sem_l, rebin)
     _, trace_r, sem_r = rebin_trace(time_win, trace_r, sem_r, rebin)
-    if normalize == "peak":
+    match_factor = None
+    if normalize == "matched":
+        trace_l, trace_r, sem_l, sem_r, match_factor = normalize_matched(
+            trace_l, trace_r, sem_l, sem_r
+        )
+    if normalize in ("peak", "matched"):
         trace_l, trace_r, sem_l, sem_r = normalize_peak(trace_l, trace_r, sem_l, sem_r)
-    return time_ps, trace_l, trace_r, sem_l, sem_r
+    return time_ps, trace_l, trace_r, sem_l, sem_r, match_factor
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -352,13 +384,23 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--t-min", type=float, default=0.0)
     parser.add_argument("--t-max", type=float, default=None)
     parser.add_argument("--snr-threshold", type=float, default=20.0)
-    parser.add_argument("--normalize", choices=("peak", "none"), default="peak")
+    parser.add_argument(
+        "--normalize",
+        choices=("peak", "matched", "none"),
+        default="peak",
+        help=(
+            "Vertical normalization: 'peak' scales both traces so the larger "
+            "peak is 1; 'matched' first scales the right arm to the left arm's "
+            "window sum (removing the constant L/R brightness offset), then "
+            "applies the same peak scaling; 'none' plots raw values"
+        ),
+    )
     arguments = parser.parse_args(argv)
 
     bands_l = parse_band_selection(arguments.bands_l)
     bands_r = parse_band_selection(arguments.bands_r)
     data = load_band_traces(arguments.npz, arguments.source)
-    time_ps, trace_l, trace_r, sem_l, sem_r = build_lr_traces(
+    time_ps, trace_l, trace_r, sem_l, sem_r, match_factor = build_lr_traces(
         data,
         bands_l,
         bands_r,
@@ -385,6 +427,11 @@ def main(argv: list[str] | None = None) -> None:
         + (f"{ceiling:.4g}" if ceiling is not None else "none (all bins clear threshold)"),
         flush=True,
     )
+    if match_factor is not None:
+        print(
+            f"matched: right arm scaled by sum(L)/sum(R) = {match_factor:.4f}",
+            flush=True,
+        )
     if data["n_frames_total"] is not None:
         print(f"n_frames_total={data['n_frames_total']}", flush=True)
     print(f"Wrote {png_path} and {pdf_path}", flush=True)
