@@ -8,8 +8,7 @@ the standalone definitive render). The caption block below the panels states
 the dataset, the per-frame CFD50 time-zero calibration, and the outcome.
 
 Default output overwrites the definitive `fig2a_replica.png`/`.pdf` next to
-this script. Requires a CJK-capable font (Microsoft YaHei on Windows) for the
-Chinese caption; falls back to the default family if absent.
+this script. The caption is plain English (academic presentation use).
 """
 
 import argparse
@@ -21,7 +20,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.image as mpimg
 import numpy as np
-from matplotlib import font_manager, pyplot as plt
+from matplotlib import pyplot as plt
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
@@ -32,18 +31,15 @@ DEFAULT_PAPER_IMAGE = SCRIPT_DIR / "fig2a_paper_original.png"
 DEFAULT_OUT = SCRIPT_DIR / "fig2a_replica.png"
 
 CAPTION = (
-    "左: 论文原图 Adiyatullin et al. 2017 (Nat. Commun. 8:1329) Fig. 2(a) —— 左 (蓝) / 右 (红) mesa 的累积发光强度, 对数轴, 反相交替振荡; 底部灰区为 SNR<20 的\n"
-    "低置信区。右: 本工作对 26-08-04 HBT 批次 20000 帧 single-sweep 的复刻 (photon 事件源, rebin 8 ≈ 7.9 ps/bin, 峰值归一)。逐帧时间零点经 CFD50 校准: 参考\n"
-    "脉冲前沿恒比定时 (leading-edge constant-fraction discrimination, 50% 峰高穿越, 亚行插值), 时间原点较旧 half-max 质心定义整体提前 ~2.7 ps; 背景为实测\n"
-    "StreakCamBackG 扣除。结果: 未见反相交替振荡 —— 两臂 z 涨落相关不显著 (r=0.03–0.10, p>0.14), 3–200 ps 周期锁相正弦振幅 95% 上限 0.012–0.019\n"
-    "(约 1–2% 强度调制); t≤150 ps 的 L 侧缺口为过阻尼式单调恢复。"
+    "Left: original Fig. 2(a) of Adiyatullin et al. 2017 (Nat. Commun. 8:1329) — accumulated emission intensity of the left (blue) and right\n"
+    "(red) mesa on a logarithmic scale, showing anti-phase population oscillations; the gray band marks the low-confidence SNR<20 region.\n"
+    "Right: this work — replication on the 26-08-04 HBT batch (20000 single-sweep frames; photon-event source, rebin 8 ≈ 7.9 ps/bin,\n"
+    "peak-normalized). The per-frame time zero is calibrated by CFD50, leading-edge constant-fraction discrimination on the reference pulse\n"
+    "(50%-of-peak crossing, sub-row interpolated), placing the origin ~2.7 ps earlier than the former half-max centroid definition; the\n"
+    "measured StreakCamBackG background is subtracted. Outcome: no anti-phase oscillation — cross-arm z fluctuations are uncorrelated\n"
+    "(r=0.03–0.10, p>0.14); the 95% upper limit on a phase-locked sinusoidal z amplitude is 0.012–0.019 for 3–200 ps periods (~1–2%\n"
+    "intensity modulation); the t≤150 ps left-side dip is an overdamped monotonic recovery, not an oscillation."
 )
-
-
-def cjk_font(name="Microsoft YaHei") -> font_manager.FontProperties | None:
-    """Return the CJK font when available so the Chinese caption renders."""
-    available = {f.name for f in font_manager.fontManager.ttflist}
-    return font_manager.FontProperties(family=name) if name in available else None
 
 
 def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
@@ -78,10 +74,8 @@ def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
         "This work: 26-08-04 HBT, 20000 frames, CFD50-timed", fontsize=8.5, loc="left"
     )
 
-    font = cjk_font()
     ax_caption.text(
         0.0, 0.98, CAPTION, fontsize=7.8, va="top", ha="left", linespacing=1.55,
-        fontproperties=font,
     )
 
     output_path = Path(output_path)
@@ -96,7 +90,7 @@ def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Composite: paper Fig. 2(a) vs this work's CFD50-timed replica, "
-                    "with a Chinese caption recording the calibration and outcome."
+                    "with an English caption recording the calibration and outcome."
     )
     parser.add_argument("--npz", type=Path, default=DEFAULT_NPZ)
     parser.add_argument("--paper-image", type=Path, default=DEFAULT_PAPER_IMAGE)
