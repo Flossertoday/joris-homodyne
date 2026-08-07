@@ -40,7 +40,8 @@ intensity（Fig. 2(a) 式）与 g⁽²⁾(0)(t)（Fig. 2(c) 式）分析。本�
 
 ## 3. 管线适配（仅两处，均不改逻辑）
 
-1. `extract_hbt_traces.py` / `extract_hbt_event_table.py`：`H5_SHA256` 硬编码常量改为
+1. `extract_hbt_traces.py`（事件表功能 2026-08-07 起并入此脚本的单遍提取，原
+   `extract_hbt_event_table.py` 废止删除）：`H5_SHA256` 硬编码常量改为
    `resolve_h5_sha256()`（默认文件用常量，其他文件现算），溯源元数据修正。
 2. `fig2c_g2_estimator.py`：`BAND_WINDOWS` 支持环境变量 `FIG2C_BAND_WINDOWS` 覆盖
    （默认原值）。补充批次带窗与原批次不同（见 §4），g2 各脚本统一以
@@ -208,15 +209,19 @@ python -u analysis/26-08-04-derived-hbt-time-reference/render_fig2a.py \
 # z 交叉臂 / 正弦上限
 python -u tmp/fig2a_z_crossarm_cfd50_supplement.py
 python -u tmp/fig2a_upper_limit_cfd50_supplement.py
-# 3) fig2c 事件表（~73 min）+ 立方 + g2 + 渲染（带窗覆盖）
-#    事件表末尾自动对照 hbt_traces_bands.npz 重建校验（容差按事件数 ×2.4 放宽）
+# 3) fig2c 事件表（2026-08-07 起与 fig2a 同遍产出，~75 min）+ 立方 + g2 + 渲染（带窗覆盖）
+#    事件表默认落 analysis/.../detected-peaks/<h5 主名>_events.h5（拒绝覆盖）；末尾
+#    自动对照同遍 npz 重建校验（补充批次事件数 ×2.4，容差相应放宽：
+#    --validation-tolerance 6）。attrs 的 band_windows 为自动检测结果（补充批次仅
+#    部分带，§4），g2 定案带窗仍以 FIG2C_BAND_WINDOWS 覆盖为准。
 export FIG2C_BAND_WINDOWS="350,440,540,680,770,860,970,1100"
-python -u analysis/26-08-04-derived-hbt-time-reference/extract_hbt_event_table.py \
+python -u analysis/26-08-04-derived-hbt-time-reference/extract_hbt_traces.py \
   --h5 .../26-08-04_hbt_time_reference_supplement.h5 \
-  --out drafts/26-08-06_fig2c_supplement/hbt_event_table.h5 \
-  --npz drafts/26-08-06_fig2a_supplement/hbt_traces_bands.npz
+  --out-dir drafts/26-08-06_fig2a_supplement_rerun \
+  --validation-tolerance 6
 python -u analysis/26-08-04-derived-hbt-time-reference/compute_g2_fig2c.py \
-  --table drafts/26-08-06_fig2c_supplement/hbt_event_table.h5 --out-dir drafts/26-08-06_fig2c_supplement
+  --table analysis/26-08-04-derived-hbt-time-reference/detected-peaks/26-08-04_hbt_time_reference_supplement_events.h5 \
+  --out-dir drafts/26-08-06_fig2c_supplement
 python -u analysis/26-08-04-derived-hbt-time-reference/render_fig2c.py --width 4 --out-dir drafts/26-08-06_fig2c_supplement
 # 4) 功效门槛 / 科学判定 / 注入
 python -u analysis/26-08-04-derived-hbt-time-reference/fig2c_power_gate.py \

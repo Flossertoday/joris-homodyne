@@ -17,7 +17,19 @@ hold the time-resolved emission. Per frame the script
   5. interpolates/histograms both onto a common tau grid relative to t0 and
      accumulates NaN-aware sum, sum of squares and count per (sub-window, tau)
      for mean/SEM,
-  6. accumulates an integer-shift t0-aligned sum image for band localization.
+  6. accumulates an integer-shift t0-aligned sum image for band localization,
+  7. stores every detected event (frame, x, y, tau = y - t0, amplitude) plus
+     the per-frame t0 as one HDF5 event table (--events-h5, on by default;
+     --no-events to skip).
+
+Step 7 is the former extract_hbt_event_table.py second pass, merged into this
+single pass (2026-08-07) so the Fig. 2(a) traces and the Fig. 2(c) event table
+can never drift apart: both come from the same per-frame detection. The
+self-consistency check (band photon traces rebuilt from the event table vs the
+accumulated npz, integer-count tolerance) runs automatically after full
+extractions. The curated production table lives in
+``analysis/26-08-04-derived-hbt-time-reference/detected-peaks/`` (see its
+README.md); it refuses to overwrite.
 
 After the pass, the column profile of the aligned sum yields the definitive
 band grouping of the sub-windows, band traces are aggregated, the band
@@ -28,6 +40,8 @@ Outputs (under --out-dir, default drafts/26-08-04_fig2a):
   hbt_traces.npz, bands_report.json, aligned_sum.png, column_profile.png,
   band_traces_quicklook.png, band_corr.png, t0_vs_frame.png, t0_hist.png,
   threshold_sensitivity.png
+plus the event table HDF5 with its validation JSON and a sample-frame overlay
+figure next to it.
 """
 
 import argparse
@@ -334,12 +348,15 @@ def pick_threshold(study, stable_drop=THRESHOLD_STABLE_DROP):
 
 def accumulate(h5_path, background, frame_indices, threshold, tau_grid=TAU_GRID,
                edges=SUBWINDOW_EDGES, batch=BATCH_FRAMES, progress_every=1000,
-               t0_roi=T0_ROI, t0_method="cfd50"):
+               t0_roi=T0_ROI, t0_method="cfd50", collect_events=False):
     """Single pass over frames: accumulate t0-referenced traces and aligned sum.
 
     Returns a dict with NaN-aware sum/sumsq/count arrays per (sub-window, tau)
     for analog and photon traces, the aligned-sum canvas, per-frame t0 rows and
-    kept frame indices, and the t0 failure count.
+    kept frame indices, and the t0 failure count. With ``collect_events=True``
+    the dict also carries ``events``: per-event (frame, x, y, amplitude) float
+    arrays from the same detection call that feeds the photon histogram, so the
+    event table and the accumulated traces share one detection pass.
     """
     estimate = T0_METHODS[t0_method]
     n_windows = edges.size - 1
@@ -355,6 +372,7 @@ def accumulate(h5_path, background, frame_indices, threshold, tau_grid=TAU_GRID,
     t0_rows = []
     kept_indices = []
     n_failures = 0
+    ev_frame, ev_x, ev_y, ev_amp = [], [], [], []
     started = time.time()
 
     with h5py.File(h5_path, "r") as handle:
@@ -394,7 +412,19 @@ def accumulate(h5_path, background, frame_indices, threshold, tau_grid=TAU_GRID,
                     analog_sumsq[window, finite] += values[finite] ** 2
                     analog_count[window, finite] += 1
 
-                rows, cols = detect_events(frame_bg, threshold)
+                if collect_events:
+                    rows, cols, amps = detect_events(
+                        frame_bg, threshold, with_counts=True
+                    )
+                    if rows.size:
+                        ev_frame.append(
+                            np.full(rows.size, frame_index, dtype=np.int32)
+                        )
+                        ev_x.append(cols)
+                        ev_y.append(rows)
+                        ev_amp.append(amps)
+                else:
+                    rows, cols = detect_events(frame_bg, threshold)
                 if rows.size:
                     np.add.at(event_col_hist, np.clip(cols.astype(np.int64), 0, N_COLS - 1), 1)
                     bin_index = np.floor(rows - t0 - tau_grid[0] + 0.5).astype(np.int64)
@@ -419,7 +449,7 @@ def accumulate(h5_path, background, frame_indices, threshold, tau_grid=TAU_GRID,
                     f"{elapsed:.0f} s elapsed",
                     flush=True,
                 )
-    return {
+    result = {
         "analog_sum": analog_sum,
         "analog_sumsq": analog_sumsq,
         "analog_count": analog_count,
@@ -433,6 +463,23 @@ def accumulate(h5_path, background, frame_indices, threshold, tau_grid=TAU_GRID,
         "n_failures": n_failures,
         "elapsed_s": time.time() - started,
     }
+    if collect_events:
+        if ev_frame:
+            events = {
+                "frame": np.concatenate(ev_frame),
+                "x": np.concatenate(ev_x),
+                "y": np.concatenate(ev_y),
+                "amplitude": np.concatenate(ev_amp),
+            }
+        else:
+            events = {
+                "frame": np.empty(0, np.int32),
+                "x": np.empty(0),
+                "y": np.empty(0),
+                "amplitude": np.empty(0),
+            }
+        result["events"] = events
+    return result
 
 
 def mean_sem(acc_sum, acc_sumsq, acc_count):
@@ -847,9 +894,170 @@ def save_threshold_figure(study, chosen_threshold, method, output_path):
     plt.close(figure)
 
 
+# --- Event table (merged from the retired extract_hbt_event_table.py) -------
+
+
+def default_events_h5(h5_path) -> Path:
+    """Curated event-table location for an extraction of ``h5_path``.
+
+    Lives under detected-peaks/ next to this script (26-07-31 detected-peaks
+    precedent: README + provenance + refuse-overwrite, committed with
+    ``git add -f`` because *.h5 is gitignored).
+    """
+    return (
+        Path(__file__).resolve().parent
+        / "detected-peaks"
+        / f"{Path(h5_path).stem}_events.h5"
+    )
+
+
+def assign_band_indices(x: np.ndarray, band_windows) -> np.ndarray:
+    """Band index per event (-1 outside all windows; windows disjoint)."""
+    band = np.full(len(x), -1, dtype=np.int64)
+    for index, (lo, hi) in enumerate(band_windows):
+        band[(x >= lo) & (x <= hi)] = index
+    return band
+
+
+def write_events_h5(events, frame_t0, failed_frames, out_path, attributes):
+    """Write the event table, refusing to overwrite; atomic via .partial.
+
+    Schema (compatible with the retired extract_hbt_event_table.py table):
+    events/{frame int32, x, y, tau, amplitude float64}, frame_t0 float64
+    (NaN on t0 failure), failed_frames int32.
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    if out_path.exists():
+        raise FileExistsError(f"Refusing to overwrite existing file: {out_path}")
+    partial = out_path.with_name(out_path.name + ".partial")
+    if partial.exists():
+        raise FileExistsError(f"Interrupted artifact already exists: {partial}")
+    events = dict(events)
+    events["tau"] = events["y"] - frame_t0[events["frame"]]
+    try:
+        with h5py.File(partial, "x") as handle:
+            for key, value in attributes.items():
+                handle.attrs[key] = value
+            group = handle.create_group("events")
+            for name in ("frame", "x", "y", "tau", "amplitude"):
+                group.create_dataset(
+                    name, data=events[name], compression="gzip", shuffle=True
+                )
+            handle.create_dataset("frame_t0", data=frame_t0)
+            handle.create_dataset("failed_frames", data=failed_frames)
+        if out_path.exists():
+            raise FileExistsError(f"Refusing to overwrite existing file: {out_path}")
+        partial.rename(out_path)
+    except BaseException:
+        if partial.exists():
+            partial.unlink()
+        raise
+    return out_path
+
+
+def validate_events_against_npz(events, frame_t0, npz_path):
+    """Rebuild band photon traces from the event table and compare to an
+    accumulated npz (same binning as ``accumulate``:
+    bin = floor(y - t0 - tau_grid0 + 0.5) over the 1-px tau grid; band windows
+    are taken from the npz itself).
+
+    Returns (max_abs_diff_counts, band_event_totals, kept): per-band maximum
+    absolute difference over the 0-820 ps window expressed in integer counts
+    (rounded), the per-band event totals, and the kept-frame count. The pass
+    criterion is 2 counts per bin: isolated bins can differ by 1-2 counts from
+    float64 bin-edge ties between independent summation orders (measured 32 of
+    165k in-window band events, 0.019%). Comparing in rounded count space, not
+    events/frame, keeps the criterion free of float edge artifacts.
+    """
+    data = np.load(npz_path, allow_pickle=True)
+    tau_ps = np.asarray(data["time_ps"])
+    band_windows = np.asarray(data["band_windows"], dtype=np.float64)
+    reference = np.nan_to_num(np.asarray(data["band_traces_photon"]), nan=0.0)
+    n_tau = tau_ps.size
+    tau_grid0 = float(tau_ps[0]) / PS_PER_PX
+    kept = int(np.sum(np.isfinite(frame_t0)))
+    tau = events["y"] - frame_t0[events["frame"]]
+    band = assign_band_indices(events["x"], band_windows)
+    bin_index = np.floor(tau - tau_grid0 + 0.5).astype(np.int64)
+    valid = (band >= 0) & (bin_index >= 0) & (bin_index < n_tau)
+    n_bands = len(band_windows)
+    flat = band[valid] * n_tau + bin_index[valid]
+    rebuilt = np.bincount(flat, minlength=n_bands * n_tau).reshape(n_bands, n_tau)
+    window = (tau_ps >= 0.0) & (tau_ps <= 820.0)
+    diff_counts = np.abs(rebuilt[:, window] - reference[:, window] * kept)
+    max_diff_counts = np.round(diff_counts.max(axis=1)).astype(np.int64)
+    totals = [int((band == k).sum()) for k in range(n_bands)]
+    return max_diff_counts, totals, kept
+
+
+def save_event_sample_overlay(h5_path, background, frame_t0, band_windows,
+                              frame_indices, out_png, threshold):
+    """Overlay detected events on sample frames (detection-column-range crop).
+
+    Events are re-detected on the fly with the production parameters so the
+    figure double-checks the stored table against the raw frames visually:
+    cyan markers must sit on bright blobs, none in the reference-pulse columns
+    (170-215, outside the detection range), and the green t0 line must cross
+    the reference spot's leading edge.
+    """
+    n = len(frame_indices)
+    figure, axes = plt.subplots(
+        1, n, figsize=(6.2 * n, 5.2), constrained_layout=True
+    )
+    if n == 1:
+        axes = [axes]
+    with h5py.File(h5_path, "r") as handle:
+        frames = handle[FRAMES_DATASET]
+        for axis, index in zip(axes, frame_indices):
+            frame_bg = np.asarray(frames[int(index)], dtype=np.float64) - background
+            rows, cols, amps = detect_events(
+                frame_bg, threshold, with_counts=True
+            )
+            crop = frame_bg[:, EVENT_COL_RANGE[0] : EVENT_COL_RANGE[1]]
+            vmax = float(np.percentile(crop, 99.9))
+            image = axis.imshow(
+                crop, origin="upper", aspect="auto", cmap="magma",
+                vmin=0.0, vmax=vmax,
+            )
+            figure.colorbar(image, ax=axis, shrink=0.85).set_label(
+                f"counts above bg (magma, linear, 0..p99.9={vmax:.0f})"
+            )
+            axis.plot(
+                cols - EVENT_COL_RANGE[0], rows, ".", ms=4,
+                color="cyan", mfc="none", label="events",
+            )
+            for lo, hi in band_windows:
+                axis.axvline(lo - EVENT_COL_RANGE[0], color="white",
+                             lw=0.5, alpha=0.4)
+                axis.axvline(hi - EVENT_COL_RANGE[0], color="white",
+                             lw=0.5, alpha=0.4)
+            axis.axhline(frame_t0[int(index)], color="lime", lw=0.8,
+                         label=f"t0 = {frame_t0[int(index)]:.1f}")
+            axis.set_title(f"frame {index}: {rows.size} events", fontsize=9)
+            axis.set_xlabel(f"column - {EVENT_COL_RANGE[0]} [px]")
+            axis.set_ylabel("row [px]")
+            axis.legend(fontsize=7, loc="upper right")
+    figure.savefig(out_png, dpi=150)
+    plt.close(figure)
+    return out_png
+
+
 def run(args):
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    events_h5 = None
+    if not args.no_events:
+        events_h5 = (
+            Path(args.events_h5) if args.events_h5 else default_events_h5(args.h5)
+        )
+        # Fail fast, before the ~half-hour pass, on the refuse-overwrite rule.
+        if events_h5.exists():
+            raise FileExistsError(
+                f"Refusing to overwrite existing event table: {events_h5} "
+                "(rename it, pass --events-h5, or --no-events)"
+            )
 
     background = load_background(args.h5)
     with h5py.File(args.h5, "r") as handle:
@@ -871,7 +1079,8 @@ def run(args):
     save_threshold_figure(study, threshold, method, out_dir / "threshold_sensitivity.png")
 
     acc = accumulate(args.h5, background, frame_indices, threshold,
-                     t0_method=args.t0_method)
+                     t0_method=args.t0_method,
+                     collect_events=events_h5 is not None)
     print(
         f"Accumulation done in {acc['elapsed_s']:.0f} s: "
         f"{acc['frame_indices'].size} frames kept, {acc['n_failures']} t0 failures",
@@ -1001,6 +1210,93 @@ def run(args):
         json.dump(report, handle, indent=2)
     print(f"Wrote {out_dir / 'hbt_traces.npz'} and diagnostics", flush=True)
 
+    if events_h5 is not None:
+        frame_t0 = np.full(n_frames_h5, np.nan)
+        frame_t0[acc["frame_indices"]] = acc["t0_rows"]
+        failed_frames = np.setdiff1d(frame_indices, acc["frame_indices"]).astype(
+            np.int32
+        )
+        events = acc["events"]
+        attributes = {
+            "source_h5": str(args.h5),
+            "source_h5_sha256": meta["h5_sha256"],
+            "frames_dataset": FRAMES_DATASET,
+            "background_dataset": BACKGROUND_DATASET,
+            "threshold": float(threshold),
+            "threshold_method": method,
+            "threshold_study_json": json.dumps(
+                {
+                    "candidates": study["candidates"],
+                    "event_counts": study["event_counts"],
+                    "n_study_frames": study["n_study_frames"],
+                }
+            ),
+            "min_size": 2,
+            "col_range": list(EVENT_COL_RANGE),
+            "t0_method": args.t0_method,
+            "t0_roi": list(T0_ROI),
+            "ps_per_px": PS_PER_PX,
+            "tau_grid0": float(TAU_GRID[0]),
+            "subwindow_edges": SUBWINDOW_EDGES.astype(np.int64),
+            "band_windows": np.asarray(band_windows, dtype=np.float64),
+            "n_frames": int(n_frames_h5),
+            "n_frames_selected": int(frame_indices.size),
+            "n_frames_kept": int(acc["frame_indices"].size),
+            "n_failures": int(acc["n_failures"]),
+            "sample_step": int(args.sample_step),
+            "n_events": int(events["frame"].size),
+            "created_utc": meta["timestamp"],
+            "script": Path(__file__).name,
+        }
+        if args.t0_method == "cfd50":
+            attributes["cfd_fraction"] = CFD_FRACTION
+        write_events_h5(events, frame_t0, failed_frames, events_h5, attributes)
+        print(
+            f"wrote {events_h5} ({events['frame'].size} events, "
+            f"{failed_frames.size} failed frames)",
+            flush=True,
+        )
+
+        full_extraction = args.sample_step == 1 and args.max_frames is None
+        if full_extraction:
+            # Self-consistency: band photon traces rebuilt from the just-written
+            # table must match the npz accumulated in the same pass.
+            max_diff, totals, kept = validate_events_against_npz(
+                events, frame_t0, out_dir / "hbt_traces.npz"
+            )
+            check = {
+                "npz": str(out_dir / "hbt_traces.npz"),
+                "kept_frames": kept,
+                "band_event_totals": {
+                    f"B{k + 1}": totals[k] for k in range(len(totals))
+                },
+                "max_abs_diff_counts": {
+                    f"B{k + 1}": int(max_diff[k]) for k in range(len(max_diff))
+                },
+                # 2 counts per bin: float64 bin-edge ties between independent
+                # summation orders (measured 32 of 165k in-window band events).
+                # Denser datasets (e.g. the 72000-frame supplement, ~2.4x
+                # events) need a proportionally larger --validation-tolerance.
+                "pass": bool(np.all(max_diff <= args.validation_tolerance)),
+            }
+            check_path = events_h5.with_name(f"{events_h5.stem}_validation.json")
+            with open(check_path, "w") as handle:
+                json.dump(check, handle, indent=2)
+            print(
+                f"event-table validation {'PASS' if check['pass'] else 'FAIL'} "
+                f"(tolerance {args.validation_tolerance} counts/bin); "
+                f"wrote {check_path}",
+                flush=True,
+            )
+
+            sample = [i for i in (100, 5000, 12000) if i < n_frames_h5]
+            overlay = events_h5.with_name(f"{events_h5.stem}_sample_overlay.png")
+            save_event_sample_overlay(
+                args.h5, background, frame_t0, band_windows, sample, overlay,
+                threshold,
+            )
+            print(f"wrote {overlay}", flush=True)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -1008,6 +1304,16 @@ def main():
     )
     parser.add_argument("--h5", type=Path, default=DEFAULT_H5)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
+    parser.add_argument("--events-h5", type=Path, default=None,
+                        help="event table output (default: detected-peaks/ next to "
+                             "this script, named <h5 stem>_events.h5; refuses to "
+                             "overwrite)")
+    parser.add_argument("--no-events", action="store_true",
+                        help="skip the per-photon event table (quick tests only)")
+    parser.add_argument("--validation-tolerance", type=int, default=2,
+                        help="event-table self-consistency tolerance in counts/bin "
+                             "(default 2; scale up for denser datasets, e.g. 6 "
+                             "for the 72000-frame supplement)")
     parser.add_argument("--sample-step", type=int, default=1,
                         help="process every Nth frame (default 1 = all)")
     parser.add_argument("--max-frames", type=int, default=None,
