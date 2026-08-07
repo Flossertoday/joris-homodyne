@@ -1,0 +1,15 @@
+{
+  "npz": "drafts\\26-08-06_fig2a_supplement_rerun\\hbt_traces.npz",
+  "kept_frames": 71971,
+  "band_event_totals": {
+    "B1": 140957,
+    "B2": 55997,
+    "B3": 115680
+  },
+  "max_abs_diff_counts": {
+    "B1": 4,
+    "B2": 1,
+    "B3": 3
+  },
+  "pass": true
+}
