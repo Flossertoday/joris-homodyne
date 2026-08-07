@@ -45,6 +45,8 @@ matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 from scipy import ndimage
 
+from streak_time_axis import ps_per_px
+
 
 DEFAULT_H5 = Path(
     "E:/Documents/Codex/joris-homodyne/DATA/26-08-04-derived-hbt-time-reference/"
@@ -67,10 +69,11 @@ def resolve_h5_sha256(h5_path) -> str:
             digest.update(chunk)
     return digest.hexdigest()
 
-# Acquisition metadata (metadata-conventions.toml): 1 ns window over 1016 rows.
+# Acquisition metadata (metadata-conventions.toml [streak_camera.time_range_0804]):
+# the HBT condition is single-sweep, 1 ns window over 1016 rows.
 N_ROWS = 1016
 N_COLS = 1344
-PS_PER_PX = 1000.0 / 1016.0
+PS_PER_PX = ps_per_px("01_HBT_condensate_Josephson_regime")
 
 # Reference-spot ROI (row0, row1, col0, col1) from the fig2a recon.
 SPOT_ROI = (145, 190, 170, 215)

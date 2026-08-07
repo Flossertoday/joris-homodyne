@@ -30,8 +30,11 @@ import os
 
 import numpy as np
 
-# Acquisition metadata (metadata-conventions.toml): 1 ns window over 1016 rows.
-PS_PER_PX = 1000.0 / 1016.0
+from streak_time_axis import ps_per_px
+
+# Acquisition metadata (metadata-conventions.toml [streak_camera.time_range_0804]):
+# the HBT condition is single-sweep, 1 ns window over 1016 rows.
+PS_PER_PX = ps_per_px("01_HBT_condensate_Josephson_regime")
 
 
 def _band_windows() -> np.ndarray:

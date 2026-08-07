@@ -63,11 +63,14 @@ class SandboxInitializationTests(unittest.TestCase):
                 "h5py==3.16.0",
                 "matplotlib==3.8.0",
                 "trackpy==0.7",
+                "tomli==2.4.1",
             ],
             packages,
         )
         module_names = [re.split(r"[=<>\[;\s!]", line)[0] for line in packages]
-        self.assertEqual(["numpy", "scipy", "h5py", "matplotlib", "trackpy"], module_names)
+        self.assertEqual(
+            ["numpy", "scipy", "h5py", "matplotlib", "trackpy", "tomli"], module_names
+        )
 
     def test_initializer_runs_under_windows_powershell(self):
         executable = shutil.which("powershell")
