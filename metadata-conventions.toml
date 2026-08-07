@@ -31,3 +31,28 @@ device_setting = 5
 window_ns = 1.0
 window_source = "DATA/26-07-31-single-sweep/README.txt: 'Scan of 1 ns window'"
 # 2026-07-31 batch: 1016 vertical pixels span 1 ns -> ~0.984 ps/px.
+
+[streak_camera.time_range_0804]
+# 2026-08-04 batch (DATA/26-08-04-hbt-time-reference): StreakRange = 5 in every
+# folder; the device-enumerated index does not encode the window by itself and
+# maps to different windows on the two sweep modules. Mode indicator:
+# structVar/TGFrequency (4 = synchroscan module, 100 = single-sweep module),
+# matching the mode notes in "DATA/26-08-04-hbt-time-reference/New Text
+# Document.txt" (items 2-6 in synchroscan mode, 8-9 after "Go back to single
+# sweep module"; 01 groups with single sweep by TGFrequency).
+synchroscan_window_ns = 2.0
+synchroscan_window_source = "user verification 2026-08-07: 02_Synchroscan_Kspace_image first, 03-06 confirmed the same day"
+synchroscan_folders = [
+  "02_Synchroscan_Kspace_image",
+  "03_Synchroscan_real_space_image",
+  "04_Real_space_no_pulse_intensity_calibration",
+  "05_Kspace_no_pulse_intensity_calibration",
+  "06_Background_image_synchroscan_mode",
+]
+single_sweep_window_ns = 1.0
+single_sweep_window_source = "26-07-31 single-sweep notes at the same StreakRange = 5 (see [streak_camera.time_range]); 1016 px -> ~0.984 ps/px"
+single_sweep_folders = [
+  "01_HBT_condensate_Josephson_regime",
+  "08_Focus_cross_sections",
+  "09_Background_and_streak_pulses_delay_calibration",
+]
