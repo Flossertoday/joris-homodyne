@@ -62,7 +62,8 @@ class G2HelpersTest(unittest.TestCase):
                            dtype=np.float64)
         beta = dag2.beta_from_noise_model(floor, windows, nbins=10, bin_width=4)
         self.assertEqual(beta.shape, (4, 10))
-        expected_b1 = 1e-3 * 71 * 4  # inclusive width 450-380+1
+        # per-row density x inclusive member columns x bin width
+        expected_b1 = 1e-3 / 1016 * 71 * 4
         self.assertAlmostEqual(beta[0, 0], expected_b1)
         self.assertTrue(np.allclose(beta[:, 0], beta[:, 5]))
 

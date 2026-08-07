@@ -238,7 +238,8 @@ def fit_band_floors(col_hist_out_per_frame, bands=DEFAULT_BANDS,
 
 def build(h5_path, out_path, qc_dir, bands=DEFAULT_BANDS,
           defect_cols=DEFAULT_DEFECT_COLS, threshold=DETECTION_THRESHOLD,
-          sample_step=1, max_frames=None, progress_every=1000):
+          sample_step=1, max_frames=None, progress_every=1000,
+          floor_exclude_cols=DEFAULT_FLOOR_EXCLUDE_COLS):
     """Full curation pass. Writes the dataset-A HDF5 + QC artifacts."""
     out_path = Path(out_path)
     qc_dir = Path(qc_dir)
@@ -340,7 +341,7 @@ def build(h5_path, out_path, qc_dir, bands=DEFAULT_BANDS,
     col_rate_for_fit = col_rate.copy()
     col_rate_for_fit[member] = 0.0  # unused by the fit
     floor_mean, floor_variants, floor_report = fit_band_floors(
-        col_rate_for_fit, bands=bands)
+        col_rate_for_fit, bands=bands, exclude_cols=floor_exclude_cols)
     rho_tau_global = noise_tau_hist / max(n_kept_frames, 1) / out_width
     # flatness of the out-of-band density along tau (window 0-820 ps)
     win = (TAU_GRID >= 0) & (TAU_GRID <= 820 / PS_PER_PX)
@@ -378,7 +379,7 @@ def build(h5_path, out_path, qc_dir, bands=DEFAULT_BANDS,
         "ps_per_px": PS_PER_PX,
         "band_windows": np.asarray(bands, dtype=np.float64),
         "defect_columns": np.asarray(defect_cols, dtype=np.int64),
-        "floor_exclude_columns": np.asarray(DEFAULT_FLOOR_EXCLUDE_COLS, dtype=np.int64),
+        "floor_exclude_columns": np.asarray(floor_exclude_cols, dtype=np.int64),
         "floor_guard_fit_variants": np.asarray(FLOOR_VARIANTS, dtype=np.int64),
         "n_frames_total": n_frames_total,
         "n_frames_processed": int(frame_indices.size),
@@ -450,6 +451,7 @@ def _sha256(path):
 
 
 def render_qc_figures(h5_path, dataset_a_path, qc_dir, bands=DEFAULT_BANDS,
+                      defect_cols=DEFAULT_DEFECT_COLS,
                       sample_frames=(100, 5000, 12000),
                       threshold=DETECTION_THRESHOLD):
     """QC figures: x-profile with ROIs/floors and kept-vs-rejected overlays."""
@@ -514,7 +516,8 @@ def render_qc_figures(h5_path, dataset_a_path, qc_dir, bands=DEFAULT_BANDS,
             frame_bg = np.asarray(frames[int(index)], dtype=np.float64) - background
             t0 = estimate_t0_cfd(frame_bg, roi=T0_ROI)
             feats = detect_events_features(frame_bg, threshold)
-            keep_mask, band, reason = curate_events(feats, bands=bands)
+            keep_mask, band, reason = curate_events(
+                feats, bands=bands, defect_cols=defect_cols)
             crop = frame_bg[:, EVENT_COL_RANGE[0]:EVENT_COL_RANGE[1]]
             vmax = float(np.percentile(crop, 99.9))
             image = ax.imshow(crop, origin="upper", aspect="auto", cmap="magma",
@@ -554,6 +557,10 @@ def main():
                         help="comma list of 2N column edges; default: "
                              "definitive 26-08-04 windows")
     parser.add_argument("--defect-cols", type=str, default=None)
+    parser.add_argument("--floor-exclude-cols", type=str, default=None,
+                        help="comma list of spike/edge columns excluded from "
+                             "the noise-floor fits; default: the 26-08-04 "
+                             "original-batch list")
     parser.add_argument("--threshold", type=float, default=DETECTION_THRESHOLD)
     parser.add_argument("--sample-step", type=int, default=1)
     parser.add_argument("--max-frames", type=int, default=None)
@@ -570,6 +577,10 @@ def main():
     defect_cols = DEFAULT_DEFECT_COLS
     if args.defect_cols:
         defect_cols = tuple(int(v) for v in args.defect_cols.split(",") if v.strip())
+    floor_exclude_cols = DEFAULT_FLOOR_EXCLUDE_COLS
+    if args.floor_exclude_cols:
+        floor_exclude_cols = tuple(
+            int(v) for v in args.floor_exclude_cols.split(",") if v.strip())
     out_path = args.out
     if out_path is None:
         out_path = (Path(__file__).resolve().parent / "detected-peaks"
@@ -578,10 +589,12 @@ def main():
     out_path, qc = build(args.h5, out_path, args.qc_dir, bands=bands,
                          defect_cols=defect_cols, threshold=args.threshold,
                          sample_step=args.sample_step,
-                         max_frames=args.max_frames)
+                         max_frames=args.max_frames,
+                         floor_exclude_cols=floor_exclude_cols)
     print(json.dumps(qc["noise_fraction_per_band"], indent=2), flush=True)
     if not args.skip_figures:
-        render_qc_figures(args.h5, out_path, args.qc_dir, bands=bands)
+        render_qc_figures(args.h5, out_path, args.qc_dir, bands=bands,
+                          defect_cols=defect_cols)
         print(f"QC figures in {args.qc_dir}", flush=True)
 
 

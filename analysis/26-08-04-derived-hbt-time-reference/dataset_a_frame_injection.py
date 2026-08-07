@@ -44,6 +44,7 @@ from extract_hbt_traces import (  # noqa: E402
     DEFAULT_H5,
     EVENT_COL_RANGE,
     FRAMES_DATASET,
+    N_ROWS,
     PS_PER_PX,
     estimate_t0_cfd,
     load_background,
@@ -210,9 +211,9 @@ def run(h5_path, dataset_a_path, old_table_path, out_dir, mode, amplitude,
     noise_rate = floor * widths  # events/frame over the full tau grid
     total_rate = band_totals / n_kept_total
     # per-frame per-band signal rate inside the 0-820 ps injection window:
-    # both signal and noise are tau-flat, so scale the windowless excess by
-    # the window's fraction of the tau grid
-    win_frac = (TAU_WIN_PX[1] - TAU_WIN_PX[0]) / bda.TAU_GRID.size
+    # both signal and noise are tau-flat, so scale the whole-frame excess by
+    # the window's fraction of the reachable rows (N_ROWS)
+    win_frac = (TAU_WIN_PX[1] - TAU_WIN_PX[0]) / N_ROWS
     signal_rates = np.clip(total_rate - noise_rate, 0.0, None) * win_frac
     print(f"signal rates per band per frame (window): {signal_rates.round(3)}",
           flush=True)

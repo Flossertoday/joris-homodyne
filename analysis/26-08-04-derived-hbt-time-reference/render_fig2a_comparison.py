@@ -45,7 +45,8 @@ CAPTION = (
 
 
 def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
-                      bands_l, bands_r, rebin, t_min, t_max, snr_threshold):
+                      bands_l, bands_r, rebin, t_min, t_max, snr_threshold,
+                      caption: str = CAPTION):
     data = rf.load_band_traces(npz_path, "photon")
     time_ps, trace_l, trace_r, sem_l, sem_r, _match_factor = rf.build_lr_traces(
         data, bands_l, bands_r, t_min, t_max, rebin, "peak"
@@ -79,7 +80,7 @@ def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
     )
 
     ax_caption.text(
-        0.0, 0.98, CAPTION, fontsize=7.8, va="top", ha="left", linespacing=1.55,
+        0.0, 0.98, caption, fontsize=7.8, va="top", ha="left", linespacing=1.55,
     )
 
     output_path = Path(output_path)
@@ -105,12 +106,18 @@ def main(argv=None):
     parser.add_argument("--t-min", type=float, default=0.0)
     parser.add_argument("--t-max", type=float, default=820.0)
     parser.add_argument("--snr-threshold", type=float, default=0.0)
+    parser.add_argument("--caption-file", type=Path, default=None,
+                        help="optional text file replacing the built-in caption")
     args = parser.parse_args(argv)
 
+    caption = CAPTION
+    if args.caption_file is not None:
+        caption = args.caption_file.read_text(encoding="utf-8").strip()
     png_path, pdf_path = render_comparison(
         args.npz, args.paper_image, args.out,
         rf.parse_band_selection(args.bands_l), rf.parse_band_selection(args.bands_r),
         args.rebin, args.t_min, args.t_max, args.snr_threshold,
+        caption=caption,
     )
     print(f"Wrote {png_path} and {pdf_path}", flush=True)
 

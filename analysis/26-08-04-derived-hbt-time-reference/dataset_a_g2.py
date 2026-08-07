@@ -29,6 +29,7 @@ import numpy as np
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fig2c_g2_estimator as est  # noqa: E402
+from extract_hbt_traces import N_ROWS  # noqa: E402
 from fig2c_power_gate import sem_plugin  # noqa: E402
 
 DEFAULT_TABLE = (
@@ -83,9 +84,14 @@ def build_cube(events, frame_t0, frame_indices, bin_width):
 
 
 def beta_from_noise_model(floor, band_windows, nbins, bin_width):
-    """beta[4, nbins] = floor * member columns * bin width (tau-flat)."""
+    """beta[4, nbins] = per-row floor density x member columns x bin width.
+
+    floor_per_band is events/frame/column integrated over the frame rows, so
+    the per-row density is floor / N_ROWS; the tau-flat noise then gives
+    floor/N_ROWS * width_cols * bin_width per bin.
+    """
     widths = band_windows[:, 1] - band_windows[:, 0] + 1.0
-    beta = floor[:, None] * widths[:, None] * bin_width
+    beta = floor[:, None] / N_ROWS * widths[:, None] * bin_width
     return np.broadcast_to(beta, (len(floor), nbins)).copy()
 
 

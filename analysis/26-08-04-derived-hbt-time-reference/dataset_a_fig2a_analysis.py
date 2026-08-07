@@ -24,6 +24,7 @@ import numpy as np
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hbt_z_targeted_fits import PAPER_PERIOD_PS, targeted_fit  # noqa: E402
+from extract_hbt_traces import N_ROWS  # noqa: E402
 from kspace_fringe_priors import measured_periods_ps  # noqa: E402
 
 DEFAULT_NPZ = Path("drafts/26-08-08_dataset_a/hbt_traces_dataset_a.npz")
@@ -38,11 +39,12 @@ SCAN_PERIODS_PS = np.concatenate(
 
 
 def z_arm(tr_i, se_i, tr_j, se_j):
-    z = (tr_i - tr_j) / (tr_i + tr_j)
-    sz = (
-        2 * np.sqrt((tr_j * se_i) ** 2 + (tr_i * se_j) ** 2)
-        / (tr_i + tr_j) ** 2
-    )
+    with np.errstate(invalid="ignore", divide="ignore"):
+        z = (tr_i - tr_j) / (tr_i + tr_j)
+        sz = (
+            2 * np.sqrt((tr_j * se_i) ** 2 + (tr_i * se_j) ** 2)
+            / (tr_i + tr_j) ** 2
+        )
     return z, sz
 
 
@@ -56,17 +58,18 @@ def combined(t, bands, sems, mask):
     return t[mask], zr, sz, (z1, sz1), (z2, sz2)
 
 
-def crossarm_r(tt, arm1, arm2, mask1, rng, n_null=200):
-    """Zero-lag Pearson r of the two arms' detrended z, with a Gaussian
-    null built on the per-bin SEMs."""
+def crossarm_r(tt, arm1, arm2, mask, rng, n_null=200):
+    """Zero-lag Pearson r of the two arms' detrended z on `mask`, with a
+    Gaussian null built on the per-bin SEMs."""
     (z1, sz1), (z2, sz2) = arm1, arm2
-    d1 = z1[mask1] - np.polyval(np.polyfit(tt, z1[mask1], 2, w=1 / sz1[mask1]), tt)
-    d2 = z2[mask1] - np.polyval(np.polyfit(tt, z2[mask1], 2, w=1 / sz2[mask1]), tt)
+    z1, sz1, z2, sz2 = z1[mask], sz1[mask], z2[mask], sz2[mask]
+    d1 = z1 - np.polyval(np.polyfit(tt, z1, 2, w=1 / sz1), tt)
+    d2 = z2 - np.polyval(np.polyfit(tt, z2, 2, w=1 / sz2), tt)
     r = float(np.corrcoef(d1, d2)[0, 1])
     null = []
     for _ in range(n_null):
-        n1 = rng.normal(0, sz1[mask1])
-        n2 = rng.normal(0, sz2[mask1])
+        n1 = rng.normal(0, sz1)
+        n2 = rng.normal(0, sz2)
         null.append(np.corrcoef(n1, n2)[0, 1])
     null = np.asarray(null)
     p = float((np.abs(null) >= abs(r)).mean())
@@ -95,8 +98,9 @@ def main():
         band_windows = np.asarray(handle.attrs["band_windows"], dtype=np.float64)
 
     # dilution S/(S+N) per arm from the noise model and the measured traces
+    # (floor is per frame per column over all frame rows -> per-row density)
     widths = band_windows[:, 1] - band_windows[:, 0] + 1.0
-    noise_rate = floor * widths  # events/frame/bin(1px)
+    noise_rate = floor * widths / N_ROWS  # events/frame per 1-px tau bin
     signal_rate = np.array(
         [np.nanmean(bands[k][mask]) - noise_rate[k] for k in range(4)]
     )
@@ -116,7 +120,7 @@ def main():
 
     tt, zr, sz, arm1, arm2 = combined(t, bands, sems, mask)
     rng = np.random.default_rng(0)
-    r_cross, p_cross = crossarm_r(tt, arm1, arm2, np.ones(tt.size, bool), rng)
+    r_cross, p_cross = crossarm_r(tt, arm1, arm2, mask, rng)
 
     # sinusoid UL scan on the combined detrended z
     amps = np.zeros(SCAN_PERIODS_PS.size)
