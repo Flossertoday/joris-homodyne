@@ -1,7 +1,7 @@
 """Build a human-browsable PNG preview tree of the 26-08-04 raw folders.
 
-Creates preview/ with one subfolder per raw folder under
-DATA/26-08-04-hbt-time-reference (1:1 mapping). Frames come from the verified
+Creates hbt-time-reference-0804-preview/ at the project root, one subfolder
+per raw folder under DATA/26-08-04-hbt-time-reference (1:1 mapping). Frames come from the verified
 analysis copy DATA/26-08-04-derived-hbt-time-reference/26-08-04_hbt_time_reference.h5
 (pixel-exact against the source MAT files); 07_Spectrum has no MAT payload and
 is rendered from its raw .tif instead, with the original .spe/.tif copied
@@ -15,7 +15,7 @@ render_condition_frames.py). Each folder also gets _overview_sum.png, a
 matplotlib figure with an explicit colorbar (magma, linear, p1-p99.9 clip) and
 the vertical streak axis scaled to ps (1 ns window over 1016 px,
 metadata-conventions.toml; row 0 rendered as the window start, in-data
-direction calibration pending). preview/README.md records the exact mapping.
+direction calibration pending). The tree's README.md records the exact mapping.
 
 Frame selection: 01_HBT_condensate_Josephson_regime contributes its first
 frame per source MAT file (2000 PNGs, user decision 2026-08-05); every other
@@ -36,7 +36,7 @@ from PIL import Image
 
 H5_PATH = Path("DATA/26-08-04-derived-hbt-time-reference/26-08-04_hbt_time_reference.h5")
 RAW_ROOT = Path("DATA/26-08-04-hbt-time-reference")
-PREVIEW_DIR = Path("analysis/26-08-04-derived-hbt-time-reference/preview")
+PREVIEW_DIR = Path("hbt-time-reference-0804-preview")
 SPECTRUM_RAW_DIR = RAW_ROOT / "07_Spectrum"
 WINDOW_PS = 1000.0
 SUM_BATCH = 50
@@ -202,8 +202,8 @@ def write_readme(stats: list[dict], spectrum_stats: dict) -> None:
         f"sqrt LUT over {spectrum_stats['minimum']}–{spectrum_stats['maximum']}). "
         "The original `.spe`/`.tif` are copied alongside.",
         "",
-        "This tree is bulk preview material and is intentionally untracked by Git",
-        "(same policy as `drafts/`); the tracked analysis set gets its own curated figures.",
+        "This tree is bulk preview material for manual browsing. It can be deleted and",
+        "regenerated at any time with `render_preview.py`.",
     ]
     (PREVIEW_DIR / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
