@@ -128,6 +128,7 @@ def render_frame_overlay(
     vmin: float,
     vmax: float,
     output_path: Path,
+    run_label: str = "hbt_condensate_josephson_regime",
 ) -> None:
     """One full-resolution overlay PNG: frame + events + band x-ROIs."""
     kept = band_membership(cols)
@@ -163,7 +164,7 @@ def render_frame_overlay(
     axis.set_xlim(0, N_COLS)
     axis.set_ylim(0, WINDOW_PS)
     axis.set_title(
-        f"hbt_condensate_josephson_regime frame {frame_index:05d} — "
+        f"{run_label} frame {frame_index:05d} — "
         f"{len(rows)} events (>{EVENT_THRESHOLD:g} above bg), "
         f"{int(kept.sum())} in band ROIs\n"
         f"(sqrt display over [{vmin:.0f}, {vmax:.0f}] counts, "
