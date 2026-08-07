@@ -1020,8 +1020,9 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
     figure double-checks the stored table against the raw frames visually:
     cyan markers must sit on bright blobs, none in the reference-pulse columns
     (170-215, outside the detection range), and the green t0 line must cross
-    the reference spot's leading edge (the spot sits inside the dashed t0-ROI
-    box). The full frame is shown (no column crop) so the reference pulse
+    the reference spot's leading edge (the spot sits inside the dashed t0
+    reference-region box — a display annotation, not one of the four data
+    ROIs/bands). The full frame is shown (no column crop) so the reference pulse
     stays visible; vmax is the 99.9th percentile of the detection column
     range, so the bright reference spot saturates instead of crushing the
     sparse band photons. Returns the written paths.
@@ -1062,7 +1063,8 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
             row0, row1, col0, col1 = T0_ROI
             axis.add_patch(mpatches.Rectangle(
                 (col0, row0), col1 - col0, row1 - row0, fill=False,
-                edgecolor="white", lw=0.6, ls="--", alpha=0.5, label="t0 ROI",
+                edgecolor="white", lw=0.6, ls="--", alpha=0.5,
+                label="t0 ref region",
             ))
             axis.axhline(frame_t0[int(index)], color="lime", lw=0.8,
                          label=f"t0 = {frame_t0[int(index)]:.1f}")
