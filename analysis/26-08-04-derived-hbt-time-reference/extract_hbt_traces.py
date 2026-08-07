@@ -40,8 +40,9 @@ Outputs (under --out-dir, default drafts/26-08-04_fig2a):
   hbt_traces.npz, bands_report.json, aligned_sum.png, column_profile.png,
   band_traces_quicklook.png, band_corr.png, t0_vs_frame.png, t0_hist.png,
   threshold_sensitivity.png
-plus the event table HDF5 with its validation JSON and a sample-frame overlay
-figure next to it.
+plus the event table HDF5 with its validation JSON and per-frame sample
+overlay PNGs next to it (one full-frame figure per seeded-random frame;
+--overlays-only regenerates them without re-running the pass).
 """
 
 import argparse
@@ -56,6 +57,7 @@ import matplotlib
 import numpy as np
 
 matplotlib.use("Agg")
+from matplotlib import patches as mpatches
 from matplotlib import pyplot as plt
 from scipy import ndimage
 
@@ -139,6 +141,12 @@ BAND_SIGMA = 5.0
 # Mesa separation prior from the real-space calibration (L x~610.5, R x~814.0).
 MESA_SEPARATION_PX = 204.0
 MESA_SEPARATION_TOL_PX = 40.0
+
+# Sample overlays: one full-frame PNG per seeded-random t0-kept frame (single
+# frame per figure so details can be zoomed; standing user preference
+# 2026-08-07).
+OVERLAY_SAMPLE_COUNT = 5
+OVERLAY_SAMPLE_SEED = 20260807
 
 
 def load_background(h5_path) -> np.ndarray:
@@ -991,59 +999,121 @@ def validate_events_against_npz(events, frame_t0, npz_path):
     return max_diff_counts, totals, kept
 
 
-def save_event_sample_overlay(h5_path, background, frame_t0, band_windows,
-                              frame_indices, out_png, threshold):
-    """Overlay detected events on sample frames (detection-column-range crop).
+def pick_overlay_frames(frame_t0, count=OVERLAY_SAMPLE_COUNT,
+                        seed=OVERLAY_SAMPLE_SEED):
+    """Seeded-random sample of t0-kept frame indices (sorted, no repeats).
+
+    Seeded so the figure set is reproducible; t0-failed frames (NaN) are
+    excluded because they contribute no events to the table.
+    """
+    kept = np.flatnonzero(np.isfinite(frame_t0))
+    rng = np.random.default_rng(seed)
+    picked = rng.choice(kept, size=min(count, kept.size), replace=False)
+    return np.sort(picked)
+
+
+def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
+                               frame_indices, events_h5, threshold):
+    """One full-frame overlay PNG per sampled frame, written next to events_h5.
 
     Events are re-detected on the fly with the production parameters so the
     figure double-checks the stored table against the raw frames visually:
     cyan markers must sit on bright blobs, none in the reference-pulse columns
     (170-215, outside the detection range), and the green t0 line must cross
-    the reference spot's leading edge.
+    the reference spot's leading edge (the spot sits inside the dashed t0
+    reference-region box — a display annotation, not one of the four data
+    ROIs/bands). The full frame is shown (no column crop) so the reference pulse
+    stays visible; vmax is the 99.9th percentile of the detection column
+    range, so the bright reference spot saturates instead of crushing the
+    sparse band photons. Returns the written paths.
     """
-    n = len(frame_indices)
-    figure, axes = plt.subplots(
-        1, n, figsize=(6.2 * n, 5.2), constrained_layout=True
-    )
-    if n == 1:
-        axes = [axes]
+    paths = []
     with h5py.File(h5_path, "r") as handle:
         frames = handle[FRAMES_DATASET]
-        for axis, index in zip(axes, frame_indices):
+        for index in frame_indices:
             frame_bg = np.asarray(frames[int(index)], dtype=np.float64) - background
             rows, cols, amps = detect_events(
                 frame_bg, threshold, with_counts=True
             )
-            crop = frame_bg[:, EVENT_COL_RANGE[0] : EVENT_COL_RANGE[1]]
-            vmax = float(np.percentile(crop, 99.9))
+            vmax = float(np.percentile(
+                frame_bg[:, EVENT_COL_RANGE[0] : EVENT_COL_RANGE[1]], 99.9
+            ))
+            figure, axis = plt.subplots(figsize=(9.6, 7.2), constrained_layout=True)
             image = axis.imshow(
-                crop, origin="upper", aspect="auto", cmap="magma",
+                frame_bg, origin="upper", aspect="auto", cmap="magma",
                 vmin=0.0, vmax=vmax,
             )
             figure.colorbar(image, ax=axis, shrink=0.85).set_label(
-                f"counts above bg (magma, linear, 0..p99.9={vmax:.0f})"
+                f"counts above bg (magma, linear, 0..p99.9(cols "
+                f"{EVENT_COL_RANGE[0]}-{EVENT_COL_RANGE[1]})={vmax:.0f})"
             )
             axis.plot(
-                cols - EVENT_COL_RANGE[0], rows, ".", ms=4,
+                cols, rows, ".", ms=4,
                 color="cyan", mfc="none", label="events",
             )
             for lo, hi in band_windows:
-                axis.axvline(lo - EVENT_COL_RANGE[0], color="white",
-                             lw=0.5, alpha=0.4)
-                axis.axvline(hi - EVENT_COL_RANGE[0], color="white",
-                             lw=0.5, alpha=0.4)
+                axis.axvline(lo, color="white", lw=0.5, alpha=0.4)
+                axis.axvline(hi, color="white", lw=0.5, alpha=0.4)
+            axis.axvline(EVENT_COL_RANGE[0], color="0.7", lw=0.5, ls=":",
+                         alpha=0.6)
+            axis.axvline(
+                EVENT_COL_RANGE[1], color="0.7", lw=0.5, ls=":", alpha=0.6,
+                label=f"detection cols {EVENT_COL_RANGE[0]}-{EVENT_COL_RANGE[1]}",
+            )
+            row0, row1, col0, col1 = T0_ROI
+            axis.add_patch(mpatches.Rectangle(
+                (col0, row0), col1 - col0, row1 - row0, fill=False,
+                edgecolor="white", lw=0.6, ls="--", alpha=0.5,
+                label="t0 ref region",
+            ))
             axis.axhline(frame_t0[int(index)], color="lime", lw=0.8,
                          label=f"t0 = {frame_t0[int(index)]:.1f}")
+            axis.text(
+                0.995, 0.005,
+                f"bin: 1 px column (uncalibrated) x 1 px row = {PS_PER_PX:.4f} ps",
+                transform=axis.transAxes, ha="right", va="bottom", fontsize=7,
+                color="white",
+                bbox=dict(facecolor="black", alpha=0.6, lw=0, pad=2),
+            )
             axis.set_title(f"frame {index}: {rows.size} events", fontsize=9)
-            axis.set_xlabel(f"column - {EVENT_COL_RANGE[0]} [px]")
+            axis.set_xlabel("column [px]")
             axis.set_ylabel("row [px]")
             axis.legend(fontsize=7, loc="upper right")
-    figure.savefig(out_png, dpi=150)
-    plt.close(figure)
-    return out_png
+            out_png = events_h5.with_name(
+                f"{events_h5.stem}_sample_overlay_frame{int(index):05d}.png"
+            )
+            out_png.parent.mkdir(parents=True, exist_ok=True)
+            figure.savefig(out_png, dpi=150)
+            plt.close(figure)
+            paths.append(out_png)
+    return paths
 
 
 def run(args):
+    if args.overlays_only:
+        # Figure-only regeneration from the existing event table: no pass.
+        events_h5 = (
+            Path(args.events_h5) if args.events_h5 else default_events_h5(args.h5)
+        )
+        if not events_h5.exists():
+            raise FileNotFoundError(
+                f"--overlays-only needs the existing event table: {events_h5}"
+            )
+        with h5py.File(events_h5, "r") as handle:
+            frame_t0 = handle["frame_t0"][:]
+            band_windows = np.asarray(handle.attrs["band_windows"], dtype=np.float64)
+            threshold = float(handle.attrs["threshold"])
+        background = load_background(args.h5)
+        sample = pick_overlay_frames(frame_t0, args.overlay_count, args.overlay_seed)
+        print(f"Overlay sample frames (seed {args.overlay_seed}): {sample.tolist()}",
+              flush=True)
+        for path in save_event_sample_overlays(
+            args.h5, background, frame_t0, band_windows, sample, events_h5,
+            threshold,
+        ):
+            print(f"wrote {path}", flush=True)
+        return
+
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1289,13 +1359,19 @@ def run(args):
                 flush=True,
             )
 
-            sample = [i for i in (100, 5000, 12000) if i < n_frames_h5]
-            overlay = events_h5.with_name(f"{events_h5.stem}_sample_overlay.png")
-            save_event_sample_overlay(
-                args.h5, background, frame_t0, band_windows, sample, overlay,
-                threshold,
+            sample = pick_overlay_frames(
+                frame_t0, args.overlay_count, args.overlay_seed
             )
-            print(f"wrote {overlay}", flush=True)
+            print(
+                f"Overlay sample frames (seed {args.overlay_seed}): "
+                f"{sample.tolist()}",
+                flush=True,
+            )
+            for path in save_event_sample_overlays(
+                args.h5, background, frame_t0, band_windows, sample, events_h5,
+                threshold,
+            ):
+                print(f"wrote {path}", flush=True)
 
 
 def main():
@@ -1325,6 +1401,16 @@ def main():
                         help="reference-pulse t0 estimator: cfd50 = leading-edge "
                              "constant-fraction crossing at 50%% of peak "
                              "(default), centroid = legacy half-max centroid")
+    parser.add_argument("--overlays-only", action="store_true",
+                        help="skip the extraction pass and regenerate only the "
+                             "per-frame sample overlay PNGs from the existing "
+                             "event table")
+    parser.add_argument("--overlay-count", type=int, default=OVERLAY_SAMPLE_COUNT,
+                        help="random sample frames for the overlays "
+                             "(default %(default)s)")
+    parser.add_argument("--overlay-seed", type=int, default=OVERLAY_SAMPLE_SEED,
+                        help="RNG seed for the random overlay frame sample "
+                             "(default %(default)s)")
     run(parser.parse_args())
 
 
