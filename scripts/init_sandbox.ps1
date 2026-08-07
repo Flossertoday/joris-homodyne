@@ -143,6 +143,7 @@ if ($requiredModules.Count -eq 0) {
 }
 
 $environmentCreated = $false
+$usedBasePythonFallback = $false
 $venvDirectory = Join-Path $resolvedProjectRoot ".venv"
 $venvPython = Join-Path $venvDirectory "Scripts\python.exe"
 if ($PythonPath) {
@@ -161,7 +162,12 @@ elseif ($CheckOnly) {
         $resolvedPython = (Resolve-Path -LiteralPath $venvPython).Path
     }
     else {
+        # No .venv yet: the base interpreter only donates the Python runtime a
+        # future .venv is created from. Its own site-packages say nothing
+        # about project readiness, so the module check below is skipped and
+        # the report carries state "not_initialized".
         $resolvedPython = Find-BasePython -Root $resolvedProjectRoot
+        $usedBasePythonFallback = $true
     }
 }
 else {
@@ -179,8 +185,16 @@ else {
     $resolvedPython = (Resolve-Path -LiteralPath $venvPython).Path
 }
 
-$missingModules = @(Get-MissingPythonModules -Python $resolvedPython -Modules $requiredModules)
 $isWorktreeVenv = $resolvedPython.StartsWith($venvDirectory, [StringComparison]::OrdinalIgnoreCase)
+if ($usedBasePythonFallback) {
+    # Readiness of the project environment is unknown until a .venv exists;
+    # probing the base interpreter's modules would conflate it with the
+    # isolated project environment (see docs/sandbox-initialization.md).
+    $missingModules = @()
+}
+else {
+    $missingModules = @(Get-MissingPythonModules -Python $resolvedPython -Modules $requiredModules)
+}
 if (-not $CheckOnly -and $isWorktreeVenv) {
     # The worktree .venv is synced from the pinned requirements on every run;
     # pip no-ops locally when every pin is already satisfied. An explicit
@@ -259,9 +273,19 @@ if ($gitCommonDirectory) {
     )
 }
 
-$ready = $missingModules.Count -eq 0
+if ($missingModules.Count -gt 0) {
+    $readinessState = "missing_dependencies"
+}
+elseif ($usedBasePythonFallback) {
+    $readinessState = "not_initialized"
+}
+else {
+    $readinessState = "ready"
+}
+$ready = $readinessState -eq "ready"
 $report = [ordered]@{
     ready = $ready
+    state = $readinessState
     project_root = $resolvedProjectRoot
     environment_created = $environmentCreated
     state_path = $null
@@ -302,7 +326,11 @@ if ($AsJson) {
     $report | ConvertTo-Json -Depth 5 -Compress
 }
 else {
-    $state = if ($ready) { "READY" } else { "MISSING DEPENDENCIES" }
+    $state = switch ($readinessState) {
+        "ready" { "READY" }
+        "not_initialized" { "NOT INITIALIZED (run without -CheckOnly to create .venv)" }
+        default { "MISSING DEPENDENCIES" }
+    }
     Write-Host "Sandbox initialization: $state"
     Write-Host "  project: $resolvedProjectRoot"
     Write-Host "  branch: $gitBranch"
@@ -313,6 +341,6 @@ else {
     Write-Host "  data root: $resolvedDataRoot"
 }
 
-if (-not $ready) {
+if ($readinessState -eq "missing_dependencies") {
     throw "Python dependencies are missing: $($missingModules -join ', ')"
 }
