@@ -39,7 +39,6 @@ from extract_hbt_traces import (  # noqa: E402
     band_correlation,
     mean_sem,
 )
-
 DEFAULT_TABLE = (
     Path(__file__).resolve().parent
     / "detected-peaks/26-08-04_hbt_time_reference_dataset_a.h5"
