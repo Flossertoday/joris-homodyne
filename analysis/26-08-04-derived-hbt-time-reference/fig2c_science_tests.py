@@ -6,7 +6,9 @@ before the real-data g2 computation, 2026-08-06):
   (a) bunching existence: per-bin z = (g2-1)/SEM_plugin, statistic max|z|
       over the 0-820 ps window;
   (b) oscillation: two-quadrature weighted sinusoid fit, period scan
-      3-200 ps (plus targeted 9.84/37.2/41.8 ps), statistic max |A|/sigma_A;
+      3-200 ps (plus targeted priors: the 9.84 ps paper Josephson period
+      and the measured k-space fringe periods from
+      results/kspace_fringe_oscillation.json), statistic max |A|/sigma_A;
   (c) anti-phase: zero-lag Pearson r of the detrended g2_L-1 / g2_R-1
       fluctuations (one-sided: anti-phase = significantly negative);
   (d) envelope growth: pooled (g2-1) late (400-820 ps) minus early
@@ -36,12 +38,16 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fig2c_g2_estimator as est  # noqa: E402
 from fig2c_power_gate import fit_matrices  # noqa: E402
+from kspace_fringe_priors import measured_periods_ps  # noqa: E402
 
 DEFAULT_OUT_DIR = Path("drafts/26-08-06_fig2c")
 WINDOW_PS = (0.0, 820.0)
 EARLY_PS = (0.0, 400.0)
 LATE_PS = (400.0, 820.0)
-PRIOR_PERIODS_PS = (9.84, 37.2, 41.8)
+PAPER_PERIOD_PS = 9.84  # Adiyatullin 2017 Josephson period (resonant driving)
+# Prior periods: paper period + measured k-space fringe periods (tracked JSON,
+# never hardcode — they scale with the synchroscan window; see streak-time-axis.md).
+PRIOR_PERIODS_PS = (PAPER_PERIOD_PS, *measured_periods_ps())
 N_SURROGATES = 200
 # Scan grid: over an 820 ps window the frequency resolution is ~1.2e-3 /ps;
 # the fig2a-era 0.5 ps spacing below 20 ps undersamples it by ~4x (a 9.84 ps

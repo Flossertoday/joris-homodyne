@@ -14,6 +14,8 @@ measurements used in docs/26-08-04-fig2a.md.
 """
 
 import argparse
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import h5py
@@ -32,6 +34,9 @@ PS_PER_PX = ps_per_px("02_Synchroscan_Kspace_image")
 FRINGE_ROWS = (60, 400)
 FRINGE_COLS = (400, 1000)
 K_BINS = [(c, c + 10) for c in range(450, 950, 50)]  # fixed-k intensity traces
+DEFAULT_OUT_JSON = (
+    Path(__file__).resolve().parent / "results" / "kspace_fringe_oscillation.json"
+)
 
 
 def load_sums(h5_path):
@@ -76,6 +81,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--h5", required=True)
     parser.add_argument("--out", required=True, help="output figure path (drafts)")
+    parser.add_argument(
+        "--out-json",
+        type=Path,
+        default=DEFAULT_OUT_JSON,
+        help="tracked JSON with the measured periods (single source for the "
+        "oscillation priors used by downstream analyses)",
+    )
     args = parser.parse_args()
 
     pulse_sum, calib_sum, pulse_frames = load_sums(args.h5)
@@ -129,6 +141,40 @@ def main():
     fig.savefig(args.out, dpi=200)
     plt.close(fig)
     print(f"wrote {args.out}")
+
+    # Priors for downstream targeted fits: 2D-FFT first peak, then the first
+    # subsequent peak at a distinct period (mirrors the old 37.2/41.8 pair).
+    primary = round(peaks[0][0], 1)
+    secondary = next(
+        (round(tp, 1) for tp, _, _ in peaks[1:] if round(tp, 1) != primary), None
+    )
+    report = {
+        "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "source": {
+            "h5": str(args.h5),
+            "pulse_condition": "synchroscan_kspace_image",
+            "calib_condition": "kspace_no_pulse_intensity_calibration",
+            "window_ps": 1016 * PS_PER_PX,
+            "ps_per_px": PS_PER_PX,
+            "window_convention": "metadata-conventions.toml "
+            "[streak_camera.time_range_0804] (synchroscan 2 ns, "
+            "user-verified 2026-08-07)",
+        },
+        "fringe_rows": list(FRINGE_ROWS),
+        "fringe_cols": list(FRINGE_COLS),
+        "fixed_k_periods_ps": [float(p) for p in periods],
+        "fixed_k_median_ps": float(np.median(periods)),
+        "fft2_peaks": [
+            {"period_ps": float(tp), "spatial_period_px": float(sp), "power": float(pw)}
+            for tp, sp, pw in peaks
+        ],
+        "prior_periods_ps": [primary] + ([secondary] if secondary else []),
+        "per_frame_peak_over_median": [float(v) for v in per_frame],
+    }
+    args.out_json.parent.mkdir(parents=True, exist_ok=True)
+    with open(args.out_json, "w", encoding="utf-8") as handle:
+        json.dump(report, handle, indent=2)
+    print(f"prior periods: {report['prior_periods_ps']} ps -> wrote {args.out_json}")
 
 
 if __name__ == "__main__":
