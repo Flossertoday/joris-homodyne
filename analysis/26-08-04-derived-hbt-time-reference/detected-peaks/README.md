@@ -17,8 +17,13 @@ CFD50 定时间零点后，把 8-连通亮斑（≥2 px、积分幅度 > 25 coun
 
 - `26-08-04_hbt_time_reference_events.h5`：事件表（275218 事件，19992/20000 帧保留）；
 - `26-08-04_hbt_time_reference_events_validation.json`：同遍自洽验证结果；
-- `26-08-04_hbt_time_reference_events_sample_overlay.png`：3 帧抽样叠加图（事件点
-  叠在扣背景帧上，白带边线、绿 t0 线），供目视检查检测质量。
+- `26-08-04_hbt_time_reference_events_sample_overlay_frameNNNNN.png`：5 张抽样
+  叠加图，**每图一个种子随机帧**（种子 20260807，从 t0 保留帧中抽取），**全帧
+  不裁剪**：事件点叠在扣背景帧上，白带边线、点线检测列范围 350–1150、虚线
+  t0 ROI、绿 t0 线（穿过参考脉冲前沿——只有全帧图才能看到参考脉冲列）；图内
+  右下角标注 bin size（1 行 = 0.9843 ps，1 列 = 未标定探测器像素）。色标上限
+  取检测列范围的 p99.9，参考脉冲饱和显示以保全带光子可见。供目视检查检测
+  质量；`--overlays-only` 无需重跑提取即可重生成。
 
 ## `26-08-04_hbt_time_reference_events.h5`（事件表）
 
@@ -62,7 +67,8 @@ fig2a 定案逐字一致）：实测 `StreakCamBackG` 背景扣除 → 参考脉
 
 每个事件的 `tau` 都以**本帧**参考脉冲的 CFD50 穿越行为原点：`tau = y - t0(frame)`，
 全表逐事件验证一致（atol 1e-9）；t0 失败的 8 帧被排除且记录在 `failed_frames`。
-t0 统计：中位行 154.78，RMS 抖动 13.17 ps（`ps_per_px` 属性 = 0.984375）。
+t0 统计：中位行 154.78，RMS 抖动 13.17 ps（`ps_per_px` 属性 = 0.984252，即
+1 ns / 1016 行）。
 样品脉冲与参考点延迟实测 0.32 ps（见 `docs/08-04_sync_oscillation.md`）。
 
 ## 验证（2026-08-07，合并单遍全量提取，4609 s）
@@ -77,15 +83,19 @@ t0 统计：中位行 154.78，RMS 抖动 13.17 ps（`ps_per_px` 属性 = 0.9843
 3. **g2 复现**：`compute_g2_fig2c.py` 对本表重跑，`g2_summary.json` 全部 66 个
    数值叶与旧结果一致（4 px pooled g2(0)：L 0.3104±0.3795、R 1.1138±0.1884，
    jackknife）。
-4. **叠加图目视**：3 帧抽样（100/5000/12000）事件点均落在亮斑上，参考脉冲列无
-   事件，t0 线穿过参考脉冲前沿（见 `..._sample_overlay.png`）。
+4. **叠加图目视**：旧 3 帧合版图（100/5000/12000，仅显示检测列范围裁剪区）确认
+   事件点落在亮斑上、参考脉冲列无事件；2026-08-07 起改为 5 张全帧独立图
+   （种子随机帧 2414/4546/5339/10880/16085），逐张复核以上两项，且"t0 线穿过
+   参考脉冲前沿"一项在全帧图上才真实可见（裁剪图看不到参考脉冲列，该检查
+   此前无法在此图上执行）。
 5. 旧 `drafts/26-08-06_fig2c/event_table_validation.json` 的 `pass:false` 为陈旧
    记录：它写于对账容差放宽（1e-12 → ≤2 计数）之前，放宽后该文件未被重写
    （`--validate-only` 只打印不写盘）；以其自身记录的差值按最终判据折算实为 PASS
    （详见 `docs/26-08-04-fig2c.md` 方法说明第 2 条）。
 
-合成数据单元测试：`tests/test_hbt_event_table.py`（11 项：schema/dtype、拒绝覆盖与
-`.partial` 清理、检测列范围、τ 与 frame_t0 一致、失败帧无事件、同遍重建零差）。
+合成数据单元测试：`tests/test_hbt_event_table.py`（13 项：schema/dtype、拒绝覆盖与
+`.partial` 清理、检测列范围、τ 与 frame_t0 一致、失败帧无事件、同遍重建零差、
+叠加图种子抽样排除失败帧、逐帧独立 PNG 渲染）。
 
 ## 复现（拒绝覆盖既有输出，重跑需先改名或 `--events-h5` 另指路径）
 
@@ -96,6 +106,7 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
   --out-dir .\drafts\<新的 fig2a 输出目录>
 # 事件表默认写到本目录 <h5 主名>_events.h5；只要迹线、不写事件表时加 --no-events
 # 更密数据集（如 72000 帧补充批次）按事件数比例放宽同遍判据：--validation-tolerance 6
+# 只重生成抽样叠加图（不重跑提取）：--overlays-only（另可选 --overlay-count/--overlay-seed）
 ```
 
 下游消费者：`compute_g2_fig2c.py`（`DEFAULT_TABLE` 即本文件）；`fig2c_g2_estimator.py`

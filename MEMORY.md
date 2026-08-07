@@ -15,6 +15,10 @@
 - Treat Stark-triggered oscillations conservatively as population dynamics consistent with Josephson exchange until counterphase response, weak common-mode response, parameter controls and relative-phase measurements exclude reservoir/detection transients.
 - For the 2017 Adiyatullin paper, use the Zotero attachment named `Full Text PDF`. The experiment measured time-resolved intensity correlations; its squeezing curve was model-derived rather than a direct quadrature measurement.
 
+## Figure conventions
+
+- Sampling / spot-check figures are rendered **one frame per image file**, never as multi-frame composite panels: single-frame figures stay zoomable for detail inspection (standing user preference, 2026-08-07).
+
 ## Data rules
 
 - Raw experimental files under `DATA/` are immutable and excluded from Git. Name raw directories `YY-MM-DD-<experiment>` and their distinct sibling analysis directories `YY-MM-DD-derived-<experiment>`.

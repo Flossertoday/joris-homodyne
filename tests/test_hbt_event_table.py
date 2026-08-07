@@ -5,6 +5,7 @@ Fig. 2(a) traces (merge of the retired extract_hbt_event_table.py). These
 tests pin the table schema, the refuse-overwrite/atomic write, the detection
 column-range ROI, the per-frame CFD50 pulse calibration (tau = y - t0), and
 the table-vs-npz self-consistency validation on a 6-frame synthetic dataset.
+Also covers the per-frame sample-overlay frame sampling and rendering.
 """
 import json
 import sys
@@ -216,6 +217,48 @@ class TestValidateEventsAgainstNpz(unittest.TestCase):
     def test_band_event_totals(self):
         # Each kept frame contributes one blob A (band 0) and one blob B (band 1).
         self.assertEqual(self.totals, [N_FRAMES - 1, N_FRAMES - 1])
+
+
+class TestSampleOverlays(unittest.TestCase):
+    """Per-frame sample overlays: seeded random sampling, one PNG per frame."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.mkdtemp()
+        cls.h5_path = Path(cls.tmp) / "synthetic.h5"
+        cls.background = write_synthetic_h5(cls.h5_path)
+        cls.frame_t0 = np.full(N_FRAMES, np.nan)
+        for i in range(N_FRAMES):
+            if i != FAILED_FRAME:
+                cls.frame_t0[i] = 150.0 + 0.25 * i
+        cls.events_h5 = Path(cls.tmp) / "detected-peaks" / "synthetic_events.h5"
+
+    def test_pick_overlay_frames_seeded_excludes_failed(self):
+        picked = eht.pick_overlay_frames(self.frame_t0, count=3, seed=7)
+        self.assertEqual(picked.size, 3)
+        self.assertNotIn(FAILED_FRAME, picked)
+        np.testing.assert_array_equal(
+            picked, eht.pick_overlay_frames(self.frame_t0, count=3, seed=7)
+        )
+        # count above the kept population is clipped to all kept frames.
+        self.assertEqual(
+            eht.pick_overlay_frames(self.frame_t0, count=99, seed=7).size,
+            N_FRAMES - 1,
+        )
+
+    def test_one_full_frame_png_per_sampled_frame(self):
+        sample = [0, 4]
+        paths = eht.save_event_sample_overlays(
+            self.h5_path, self.background, self.frame_t0, BAND_WINDOWS,
+            sample, self.events_h5, THRESHOLD,
+        )
+        self.assertEqual(len(paths), len(sample))
+        for path, index in zip(paths, sample):
+            self.assertTrue(path.exists())
+            self.assertEqual(
+                path.name, f"synthetic_events_sample_overlay_frame{index:05d}.png"
+            )
+            self.assertGreater(path.stat().st_size, 10000)
 
 
 class TestHelpers(unittest.TestCase):
