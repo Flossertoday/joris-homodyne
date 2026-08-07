@@ -87,6 +87,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\init_sandbox.ps1
 - 主项目 `.venv` 已于同日完成自动迁移：完整初始化删除旧共享 `.venv` 并重建隔离环境（`pyvenv.cfg` 为 `include-system-site-packages = false`），五项钉版依赖 pip 同步后 `ready=true`；新架构下完整测试套件 24 项全部通过（含当日新增、依赖 trackpy 的 4 项 find_frame_peaks 测试）。
 - 工作树模拟验证：分支尖端提交仍是旧脚本与 `requirements-analysis.txt`，故将新脚本和 `requirements.txt` 复制进 `git worktree add --detach` 的模拟工作树再运行初始化——其中旧的共享 `.venv` 被自动迁移为隔离环境，含 trackpy 的依赖全部同步成功，`DATA/` 正确回退主项目，`common_directory_external=true` 与 `metadata_write_may_require_approval=true` 标记正确；验证后工作树已移除。
 
+## 2026-08-07 修正：`-CheckOnly` 不再以基础环境的包判断就绪度
+
+实测问题：在手工 `git worktree add` 创建、尚未初始化的新工作树里运行测试套件，`test_initializer_runs_under_windows_powershell` 失败，报 "Python dependencies are missing: trackpy"。根因：`requirements.txt` 自 2026-08-03 起含 trackpy 0.7，但基础 sci 环境从未安装它；`-CheckOnly` 在无 `.venv` 时回退到基础解释器，并拿它的 site-packages 按模块清单判断"项目就绪度"——隔离 .venv 架构下这个清单不代表任何东西，属于误报。完整（非 `-CheckOnly`）初始化路径实测不受影响：临时目录从零建 venv + pip 同步五项钉版依赖成功。
+
+处理（用户选定方向：探针语义跟上隔离架构）：
+
+- `-CheckOnly` 在无 `.venv` 时不再检查基础解释器的模块，报告新增 `state` 字段：`ready` / `not_initialized` / `missing_dependencies`。`not_initialized` 时 exit 0、`ready=false`、`missing=[]`——"尚未初始化"是新建检出的正常状态，运行一次不带 `-CheckOnly` 的初始化即可前进；只有 `.venv`（或显式 `-PythonPath`）存在而依赖仍缺失的 `missing_dependencies` 才算损坏，保持 exit 1 抛出。
+- 上文 2026-08-03 节中"基础 sci 环境的 h5py 让无 `.venv` 的 `-CheckOnly` 仍能报告 ready"的契约自此废止：sci 环境只是创建 `.venv` 的解释器来源，不再需要、也不应再为它同步 `requirements.txt` 的包。以后 `requirements.txt` 新增依赖不会再无声打破无 `.venv` 检出的测试。
+- 回归：`tests/test_init_sandbox.py` 新增 `test_check_only_without_venv_reports_not_initialized`（临时目录无 `.venv`，requirements 含 sci 所缺的 trackpy）；`test_initializer_runs_under_windows_powershell` 按检出是否已有 `.venv` 分别断言 `ready` / `not_initialized`。无 `.venv` 的工作树中完整套件 119 项全部通过。
+
 ## 剩余外层责任
 
 - Codex Desktop 负责保存 Local environment 选择，并在创建新工作树时执行已激活的 setup。

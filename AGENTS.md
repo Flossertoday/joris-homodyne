@@ -2,7 +2,7 @@
 
 - `README.md` is the entry point; `MEMORY.md` holds current structural context; reviewable detail lives in `docs/`.
 - `DATA/` contains local raw experiments and experiment-specific derived copies and is ignored by Git.
-- Scientific Python uses an isolated per-worktree `.venv` created from the local `sci` interpreter (no shared site-packages) and synced from the pinned `requirements.txt`; the `sci` environment itself is never installed into.
+- Scientific Python uses an isolated per-worktree `.venv` created from the local `sci` interpreter (no shared site-packages) and synced from the pinned `requirements.txt`; the `sci` environment itself is never installed into, and its own packages play no role in readiness checks (`-CheckOnly` without a `.venv` reports `state: not_initialized`).
 - When Codex Desktop activates the checked-in Local environment, it automatically runs `scripts/init_sandbox.ps1` through `.codex/environments/environment.toml` while creating a managed worktree.
 - Before substantive work, read `tmp/sandbox-initialization.json`. If it is missing or not ready, run the initializer yourself as the automatic recovery path and report the failure.
 - Do not ask the user to initialize the sandbox or manage its Python dependencies.
