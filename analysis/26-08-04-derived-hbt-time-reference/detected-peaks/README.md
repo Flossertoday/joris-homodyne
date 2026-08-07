@@ -100,3 +100,15 @@ $sandboxState = Get-Content .\tmp\sandbox-initialization.json -Raw | ConvertFrom
 
 下游消费者：`compute_g2_fig2c.py`（`DEFAULT_TABLE` 即本文件）；`fig2c_g2_estimator.py`
 的带窗常量/环境变量覆盖与本表 `band_windows` 属性独立，按 x 指派。
+
+## `26-08-04_hbt_time_reference_dataset_a.h5`(数据集A,2026-08-08)
+
+数据集A:在上表基础上做"排除一切不可能是数据的点"的策展(动机、调查定案与下游
+结果见 `docs/26-08-08-dataset-a.md`),由 `../build_dataset_a.py` 生成(与上表同一
+检测算法同参复跑,逐事件附加 size/peak/bbox),裁剪规则:带内四窗 ROI + 排除缺陷列
+676 + 排除触帧边事件。161357 事件,19992 帧。`events/` 增加
+`size,peak,r0,r1,c0,c1,band` 列;`noise_model/` 组内嵌逐带局部噪声地板
+(floor_per_band,30 px 防护带局部线性拟合)与 τ 分辨全局密度,下游 g2 的 β 由此
+(而非原始帧)给出。`..._dataset_a.verify_against_old.json`:与上表的精确多重子集
+验证(0 外来事件,差集恰好为三类剔除)。下游:`dataset_a_traces.py`、
+`dataset_a_g2.py`、`dataset_a_fig2a_analysis.py`、`dataset_a_frame_injection.py`。
