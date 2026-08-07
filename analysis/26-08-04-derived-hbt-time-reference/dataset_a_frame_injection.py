@@ -336,21 +336,28 @@ def analyze_z(events, frame_t0, amplitude, period_ps):
 
     def z_arm(i, j):
         tr_i, se_i, tr_j, se_j = band_means[i], band_sems[i], band_means[j], band_sems[j]
-        z = (tr_i - tr_j) / (tr_i + tr_j)
-        sz = (2 * np.sqrt((tr_j * se_i) ** 2 + (tr_i * se_j) ** 2)
-              / (tr_i + tr_j) ** 2)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            z = (tr_i - tr_j) / (tr_i + tr_j)
+            sz = (2 * np.sqrt((tr_j * se_i) ** 2 + (tr_i * se_j) ** 2)
+                  / (tr_i + tr_j) ** 2)
         return z, sz
 
     z1, sz1 = z_arm(0, 1)
     z2, sz2 = z_arm(2, 3)
-    w = 1 / sz1[mask] ** 2 + 1 / sz2[mask] ** 2
-    z = (z1[mask] / sz1[mask] ** 2 + z2[mask] / sz2[mask] ** 2) / w
-    sz = np.sqrt(1 / w)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        w = 1 / sz1[mask] ** 2 + 1 / sz2[mask] ** 2
+        z = (z1[mask] / sz1[mask] ** 2 + z2[mask] / sz2[mask] ** 2) / w
+        sz = np.sqrt(1 / w)
     tt = t[mask]
+    # sparse-frame runs can have NaN/inf bins (zero valid frames or zero
+    # counts); drop them before the detrend/fit
+    fin = np.isfinite(z) & np.isfinite(sz) & (sz > 0)
+    tt, z, sz = tt[fin], z[fin], sz[fin]
     zr = z - np.polyval(np.polyfit(tt, z, 2, w=1 / sz), tt)
     fit = targeted_fit(tt, zr, sz, period_ps)
     return {
         "targeted_fit_at_injected_period": fit,
+        "n_bins_used": int(fin.size),
         "note": "recovered amplitude is in measured z space (diluted by the "
                 "residual noise floor, same as any real signal)",
     }
