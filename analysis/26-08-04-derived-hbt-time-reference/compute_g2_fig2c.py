@@ -1,6 +1,9 @@
 """G2+G4: count cubes and g2(0)(t) for the 26-08-04 Fig. 2(c) replica.
 
-Reads the G1 event table (drafts/26-08-06_fig2c/hbt_event_table.h5), bins
+Reads the G1 event table (curated at
+analysis/26-08-04-derived-hbt-time-reference/detected-peaks/
+26-08-04_hbt_time_reference_events.h5, written by the merged single-pass
+extraction in extract_hbt_traces.py), bins
 events into the jitter-corrected coordinate tau = y - t0 at 1/2/4 px, and
 computes the same-mesa zero-delay g2 curves:
 
@@ -34,7 +37,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fig2c_g2_estimator as est  # noqa: E402
 from fig2c_power_gate import sem_plugin  # noqa: E402
 
-DEFAULT_TABLE = Path("drafts/26-08-06_fig2c/hbt_event_table.h5")
+DEFAULT_TABLE = Path(
+    "analysis/26-08-04-derived-hbt-time-reference/detected-peaks/"
+    "26-08-04_hbt_time_reference_events.h5"
+)
 DEFAULT_OUT_DIR = Path("drafts/26-08-06_fig2c")
 BIN_WIDTHS = (1, 2, 4)
 WINDOW_PS = (0.0, 820.0)
