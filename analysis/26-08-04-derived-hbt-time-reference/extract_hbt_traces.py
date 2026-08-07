@@ -1017,15 +1017,29 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
     """One full-frame overlay PNG per sampled frame, written next to events_h5.
 
     Events are re-detected on the fly with the production parameters so the
-    figure double-checks the stored table against the raw frames visually:
-    cyan markers must sit on bright blobs, none in the reference-pulse columns
+    figure double-checks the stored table against the raw frames visually.
+    Markers are split by the role the event plays downstream (2026-08-07, after
+    the single-color scheme was flagged as misleading):
+
+      * cyan dots — band events (inside one of the four band windows, tau
+        within the analysis grid): enter the Fig. 2(a) band photon traces and
+        the g2 coincidence count cubes;
+      * orange dots — out-of-band events (inside the detection columns but
+        outside every band window): enter only the g2 residual-background
+        estimate beta (fig2c_g2_estimator.background_beta_aligned);
+      * gray crosses — excluded events with tau < TAU_GRID[0] (-64 px, more
+        than ~63 ps before t0): stored in the table but outside the tau range
+        of both computations.
+
+    All markers must sit on bright blobs, none in the reference-pulse columns
     (170-215, outside the detection range), and the green t0 line must cross
     the reference spot's leading edge (the spot sits inside the dashed t0
-    reference-region box — a display annotation, not one of the four data
-    ROIs/bands). The full frame is shown (no column crop) so the reference pulse
-    stays visible; vmax is the 99.9th percentile of the detection column
-    range, so the bright reference spot saturates instead of crushing the
-    sparse band photons. Returns the written paths.
+    estimation-region box — a display annotation of the region the per-frame
+    t0 estimator scans, not one of the four data ROIs/bands). The full frame
+    is shown (no column crop) so the reference pulse stays visible; vmax is
+    the 99.9th percentile of the detection column range, so the bright
+    reference spot saturates instead of crushing the sparse band photons.
+    Returns the written paths.
     """
     paths = []
     with h5py.File(h5_path, "r") as handle:
@@ -1047,9 +1061,28 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
                 f"counts above bg (magma, linear, 0..p99.9(cols "
                 f"{EVENT_COL_RANGE[0]}-{EVENT_COL_RANGE[1]})={vmax:.0f})"
             )
+            # Split markers by downstream role: band events feed the Fig. 2(a)
+            # traces and the g2 coincidence cubes; out-of-band events feed only
+            # the g2 residual-background beta; events earlier than the tau grid
+            # take no part in either computation.
+            tau = rows - frame_t0[int(index)]
+            in_band = np.zeros(rows.size, dtype=bool)
+            for lo, hi in band_windows:
+                in_band |= (cols >= lo) & (cols <= hi)
+            early = tau < TAU_GRID[0]
             axis.plot(
-                cols, rows, ".", ms=4,
-                color="cyan", mfc="none", label="events",
+                cols[early], rows[early], "x", ms=5, color="0.6",
+                label=f"excluded: tau < {TAU_GRID[0]:g} px",
+            )
+            axis.plot(
+                cols[~in_band & ~early], rows[~in_band & ~early], ".", ms=4,
+                color="tab:orange", mfc="none",
+                label="out-of-band events (g2 background beta only)",
+            )
+            axis.plot(
+                cols[in_band & ~early], rows[in_band & ~early], ".", ms=4,
+                color="cyan", mfc="none",
+                label="band events (Fig 2a traces + g2 coincidences)",
             )
             for lo, hi in band_windows:
                 axis.axvline(lo, color="white", lw=0.5, alpha=0.4)
@@ -1064,7 +1097,7 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
             axis.add_patch(mpatches.Rectangle(
                 (col0, row0), col1 - col0, row1 - row0, fill=False,
                 edgecolor="white", lw=0.6, ls="--", alpha=0.5,
-                label="t0 ref region",
+                label="t0 estimation region",
             ))
             axis.axhline(frame_t0[int(index)], color="lime", lw=0.8,
                          label=f"t0 = {frame_t0[int(index)]:.1f}")
@@ -1075,10 +1108,21 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
                 color="white",
                 bbox=dict(facecolor="black", alpha=0.6, lw=0, pad=2),
             )
-            axis.set_title(f"frame {index}: {rows.size} events", fontsize=9)
+            n_band = int((in_band & ~early).sum())
+            n_out = int((~in_band & ~early).sum())
+            axis.set_title(
+                f"frame {index}: {rows.size} events "
+                f"({n_band} band, {n_out} out-of-band, {int(early.sum())} excluded)",
+                fontsize=9, pad=44,
+            )
             axis.set_xlabel("column [px]")
             axis.set_ylabel("row [px]")
-            axis.legend(fontsize=7, loc="upper right")
+            # Legend above the axes, not inside: early-tau events sit near the
+            # top edge and would be hidden behind an in-axes legend box.
+            axis.legend(
+                fontsize=7, loc="lower left", bbox_to_anchor=(0.0, 1.01),
+                ncol=2,
+            )
             out_png = events_h5.with_name(
                 f"{events_h5.stem}_sample_overlay_frame{int(index):05d}.png"
             )
