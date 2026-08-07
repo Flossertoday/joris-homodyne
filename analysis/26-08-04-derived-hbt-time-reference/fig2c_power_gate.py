@@ -43,6 +43,7 @@ from matplotlib import pyplot as plt
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fig2c_g2_estimator as est  # noqa: E402
+from kspace_fringe_priors import measured_periods_ps  # noqa: E402
 
 DEFAULT_NPZ = Path(
     "E:/Documents/Codex/joris-homodyne/drafts/26-08-06_fig2a_cfd50/hbt_traces.npz"
@@ -672,8 +673,9 @@ def make_figures(rates, report, out_dir):
         axis.axhspan(*PAPER_AMPLITUDE_RANGE, color="gray", alpha=0.2)
         axis.axvline(9.84, color="black", ls=":", lw=0.9,
                      label="9.84 ps (paper Josephson period)")
-        axis.axvline(37.2, color="gray", ls=":", lw=0.9,
-                     label="37.2 ps (k-space fringe period)")
+        for fringe_period in measured_periods_ps():
+            axis.axvline(fringe_period, color="gray", ls=":", lw=0.9,
+                         label=f"{fringe_period:.1f} ps (k-space fringe period)")
         axis.set_xscale("log")
         axis.set_yscale("log")
         axis.set_xticks([3, 10, 30, 100, 200])
