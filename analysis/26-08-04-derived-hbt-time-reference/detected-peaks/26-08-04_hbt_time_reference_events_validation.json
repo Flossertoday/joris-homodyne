@@ -1,0 +1,17 @@
+{
+  "npz": "drafts\\26-08-07_fig2a_merged\\hbt_traces.npz",
+  "kept_frames": 19992,
+  "band_event_totals": {
+    "B1": 31893,
+    "B2": 56056,
+    "B3": 29063,
+    "B4": 48551
+  },
+  "max_abs_diff_counts": {
+    "B1": 1,
+    "B2": 1,
+    "B3": 1,
+    "B4": 2
+  },
+  "pass": true
+}

@@ -1275,14 +1275,17 @@ def run(args):
                 },
                 # 2 counts per bin: float64 bin-edge ties between independent
                 # summation orders (measured 32 of 165k in-window band events).
-                "pass": bool(np.all(max_diff <= 2)),
+                # Denser datasets (e.g. the 72000-frame supplement, ~2.4x
+                # events) need a proportionally larger --validation-tolerance.
+                "pass": bool(np.all(max_diff <= args.validation_tolerance)),
             }
             check_path = events_h5.with_name(f"{events_h5.stem}_validation.json")
             with open(check_path, "w") as handle:
                 json.dump(check, handle, indent=2)
             print(
                 f"event-table validation {'PASS' if check['pass'] else 'FAIL'} "
-                f"(tolerance 2 counts/bin); wrote {check_path}",
+                f"(tolerance {args.validation_tolerance} counts/bin); "
+                f"wrote {check_path}",
                 flush=True,
             )
 
@@ -1307,6 +1310,10 @@ def main():
                              "overwrite)")
     parser.add_argument("--no-events", action="store_true",
                         help="skip the per-photon event table (quick tests only)")
+    parser.add_argument("--validation-tolerance", type=int, default=2,
+                        help="event-table self-consistency tolerance in counts/bin "
+                             "(default 2; scale up for denser datasets, e.g. 6 "
+                             "for the 72000-frame supplement)")
     parser.add_argument("--sample-step", type=int, default=1,
                         help="process every Nth frame (default 1 = all)")
     parser.add_argument("--max-frames", type=int, default=None,
