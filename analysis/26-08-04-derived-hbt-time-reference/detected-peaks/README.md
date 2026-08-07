@@ -28,14 +28,14 @@ fig2a 定案逐字一致）：实测 `StreakCamBackG` 背景扣除 → 参考脉
 检测（阈值 25 counts 上背景、min 2 px、仅列 350–1150）→ 计数加权亚像素质心。
 阈值由灵敏度扫描拐点自动选定（`threshold_method` 与 `threshold_study_json` 属性）。
 
-每个事件一行，存于 `events/` 组：
+每个事件(单光子峰)一行，存于 `events/` 组：
 
-- `frame`（int32）：0–19999 帧号；
-- `x`, `y`（float64）：亚像素质心（探测器列、绝对行，px）；
+- `frame`（int32）：该事件来自 20000 张 streak 帧中的哪一帧(int,0–19999)；
+- `x`, `y`（float64）：亚像素质心(float,px)。x 是探测器列（空间/光谱轴）,y 是绝对行（原始时间轴）；
 - `tau`（float64）：`y - frame_t0[frame]`，抖动校正后的对齐坐标（px）；
-- `amplitude`（float64）：组分积分幅度（counts 上背景）。
+- `amplitude`（float64）：该亮斑的积分强度（扣背景后的 counts）。
 
-表级数据集：
+表级数据集是按帧索引的，不是按事件：
 
 - `frame_t0`（float64，20000 行）：逐帧 CFD50 t0 行，t0 失败为 NaN；
 - `failed_frames`（int32，8 行）：被排除的帧号
