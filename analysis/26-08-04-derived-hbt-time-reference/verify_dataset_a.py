@@ -22,7 +22,7 @@ Writes <dataset A>.verify_against_old.json; exits nonzero on any mismatch.
 """
 import json
 import sys
-from collections import Counter
+
 from pathlib import Path
 
 import h5py
@@ -44,23 +44,30 @@ NEW_TABLE = (
 EDGE_CENTROID_PX = 30  # exceeds the largest observed blob half-height (19 px)
 
 
-def tuples(frame, x, y, amp):
-    return Counter(
-        zip(
-            frame.astype(np.int64).tolist(),
-            np.round(y, 9).tolist(),
-            np.round(x, 9).tolist(),
-            np.round(amp, 9).tolist(),
-        )
-    )
-
-
 def main():
-    with h5py.File(OLD_TABLE, "r") as handle:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--old", type=Path, default=OLD_TABLE)
+    parser.add_argument("--new", type=Path, default=NEW_TABLE)
+    parser.add_argument("--bands", type=str, default=None,
+                        help="comma list of 2N edges; default: original-batch")
+    parser.add_argument("--defect-cols", type=str, default=None)
+    args = parser.parse_args()
+    bands = DEFAULT_BANDS
+    if args.bands:
+        values = [float(v) for v in args.bands.split(",") if v.strip()]
+        bands = tuple((int(lo), int(hi)) for lo, hi in
+                      np.asarray(values).reshape(-1, 2))
+    defect_cols = DEFAULT_DEFECT_COLS
+    if args.defect_cols:
+        defect_cols = tuple(int(v) for v in args.defect_cols.split(",") if v.strip())
+
+    with h5py.File(args.old, "r") as handle:
         old = {name: np.asarray(handle["events"][name])
                for name in ("frame", "x", "y", "amplitude")}
         old_t0 = np.asarray(handle["frame_t0"])
-    with h5py.File(NEW_TABLE, "r") as handle:
+    with h5py.File(args.new, "r") as handle:
         new = {name: np.asarray(handle["events"][name])
                for name in ("frame", "x", "y", "amplitude")}
         new_t0 = np.asarray(handle["frame_t0"])
@@ -75,35 +82,76 @@ def main():
     same = (old_t0 == new_t0) | (np.isnan(old_t0) & np.isnan(new_t0))
     report["t0_identical"] = bool(np.all(same))
 
-    remainder = tuples(old["frame"], old["x"], old["y"], old["amplitude"])
-    remainder.subtract(tuples(new["frame"], new["x"], new["y"], new["amplitude"]))
-    foreign = {k: v for k, v in remainder.items() if v < 0}
-    report["new_events_not_in_old"] = int(sum(-v for v in foreign.values()))
-    remainder = Counter({k: v for k, v in remainder.items() if v > 0})
-    report["old_events_not_in_new"] = int(sum(remainder.values()))
+    # multiset difference via index-tracking merge: rounded keys decide the
+    # match, raw old-table coordinates drive the reject-class classification
+    # (floor(x) at integer defect columns must not see the rounded value)
+    def keys_for(frame, x, y, amp):
+        return np.stack(
+            [frame.astype(np.float64), np.round(y, 9), np.round(x, 9),
+             np.round(amp, 9)],
+            axis=1,
+        )
 
-    # classify the remainder from the old table's own coordinates
+    old_keys = keys_for(old["frame"], old["x"], old["y"], old["amplitude"])
+    new_keys = keys_for(new["frame"], new["x"], new["y"], new["amplitude"])
+    old_order = np.lexsort(old_keys.T[::-1])
+    new_order = np.lexsort(new_keys.T[::-1])
+    old_sorted = old_keys[old_order]
+    new_sorted = new_keys[new_order]
+
+    def lexcmp(a, b):
+        for k in range(a.shape[0]):
+            if a[k] < b[k]:
+                return -1
+            if a[k] > b[k]:
+                return 1
+        return 0
+
+    matched_old = np.zeros(old["frame"].size, dtype=bool)
+    foreign = 0
+    i = j = 0
+    while i < old_sorted.shape[0] and j < new_sorted.shape[0]:
+        cmp = lexcmp(old_sorted[i], new_sorted[j])
+        if cmp == 0:
+            matched_old[old_order[i]] = True
+            i += 1
+            j += 1
+        elif cmp < 0:
+            i += 1
+        else:
+            foreign += 1
+            j += 1
+    foreign += new_sorted.shape[0] - j
+    remainder_idx = np.flatnonzero(~matched_old)
+    report["new_events_not_in_old"] = int(foreign)
+    report["old_events_not_in_new"] = int(remainder_idx.size)
+
+    # classify from the old table's own raw coordinates
     member = np.zeros(old["frame"].size, dtype=bool)
-    for lo, hi in DEFAULT_BANDS:
+    for lo, hi in bands:
         member |= (old["x"] >= lo) & (old["x"] <= hi)
     defect = np.isin(np.floor(old["x"]).astype(np.int64),
-                     np.asarray(DEFAULT_DEFECT_COLS))
+                     np.asarray(defect_cols))
     report["old_out_of_band"] = int((~member).sum())
     report["old_inband_defect"] = int((member & defect).sum())
     report["old_inband_nondefect"] = int((member & ~defect).sum())
 
-    # remainder events must be: out-of-band, defect, or edge-hugging
-    if remainder:
-        rem = np.asarray(list(remainder.elements()))
-        rem_frame, rem_y, rem_x = rem[:, 0], rem[:, 1], rem[:, 2]
-        rem_member = np.zeros(rem_frame.size, dtype=bool)
-        for lo, hi in DEFAULT_BANDS:
-            rem_member |= (rem_x >= lo) & (rem_x <= hi)
-        rem_defect = np.isin(np.floor(rem_x).astype(np.int64),
-                             np.asarray(DEFAULT_DEFECT_COLS))
+    if remainder_idx.size:
+        rem_x = old["x"][remainder_idx]
+        rem_y = old["y"][remainder_idx]
+        rem_member = member[remainder_idx]
+        rem_defect = defect[remainder_idx]
         unexplained = rem_member & ~rem_defect
-        edge_ok = (rem_y[unexplained] < EDGE_CENTROID_PX) | (
-            rem_y[unexplained] > 1016 - EDGE_CENTROID_PX)
+        uy = rem_y[unexplained]
+        ux = rem_x[unexplained]
+        edge_ok = (
+            (uy < EDGE_CENTROID_PX)
+            | (uy > 1016 - EDGE_CENTROID_PX)
+            # bbox touching the detection column boundary (supplement B1
+            # starts at col 350): centroid within a blob half-width of it
+            | (ux < 350 + EDGE_CENTROID_PX)
+            | (ux > 1149 - EDGE_CENTROID_PX)
+        )
         report["remainder_out_of_band"] = int((~rem_member).sum())
         report["remainder_defect"] = int((rem_member & rem_defect).sum())
         report["remainder_inband_edge_hugging"] = int(edge_ok.sum())
@@ -111,7 +159,7 @@ def main():
     else:
         report["remainder_unexplained"] = 0
 
-    with open(NEW_TABLE.with_suffix(".verify_against_old.json"), "w") as stream:
+    with open(args.new.with_suffix(".verify_against_old.json"), "w") as stream:
         json.dump(report, stream, indent=2)
     print(json.dumps(report, indent=2))
 
