@@ -202,8 +202,18 @@ def write_readme(stats: list[dict], spectrum_stats: dict) -> None:
         f"sqrt LUT over {spectrum_stats['minimum']}–{spectrum_stats['maximum']}). "
         "The original `.spe`/`.tif` are copied alongside.",
         "",
-        "This tree is bulk preview material for manual browsing. It can be deleted and",
-        "regenerated at any time with `render_preview.py`.",
+        "## Frame-overlay samples",
+        "",
+        "`frame_overlays/` and `frame_overlays_new_folder_10/` are annotated samples of",
+        "the HBT condition (raw frame, detected events kept/rejected by the Fig. 2(a)",
+        "band x-ROIs, band x-ROIs overlaid) — not raw-folder mirrors. Regenerate with",
+        "`analysis/26-08-04-derived-hbt-time-reference/render_frame_overlays.py` (main",
+        "run) and `render_frame_overlays_new_folder_10.py` (supplement run); see the",
+        "README inside each folder.",
+        "",
+        "This tree is bulk preview material for manual browsing. The numbered",
+        "raw-folder mirrors can be deleted and regenerated at any time with",
+        "`render_preview.py`.",
     ]
     (PREVIEW_DIR / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

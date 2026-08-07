@@ -19,8 +19,9 @@ All rendering, event detection, background subtraction, display mapping and
 band x-ROI code is reused unchanged from ``render_frame_overlays.py`` (which
 targets the main run), so this preview cannot drift away from the reviewed
 Fig. 2(a) pipeline; only the source HDF5, the output directory, the frame
-label and the README text differ. See ``frame_overlays/README.md`` for the
-format reference of the main run.
+label and the README text differ. See
+``hbt-time-reference-0804-preview/frame_overlays/README.md`` for the format
+reference of the main run.
 """
 
 import argparse
@@ -57,7 +58,7 @@ DEFAULT_H5 = Path(
     "E:/Documents/Codex/joris-homodyne/DATA/26-08-04-derived-hbt-time-reference/"
     "26-08-04_hbt_time_reference_supplement.h5"
 )
-DEFAULT_OUT_DIR = SCRIPT_DIR / "frame_overlays_new_folder_10"
+DEFAULT_OUT_DIR = SCRIPT_DIR.parents[1] / "hbt-time-reference-0804-preview" / "frame_overlays_new_folder_10"
 RUN_LABEL = "hbt_condensate_josephson_regime (supplement)"
 
 
