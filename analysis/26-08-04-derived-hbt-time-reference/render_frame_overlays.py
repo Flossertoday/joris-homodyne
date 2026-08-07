@@ -52,7 +52,7 @@ from extract_hbt_traces import (  # noqa: E402
     load_background,
 )
 
-DEFAULT_OUT_DIR = SCRIPT_DIR / "frame_overlays"
+DEFAULT_OUT_DIR = SCRIPT_DIR.parents[1] / "hbt-time-reference-0804-preview" / "frame_overlays"
 
 # Final band x-ROIs and event threshold of the CFD50 Fig. 2(a) run
 # (drafts/26-08-06_fig2a_cfd50/bands_report.json; docs/26-08-04-fig2a.md).
