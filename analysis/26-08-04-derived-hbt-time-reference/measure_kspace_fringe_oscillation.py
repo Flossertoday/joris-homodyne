@@ -4,7 +4,9 @@ The 26-08-04 batch DOES contain an intensity oscillation — directly visible in
 `synchroscan_kspace_image` (accumulated in-camera, so per-frame timing jitter
 does not apply): tilted two-condensate interference fringes (relative phase
 winding in time). At a fixed k column the intensity oscillates with a dominant
-period of ~37-42 ps over rows ~60-400. The no-pulse k-space calibration shows
+period of ~74-84 ps over rows ~60-400 (2 ns synchroscan window per
+metadata-conventions.toml; measured 74.4 ps fixed-k / 74.4 and 83.7 ps 2D-FFT
+peaks). The no-pulse k-space calibration shows
 no fringes, ruling out a detector artifact.
 
 This script renders the summary figure and prints the quantitative
@@ -21,7 +23,12 @@ import numpy as np
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 
-PS_PER_PX = 1000.0 / 1016.0
+from streak_time_axis import ps_per_px
+
+# Both analyzed conditions (02 synchroscan_kspace_image and 05
+# kspace_no_pulse_intensity_calibration) are synchroscan-mode: 2 ns window
+# (metadata-conventions.toml [streak_camera.time_range_0804]).
+PS_PER_PX = ps_per_px("02_Synchroscan_Kspace_image")
 FRINGE_ROWS = (60, 400)
 FRINGE_COLS = (400, 1000)
 K_BINS = [(c, c + 10) for c in range(450, 950, 50)]  # fixed-k intensity traces

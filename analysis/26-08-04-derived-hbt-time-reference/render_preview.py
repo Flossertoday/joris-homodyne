@@ -37,24 +37,19 @@ matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 from PIL import Image
 
+from streak_time_axis import default_window_ps, folder_windows_ps
+
 
 H5_PATH = Path("DATA/26-08-04-derived-hbt-time-reference/26-08-04_hbt_time_reference.h5")
 RAW_ROOT = Path("DATA/26-08-04-hbt-time-reference")
 PREVIEW_DIR = Path("hbt-time-reference-0804-preview")
 SPECTRUM_RAW_DIR = RAW_ROOT / "07_Spectrum"
-# Streak time window per folder, from metadata-conventions.toml
-# [streak_camera.time_range_0804]: the batch default is 1 ns (26-07-31
-# single-sweep notes at the same StreakRange = 5). The synchroscan-mode
-# folders 02–06 (structVar/TGFrequency = 4) are overridden to 2 ns — 02
-# user-verified first, 03–06 confirmed the same day (2026-08-07).
-WINDOW_PS_BY_FOLDER = {
-    "02_Synchroscan_Kspace_image": 2000.0,
-    "03_Synchroscan_real_space_image": 2000.0,
-    "04_Real_space_no_pulse_intensity_calibration": 2000.0,
-    "05_Kspace_no_pulse_intensity_calibration": 2000.0,
-    "06_Background_image_synchroscan_mode": 2000.0,
-}
-DEFAULT_WINDOW_PS = 1000.0
+# Streak time window per folder, loaded from metadata-conventions.toml
+# [streak_camera.time_range_0804] (single source of truth; see
+# docs/streak-time-axis.md): synchroscan folders 02–06 span 2 ns,
+# single-sweep folders 01/08/09 span 1 ns.
+FOLDER_WINDOWS_PS = folder_windows_ps()
+DEFAULT_WINDOW_PS = default_window_ps()
 SUM_BATCH = 50
 HBT_FRAME_LIMIT = 100  # conditions with more frames get first-frame-per-file
 
@@ -145,7 +140,7 @@ def render_condition(condition: h5py.Group, target_dir: Path) -> dict:
     target_dir.mkdir(parents=True, exist_ok=True)
 
     summed, minimum, maximum = sum_and_range(frames)
-    window_ps = WINDOW_PS_BY_FOLDER.get(raw_dir, DEFAULT_WINDOW_PS)
+    window_ps = FOLDER_WINDOWS_PS[raw_dir]
     save_overview_sum(summed, raw_dir, frame_count, window_ps, target_dir / "_overview_sum.png")
     if window_ps != DEFAULT_WINDOW_PS:
         write_time_axis_note(raw_dir, window_ps, target_dir / "README.md")
