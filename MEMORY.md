@@ -14,6 +14,7 @@
 - One single-sweep frame is one realization, not a \(g^{(2)}\) matrix. Normally ordered correlations require many sparse photon-counting trials with same-event identity and independent HBT arms.
 - Treat Stark-triggered oscillations conservatively as population dynamics consistent with Josephson exchange until counterphase response, weak common-mode response, parameter controls and relative-phase measurements exclude reservoir/detection transients.
 - For the 2017 Adiyatullin paper, use the Zotero attachment named `Full Text PDF`. The experiment measured time-resolved intensity correlations; its squeezing curve was model-derived rather than a direct quadrature measurement.
+- In the 26-08-04 HBT analysis context, "the ROI" (user's term: 四条袋状区域 / "four bag regions") means the four emission-band column windows B1–B4 of the Fig. 2(a) pipeline (main batch: 380–450, 570–680, 810–880, 1010–1110; the supplement batch re-localized its own) — 2 mesas x 2 HBT arms, same-mesa pairs L=B1xB3, R=B2xB4. On streak frames they appear as four vertical bright bands. Detection columns 350–1150 are NOT the ROI; they also cover the inter-band columns whose events feed the g2 residual-background estimate beta.
 
 ## Figure conventions
 
