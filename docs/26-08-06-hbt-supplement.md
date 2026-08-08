@@ -209,18 +209,23 @@ python -u analysis/26-08-04-derived-hbt-time-reference/render_fig2a.py \
 # z 交叉臂 / 正弦上限
 python -u tmp/fig2a_z_crossarm_cfd50_supplement.py
 python -u tmp/fig2a_upper_limit_cfd50_supplement.py
-# 3) fig2c 事件表（2026-08-07 起与 fig2a 同遍产出，~75 min）+ 立方 + g2 + 渲染（带窗覆盖）
-#    事件表默认落 analysis/.../detected-peaks/<h5 主名>_events.h5（拒绝覆盖）；末尾
+# 3) fig2c 事件表（2026-08-07 起与 fig2a 同遍产出；补充批次 72000 帧累积 6220 s）
+#    + 立方 + g2 + 渲染（带窗覆盖）。事件表 2026-08-07 实跑时以 --events-h5 改指
+#    analysis/.../detected-peaks-supplement/26-08-04_hbt_time_reference_supplement_events.h5
+#    （默认落点为 analysis/.../detected-peaks/<h5 主名>_events.h5，均拒绝覆盖）；末尾
 #    自动对照同遍 npz 重建校验（补充批次事件数 ×2.4，容差相应放宽：
 #    --validation-tolerance 6）。attrs 的 band_windows 为自动检测结果（补充批次仅
 #    部分带，§4），g2 定案带窗仍以 FIG2C_BAND_WINDOWS 覆盖为准。
+#    2026-08-07 实跑结果：661090 事件、71971 帧、29 帧 t0 失败，与旧两遍表逐位一致
+#    （详见 detected-peaks-supplement/README.md）。
 export FIG2C_BAND_WINDOWS="350,440,540,680,770,860,970,1100"
 python -u analysis/26-08-04-derived-hbt-time-reference/extract_hbt_traces.py \
   --h5 .../26-08-04_hbt_time_reference_supplement.h5 \
   --out-dir drafts/26-08-06_fig2a_supplement_rerun \
+  --events-h5 analysis/26-08-04-derived-hbt-time-reference/detected-peaks-supplement/26-08-04_hbt_time_reference_supplement_events.h5 \
   --validation-tolerance 6
 python -u analysis/26-08-04-derived-hbt-time-reference/compute_g2_fig2c.py \
-  --table analysis/26-08-04-derived-hbt-time-reference/detected-peaks/26-08-04_hbt_time_reference_supplement_events.h5 \
+  --table analysis/26-08-04-derived-hbt-time-reference/detected-peaks-supplement/26-08-04_hbt_time_reference_supplement_events.h5 \
   --out-dir drafts/26-08-06_fig2c_supplement
 python -u analysis/26-08-04-derived-hbt-time-reference/render_fig2c.py --width 4 --out-dir drafts/26-08-06_fig2c_supplement
 # 4) 功效门槛 / 科学判定 / 注入
