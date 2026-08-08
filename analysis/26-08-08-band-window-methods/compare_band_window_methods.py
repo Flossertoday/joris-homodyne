@@ -46,7 +46,7 @@ Outputs (--out-dir):
 
 Run (from the repository/worktree root; JSON paths are repo-relative):
 
-    .\\.venv\\Scripts\\python.exe analysis\\26-08-04-derived-hbt-time-reference\\compare_band_window_methods.py \
+    .\\.venv\\Scripts\\python.exe analysis\\26-08-08-band-window-methods\\compare_band_window_methods.py \
         --main-report drafts/26-08-06_fig2a_cfd50/bands_report.json \
         --supp-report drafts/26-08-06_fig2a_supplement/bands_report.json \
         --out-dir drafts/26-08-08_band_window_methods

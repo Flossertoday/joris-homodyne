@@ -7,9 +7,15 @@ import numpy as np
 SCRIPT_DIR = (
     Path(__file__).resolve().parent.parent
     / "analysis"
+    / "26-08-08-band-window-methods"
+)
+HBT_DIR = (
+    Path(__file__).resolve().parent.parent
+    / "analysis"
     / "26-08-04-derived-hbt-time-reference"
 )
 sys.path.insert(0, str(SCRIPT_DIR))
+sys.path.insert(0, str(HBT_DIR))
 import compare_band_window_methods as cbwm  # noqa: E402
 import extract_hbt_traces as eht  # noqa: E402
 
