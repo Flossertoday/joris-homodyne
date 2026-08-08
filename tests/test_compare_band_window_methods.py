@@ -186,5 +186,55 @@ class TestSnrOptimalWindow(unittest.TestCase):
         self.assertEqual(windows, [])
 
 
+class TestEmissionSupport(unittest.TestCase):
+    """Morphological emission-support walk (render_roi_morphology)."""
+
+    def setUp(self):
+        self.rwm = sys.modules.get("render_roi_morphology")
+        if self.rwm is None:
+            import render_roi_morphology as rwm
+            self.rwm = rwm
+
+    def test_gaussian_support_recovers_expected_extent(self):
+        # threshold = max(3*sqrt(200)~42, 1.5% of 400 = 6) -> 42; for a
+        # Gaussian with amp 400 and sigma 36 the walk ends at
+        # 36*sqrt(2*ln(400/42)) ~ 75 px from the center
+        hist = make_hist(flat_floor(), [400.0], mus=[625.0], truncate=False)
+        floor = flat_floor()
+        from scipy import ndimage
+
+        res = ndimage.gaussian_filter1d(hist - floor, 3.0)
+        x0, x1, tl, tr, thr = self.rwm.emission_support(res, floor, 625.0)
+        self.assertFalse(tl)
+        self.assertFalse(tr)
+        self.assertLess(abs((625 - x0) - 75), 10)
+        self.assertLess(abs((x1 - 625) - 75), 10)
+
+    def test_support_truncation_flag_at_detection_edge(self):
+        # B1-like band whose flank reaches the detection edge: the walk is
+        # capped and flagged
+        hist = make_hist(flat_floor(), [550.0], mus=[MU_SUPP[0]], seed=19)
+        floor = cbwm.local_floor(hist)
+        from scipy import ndimage
+
+        res = ndimage.gaussian_filter1d(hist - floor, 3.0)
+        x0, x1, tl, tr, thr = self.rwm.emission_support(
+            res, floor, MU_SUPP[0], det_edges=cbwm.DET_RANGE)
+        self.assertTrue(tl)
+        self.assertEqual(x0, cbwm.DET_RANGE[0])
+
+    def test_metrics_coverage_and_floor_fraction(self):
+        hist = make_hist(flat_floor(), [400.0], mus=[625.0], truncate=False)
+        floor = flat_floor()
+        support = (550, 701, False, False, 42.0)
+        narrow = self.rwm.method_metrics(hist, floor, [(590, 661)], [support])
+        wide = self.rwm.method_metrics(hist, floor, [(545, 706)], [support])
+        self.assertGreater(wide["coverage"], narrow["coverage"])
+        self.assertGreater(wide["floor_fraction"], narrow["floor_fraction"])
+        self.assertLessEqual(wide["coverage"], 1.0)
+        # narrow window is fully inside the support: coverage < 1
+        self.assertLess(narrow["coverage"], 0.9)
+
+
 if __name__ == "__main__":
     unittest.main()
