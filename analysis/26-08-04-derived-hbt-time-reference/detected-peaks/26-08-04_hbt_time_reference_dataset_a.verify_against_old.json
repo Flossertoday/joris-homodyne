@@ -1,0 +1,21 @@
+{
+  "old_events": 275218,
+  "new_events": 161357,
+  "curator_cut_counts": {
+    "total_detected": 275218,
+    "kept": 161357,
+    "out_of_band": 109655,
+    "defect_column": 619,
+    "edge_touch": 3587
+  },
+  "t0_identical": true,
+  "new_events_not_in_old": 0,
+  "old_events_not_in_new": 113861,
+  "old_out_of_band": 109655,
+  "old_inband_defect": 619,
+  "old_inband_nondefect": 164944,
+  "remainder_out_of_band": 109655,
+  "remainder_defect": 619,
+  "remainder_inband_edge_hugging": 3587,
+  "remainder_unexplained": 0
+}

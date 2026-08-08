@@ -49,7 +49,8 @@ def build_caption(width, pooled_l, pooled_r, ul95_text):
     )
 
 
-def render_comparison(out_dir: Path, paper_image: Path, output_path: Path, width: int):
+def render_comparison(out_dir: Path, paper_image: Path, output_path: Path, width: int,
+                      caption: str | None = None):
     data = np.load(out_dir / f"g2_results_bin{width}px.npz")
     with open(out_dir / "g2_summary.json") as handle:
         summary = json.load(handle)
@@ -103,7 +104,9 @@ def render_comparison(out_dir: Path, paper_image: Path, output_path: Path, width
     )
 
     ax_caption.text(
-        0.0, 0.98, build_caption(width, pooled["L"], pooled["R"], ul95_text),
+        0.0, 0.98,
+        caption if caption is not None
+        else build_caption(width, pooled["L"], pooled["R"], ul95_text),
         fontsize=7.8, va="top", ha="left", linespacing=1.55,
     )
 
@@ -121,10 +124,17 @@ def main(argv=None):
     parser.add_argument("--paper-image", type=Path, default=DEFAULT_PAPER_IMAGE)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--width", type=int, default=4)
+    parser.add_argument("--caption-file", type=Path, default=None,
+                        help="optional text file replacing the built-in caption")
     args = parser.parse_args(argv)
 
+    caption = (
+        args.caption_file.read_text(encoding="utf-8").strip()
+        if args.caption_file is not None
+        else None
+    )
     png_path, pdf_path = render_comparison(
-        args.out_dir, args.paper_image, args.out, args.width
+        args.out_dir, args.paper_image, args.out, args.width, caption=caption
     )
     print(f"Wrote {png_path} and {pdf_path}", flush=True)
 
