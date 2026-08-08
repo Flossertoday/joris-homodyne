@@ -1021,12 +1021,13 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
     Markers are split by the role the event plays downstream (2026-08-07, after
     the single-color scheme was flagged as misleading):
 
-      * cyan dots — band events (inside one of the four band windows, tau
-        within the analysis grid): enter the Fig. 2(a) band photon traces and
-        the g2 coincidence count cubes;
-      * orange dots — out-of-band events (inside the detection columns but
-        outside every band window): enter only the g2 residual-background
-        estimate beta (fig2c_g2_estimator.background_beta_aligned);
+      * cyan hollow circles — band events (inside one of the four band
+        windows, tau within the analysis grid): enter the Fig. 2(a) band
+        photon traces and the g2 coincidence count cubes;
+      * orange hollow circles — out-of-band events (inside the detection
+        columns but outside every band window): enter only the g2
+        residual-background estimate beta
+        (fig2c_g2_estimator.background_beta_aligned);
       * gray crosses — excluded events with tau < TAU_GRID[0] (-64 px, more
         than ~63 ps before t0): stored in the table but outside the tau range
         of both computations.
@@ -1074,14 +1075,17 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
                 cols[early], rows[early], "x", ms=5, color="0.6",
                 label=f"excluded: tau < {TAU_GRID[0]:g} px",
             )
+            # Hollow circles a little larger than the photon spots: a filled
+            # dot at spot scale was flagged as hard to see (2026-08-08), and
+            # a ring keeps the bright blob visible inside the marker.
             axis.plot(
-                cols[~in_band & ~early], rows[~in_band & ~early], ".", ms=4,
-                color="tab:orange", mfc="none",
+                cols[~in_band & ~early], rows[~in_band & ~early], "o", ms=6,
+                mfc="none", mec="tab:orange", mew=1.0,
                 label="out-of-band events (g2 background beta only)",
             )
             axis.plot(
-                cols[in_band & ~early], rows[in_band & ~early], ".", ms=4,
-                color="cyan", mfc="none",
+                cols[in_band & ~early], rows[in_band & ~early], "o", ms=6,
+                mfc="none", mec="cyan", mew=1.0,
                 label="band events (Fig 2a traces + g2 coincidences)",
             )
             for lo, hi in band_windows:
