@@ -1024,7 +1024,7 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
       * cyan hollow circles — band events (inside one of the four band
         windows, tau within the analysis grid): enter the Fig. 2(a) band
         photon traces and the g2 coincidence count cubes;
-      * orange hollow circles — out-of-band events (inside the detection
+      * orange filled dots — out-of-band events (inside the detection
         columns but outside every band window): enter only the g2
         residual-background estimate beta
         (fig2c_g2_estimator.background_beta_aligned);
@@ -1075,12 +1075,16 @@ def save_event_sample_overlays(h5_path, background, frame_t0, band_windows,
                 cols[early], rows[early], "x", ms=5, color="0.6",
                 label=f"excluded: tau < {TAU_GRID[0]:g} px",
             )
-            # Hollow circles a little larger than the photon spots: a filled
-            # dot at spot scale was flagged as hard to see (2026-08-08), and
-            # a ring keeps the bright blob visible inside the marker.
+            # Band events get hollow circles a little larger than the photon
+            # spots: a filled dot at spot scale was flagged as hard to see
+            # (2026-08-08), and a ring keeps the bright blob visible inside
+            # the marker. Out-of-band events deliberately get plain filled
+            # dots instead (2026-08-08): sharing the ring marker with band
+            # events was flagged as giving them the same visual weight as the
+            # peaks they merely surround.
             axis.plot(
-                cols[~in_band & ~early], rows[~in_band & ~early], "o", ms=6,
-                mfc="none", mec="tab:orange", mew=1.0,
+                cols[~in_band & ~early], rows[~in_band & ~early], ".", ms=5,
+                color="tab:orange",
                 label="out-of-band events (g2 background beta only)",
             )
             axis.plot(
