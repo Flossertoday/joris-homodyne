@@ -33,7 +33,8 @@ class TestRenderReportSummary(unittest.TestCase):
 
         panel_c = data["panel_c"]
         self.assertEqual(len(panel_c["y_categories"]), 4)
-        for side in ("L_values", "R_values", "L_sem", "R_sem"):
+        for side in ("L_values", "R_values", "L_sem", "R_sem",
+                     "LR_values", "RL_values", "LR_sem", "RL_sem"):
             self.assertEqual(len(panel_c[side]), 4)
             for v in panel_c[side]:
                 self.assertTrue(np.isfinite(v))

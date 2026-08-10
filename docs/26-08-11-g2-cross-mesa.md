@@ -27,6 +27,12 @@ $g^{(2)}_{RL}$)** 此前是刻意留出的后续入口(`adiyatullin2017-fig2c.md
 |---|---|---|---|---|
 | 主批次 | 19 992 | 0.659 ± 0.265 | 0.875 ± 0.281 | 0.76 ± 0.19 |
 | 补充批次 | 71 971 | 1.110 ± 0.190 | 1.065 ± 0.200 | 1.09 ± 0.14 |
+| 数据集A 主批次(局部基底 β) | 19 992 | 0.770 ± 0.179 | 0.936 ± 0.203 | 0.84 ± 0.13 |
+| 数据集A 补充批次(局部基底 β) | 71 971 | 1.075 ± 0.174 | 1.076 ± 0.183 | 1.08 ± 0.13 |
+
+数据集A 由 `compute_g2_cross_mesa_dataset_a.py` 计算(复用 `dataset_a_g2.py` 的
+载入/立方/局部基底 β,并带旧全局 β 变体作系统误差夹逼;全部数值见
+`drafts/26-08-11_g2_cross_mesa/dataset_a_{main,supplement}/g2_cross_summary.json`)。
 
 1/2 px 分档数值见各批次 `g2_cross_summary.json`(趋势一致,全部与 1 兼容)。
 
@@ -66,4 +72,7 @@ python -u analysis/26-08-04-derived-hbt-time-reference/render_fig2c_cross_mesa.p
 验证:配对接线测试(共享 B1×B4 符合只出现在 LR、不进 RL)、CLI 端到端
 Poisson→1 测试入 `tests/test_fig2c_cross_mesa.py`;`pair_counts` 交叉对断言入
 `tests/test_fig2c_g2_estimator.py`;全量 181 项测试通过。
-项目报告(§3 步骤 7、§8.3)的整合待 project-report 分支在途修订落地后进行。
+项目报告整合(2026-08-11,本分支):§3 第 7 步改写为含交叉对、§6.2/§6.3 补交叉
+数值、摘要与图 10(C7)面板扩为 L/R/LR/RL 四系列、§8.3 移除该项后续——中英双版
+同步并经程序化核验(图链接/编号标题/表格竖线/插入数字计数一致)。注意:
+project-report 分支另有在途修订(未提交),合并时报告 md 与 PDF 需解冲突。

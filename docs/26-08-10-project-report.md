@@ -25,8 +25,9 @@ method comparisons are collected in the appendices.
 - **Result.** Neither observable reproduces on our data — across two independent
   acquisition batches and two independent event curations. For the population
   observable the null is decisive: the upper limits sit far below the paper's
-  full-contrast signal. For g⁽²⁾ the window-pooled statistic is Poisson-consistent in
-  both arms, and any reference-locked oscillation is bounded below the top of the
+  full-contrast signal. For g⁽²⁾ the window-pooled statistic is Poisson-consistent
+  in every pairing of the full two-condensate matrix (self L/R and cross LR/RL),
+  and any reference-locked oscillation is bounded below the top of the
   paper's amplitude range. All numbers: §6; one-figure summary: §8.
 - **Checks behind the nulls.** The same chain recovers injected paper-type signals
   end-to-end; the decision criteria were registered before the data was analyzed; and
@@ -39,9 +40,10 @@ method comparisons are collected in the appendices.
   contradictory to, the real-space null (§7).
 - **What it would take.** Covering the *lower* half of the paper's g⁽²⁾ amplitude
   range calls for a substantially longer acquisition — or, more effectively, a lower
-  detector background (§5 quantifies the trade). The curated event tables and count
-  cubes for both batches are archived and ready for the follow-up 2-D g⁽²⁾(t₁,t₂) and
-  cross-condensate analyses (§8).
+  detector background (§5 quantifies the trade). The cross-condensate g⁽²⁾ (LR/RL)
+  has since been computed and is Poisson-consistent like the rest (§6.2–6.3); the
+  curated event tables and count cubes for both batches remain archived for the
+  follow-up 2-D g⁽²⁾(t₁,t₂) analysis (§8).
 
 ## 1. Introduction and the reproduction target
 
@@ -205,8 +207,11 @@ validation records are in Appendix A.
    (L: B1×B3; R: B2×B4) per time bin. Each pairing correlates a condensate *with
    itself* — the two arms are two independent copies of the same emission after the
    beamsplitter — so L and R are the auto-correlations of condensate 1 and condensate
-   2 respectively; no condensate-1×condensate-2 cross-correlation enters this report
-   (archived as follow-up, §8.3). g⁽²⁾(0)(t) comes from per-frame counts n₁,n₂ with the
+   2 respectively. The condensate-1×condensate-2 **cross-correlation** is computed by
+   the same estimator from the cross-arm pairs LR = B1×B4 and RL = B2×B3 — two
+   independent measurements of the same g⁽²⁾_LR (same-arm cross pairs B1×B2 / B3×B4
+   share one streak trace and its fixed-pattern noise, so they are not used);
+   the result enters §6.2–6.3. g⁽²⁾(0)(t) comes from per-frame counts n₁,n₂ with the
    paper's normally ordered ratio, plus a residual-background correction β estimated
    from out-of-band events per time bin (β removes the noise contribution to the mean;
    the variance cost is irreducible, §5). Displayed per-bin error bands use a
@@ -361,6 +366,12 @@ limits.*
 - **Window-pooled g⁽²⁾(0)** (0–820 ps, 4 px, jackknife): **L = 0.310 ± 0.380**,
   **R = 1.114 ± 0.188** — z = −1.82 / +0.60, both consistent with Poisson (|z| < 2,
   pre-registered threshold).
+- **Cross-condensate g⁽²⁾(0)** (cross-arm pairs LR = B1×B4, RL = B2×B3 — §3 step 7):
+  **LR = 0.659 ± 0.265**, **RL = 0.875 ± 0.281** — z = −1.29 / −0.44, likewise
+  Poisson-consistent. With this the two-condensate g⁽²⁾ matrix (LL, RR, LR, RL) is
+  complete: all four entries are null at the current statistics, so the two
+  condensates show no intensity correlation of either sign with each other, nor any
+  self-bunching.
 - **The four pre-registered tests** (criteria fixed 2026-08-06, before the computation;
   200 circular-shift surrogates): (a) no significantly bunched/antibunched bin
   (p = 0.32 / 0.86); (b) no significant reference-locked oscillation (combined
@@ -376,7 +387,8 @@ limits.*
 **Supplement batch** (71 971 frames, same condition, acquired back-to-back; analyzed
 stand-alone because its signal rate is ≈65 % of the main batch): the same flat traces
 (anti-phase UL95 median **0.0084**), pooled g⁽²⁾(0) L = 1.304 ± 0.320 /
-R = 0.990 ± 0.117 (Poisson-consistent), all four pre-registered tests null, oscillation
+R = 0.990 ± 0.117 (Poisson-consistent), cross pairs LR = 1.110 ± 0.190 /
+RL = 1.065 ± 0.200 (likewise), all four pre-registered tests null, oscillation
 UL95 median **0.496**. Every limit tightened; every conclusion held
 ([fig2a](../analysis/26-08-04-derived-hbt-time-reference/fig2a_replica_supplement.png) /
 [fig2c](../analysis/26-08-04-derived-hbt-time-reference/fig2c_replica_supplement_bin4px.png)
@@ -388,7 +400,9 @@ condensate signal (in-band, off the one defective column, not touching frame edg
 per-band local noise floor replacing the global-mean β: identical conclusions with
 tighter limits (population UL95 0.0131, 0.0226 after noise-dilution correction;
 g⁽²⁾ oscillation UL95 median 0.58; and for the supplement's dataset A: population
-UL95 0.0083, g⁽²⁾ oscillation UL95 median 0.488), and better
+UL95 0.0083, g⁽²⁾ oscillation UL95 median 0.488), cross pairs again Poisson-consistent
+(LR = 0.770 ± 0.179 / RL = 0.936 ± 0.203 main; LR = 1.075 ± 0.174 /
+RL = 1.076 ± 0.183 supplement), and better
 paper-strength injection detection (L 31 % / R 81 %) from the purer noise model.
 
 The nulls persist across the pipeline variant, the window choice, and the noise model —
@@ -424,7 +438,8 @@ analysis — a different acquisition, listed in §8.
 *Figure 10 (C7). All quantitative conclusions in one view. Top: population-oscillation
 95 % upper limits (z-space) for the two batches and the two curations, against the
 paper's full-contrast band. Middle: g⁽²⁾ oscillation 95 % upper limits against the
-paper's amplitude range. Bottom: window-pooled g⁽²⁾(0) with ±1 SEM against the Poisson
+paper's amplitude range. Bottom: window-pooled g⁽²⁾(0) — the full two-condensate
+matrix, self (L, R) and cross (LR, RL) pairs — with ±1 SEM against the Poisson
 line. Every upper limit sits far below the corresponding paper signal; every pooled
 value sits on Poisson within error.*
 
@@ -455,9 +470,10 @@ value sits on Poisson within error.*
 
 ### 8.3 What comes next
 
-- **2-D g⁽²⁾(t₁,t₂)** (the paper's Fig. 3) and **cross-condensate** LR/RL correlations:
-  the event tables and count cubes of both batches are already archived for exactly
-  this.
+- **2-D g⁽²⁾(t₁,t₂)** (the paper's Fig. 3): the event tables and count cubes of
+  both batches are already archived for exactly this. (The cross-condensate LR/RL
+  correlations formerly listed here were computed on 2026-08-11 and are null like
+  the auto-correlations — §6.2–6.3.)
 - **Statistics**: ≈3×10⁵ frames at current rates cover the paper's lower g⁽²⁾ bound;
   halving the detector background is worth ≈2× frames (acquisition-side only).
 - **Phase dynamics at single-sweep level**: per-frame k-space imaging or per-frame
