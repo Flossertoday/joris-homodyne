@@ -195,7 +195,7 @@ R 56 %）正是功效门"临界"判定的直接经验读数（§5）。*
 
 三个补充，详见各附录：
 
-- **通过策展的"数据集 A"链做帧级注入**（把真实事件斑块植入真实帧）：98.8–99.6 %
+- **通过策展的"数据集 A"链做帧级注入**（把真实事件斑块植入真实帧）：99.1–100 %
   的注入斑点在策展后存活，时间零点零扰动，注入的 9.84 ps 调制以预期幅度恢复
   （附录 A.4）。
 - **合成输入上的估计量偏差检验**：在合成泊松立方体上，g⁽²⁾ 估计量在蒙特卡洛容差内
@@ -315,11 +315,13 @@ L = 1.249 ± 0.383 / R = 1.057 ± 0.125（与泊松一致），四个预注册�
 补充图版）。
 
 **数据集 A** —— 一次策展的重新提取，只保留物理上可能是凝聚体信号的事件（带内、
-避开那一根缺陷列、不触及帧边缘；主批次 275 218 个事件中保留 161 357 个，已验证为
+避开缺陷列、不触及帧边缘；主批次 275 218 个事件中保留 192 168 个，已验证为
 精确子集），并以逐带局部噪声基底替代全局均值 β：结论相同而上限更紧（布居 UL95
-0.0131，噪声稀释修正后 0.0226；g⁽²⁾ 振荡 UL95 中位数 0.58；补充批次的数据集 A：
-布居 UL95 0.0083，g⁽²⁾ 振荡 UL95 中位数 0.488），且因更纯的噪声模型获得更好的
-论文强度注入检出（L 31 % / R 81 %）。
+0.0124，噪声稀释修正后 0.0226；g⁽²⁾ 振荡 UL95 中位数 0.508，4 px 下同样在
+4.7 ps 分箱边缘出现边际最大（p = 0.050），2 px 不复现；补充批次的数据集 A：
+布居 UL95 0.0085，g⁽²⁾ 振荡 UL95 中位数 0.49，L 对同样在短周期分箱边缘出现
+边际单元（p = 0.030；2 px 为零）），且因更纯的噪声模型获得论文强度注入检出
+L 25 % / 44 %、R 88 % / 81 %（主 / 补充）。
 
 在管线变体、窗口选择与噪声模型的各种变化下，零结果都持续存在 —— 在已尝试的
 范围内，它跟随的是数据。
@@ -355,9 +357,9 @@ k 列以主周期 **74.4 ps** 振荡（10 个 k-bin 中 9 个；次周期 83.7 p
 
 | 论文主张（可观测量） | 本工作 | 判定 | 证据 |
 |---|---|---|---|
-| 图 2(a)：反相布居交替，~10 ps，全对比度（实测 z ≈ ±0.4–0.5） | 曲线平坦；UL95 为 z 的 1.2 %（主）/ 0.8 %（补充）/ 2.3 %（数据集 A，稀释修正后） | **未复现 —— 决定性**（论文信号 ≳ 上限的 30×） | §6.1，图 6 |
-| 图 2(c)：g⁽²⁾(0)(t) 随振荡同相在泊松↔聚束间切换，峰 1.2→≳2 | 汇总与泊松一致；振荡 UL95 按批次/策展为 0.81 / 0.50 / 0.58 / 0.49；四个预注册检验全部为零 | **在灵敏度内未复现**（上限覆盖论文区间上半段） | §6.2，图 8 |
-| 两凝聚体间反相（两种可观测量） | 两者都呈弱的*正*共模相关（r = +0.17 强度；r = +0.10 g⁽²⁾） | **未复现；符号相反** | §6.1–6.2 |
+| 图 2(a)：反相布居交替，~10 ps，全对比度（实测 z ≈ ±0.4–0.5） | 曲线平坦；UL95 为 z 的 1.2 %（主）/ 0.9 %（补充）/ 2.3 %（数据集 A，稀释修正后） | **未复现 —— 决定性**（论文信号 ≳ 上限的 30×） | §6.1，图 6 |
+| 图 2(c)：g⁽²⁾(0)(t) 随振荡同相在泊松↔聚束间切换，峰 1.2→≳2 | 汇总与泊松一致；振荡 UL95 按批次/策展为 0.67 / 0.55 / 0.51 / 0.49；四个预注册检验全部为零（仅有的边际单元都在 4 px 分箱边缘 4.7–6.0 ps，2 px 下不复现） | **在灵敏度内未复现**（上限覆盖论文区间上半段） | §6.2，图 8 |
+| 两凝聚体间反相（两种可观测量） | 强度呈弱的*正*共模相关（r = +0.21）；g⁽²⁾ 相关与零一致（r = +0.003） | **未复现；符号相反** | §6.1–6.2 |
 | 聚束包络随时间增长 | 晚−早差与零一致 | **未复现** | §6.2 (d) |
 | 器件中存在约瑟夫森动力学 | 确认 —— 以 k 空间 74.4 ps 相对相位缠绕的形式，布居不调制 | **确认，但在另一正交分量上** | §7，图 9 |
 
@@ -439,8 +441,8 @@ k 列以主周期 **74.4 ps** 振荡（10 个 k-bin 中 9 个；次周期 83.7 p
 | fig2c 型立方体级，强（峰 g⁽²⁾−1 = 6→8），16 副本 | 9.84 ps 反相，增长包络 | 系综偏差 L −11.2 %，R −12.7 %；周期在 2 % 内：L 14/16，R 16/16；全部副本显著 | 偏差略出 10 % 带 —— 方向是低估，对零结果保守 |
 | fig2c 型立方体级，论文强度（1.5→2），16 副本 | 同上 | 系综 L +40 %，R −1.7 %（16 副本，涨落大）；单副本检出 L 38 %，R 56 % | 部分检出 = 临界区 |
 | 补充批次立方体级 | 同样协议 | 强：L −7.7 %，R −3.6 %；论文强度：L −6.4 %，R −9.7 %，检出 L 6 %，R 75 % | 通过 |
-| 数据集 A 立方体级 | 同上 | 强：L −2.2 %，R −7.9 %（主），L −9.2 %，R −4.6 %（补充）；论文强度检出 L 31 %，R 81–100 % | 通过；纯度增益转化为检出率 |
-| 数据集 A 帧级（真实帧 + 394 个真实事件斑块） | z 模式：2856 帧内 10 867 个斑点；聚束模式：252 个斑点（126 个跨臂对） | 存活率 98.8 % / 99.6 %；t0 零扰动；恢复幅度在 10 % 内符合稀释预期 | 通过 |
+| 数据集 A 立方体级 | 同上 | 强：L −11.4 %，R −9.7 %（主），L −3.6 %，R −4.3 %（补充）；论文强度检出 L 25 % / 44 %，R 88 % / 81 %（主 / 补充） | 通过；纯度增益转化为检出率 |
+| 数据集 A 帧级（真实帧 + 真实事件斑块） | z 模式：2856 帧内 12 421 个斑点；聚束模式：340 个斑点（170 个跨臂对，A_pk = 6，全 19 992 帧） | 存活率 99.1 % / 100 %；t0 零扰动；恢复幅度在 10 % 内符合稀释预期 | 通过 |
 
 ### A.5 提取自洽性
 
@@ -514,9 +516,10 @@ MCP 电荷云（边缘碰撞）上失败，质心不失败。误差预算见 §5
 （块相关 0.97），因此全局均值会把逐带基底估错 ±30–50 %。数据集 A 使用**逐带局部
 线性基底**（35 px 拟合窗口，30 px 保护带，对照实测 25–30 px 信号尾巴；B1 朝探测
 边缘单侧），平均低 ≈20 %；基底变体夹住系统误差。对头条数字的影响：汇总 g⁽²⁾(0)
-L 0.531（局部）vs 0.307（全局）—— 夹逼区间小于 ±0.38 统计误差 —— 且旧全局
+L 0.755（局部）vs 0.648（全局）—— 夹逼区间小于 ±0.21 统计误差 —— 且旧全局
 变体几乎逐比特重现策展前数字，确认了估计量链。策展本身：移除带外、缺陷列（主：
-676 列；补充：11 根热列）与触及帧边缘的事件；形态学切割经评估后否决（信号与噪声
+567 与 676 列 —— 567 在更宽的 fdr-snr B2 下新落入带内；补充：11 根热列加 970
+—— 在 fdr-snr B4 下新落入带内）与触及帧边缘的事件；形态学切割经评估后否决（信号与噪声
 是同一种 MCP 电荷云对象；最佳甄别器 1.7:1 vs 盈亏平衡 3:1）。
 
 ### B.5 无效的手段
@@ -541,6 +544,32 @@ README），fig2a 管线（`DOCS/26-08-04-fig2a.md` §复现），fig2c 管线�
   analysis\26-08-04-derived-hbt-time-reference\measure_kspace_fringe_oscillation.py `
   --h5 <derived H5> --out analysis\26-08-10-project-report\figures\fig_kspace_fringe.png
 ```
+
+2026-08-11 的 fdr-snr 窗口切换用生产脚本从策展的（与窗口无关的）事件表重算了全部
+数字，由 `FIG2C_BAND_WINDOWS` / `--bands` 驱动；中间产物在 `drafts/26-08-10_fdr_snr/`
+（下列为主批次窗口；补充批次用 352,431,538,665,763,880,964,1099）：
+
+```powershell
+$env:FIG2C_BAND_WINDOWS = "368,471,560,685,798,903,999,1118"
+.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\compute_g2_fig2c.py `
+  --table <策展事件 H5> --out-dir drafts\26-08-10_fdr_snr\fig2c
+.\.venv\Scripts\python.exe analysis\26-08-10-project-report\build_fdrsnr_traces.py `
+  --table <策展事件 H5> --bands $env:FIG2C_BAND_WINDOWS `
+  --out drafts\26-08-10_fdr_snr\fig2a\hbt_traces.npz
+.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\fig2c_science_tests.py `
+  --out-dir drafts\26-08-10_fdr_snr\fig2c
+.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\fig2c_power_gate.py `
+  --npz drafts\26-08-10_fdr_snr\fig2a\hbt_traces.npz --out-dir drafts\26-08-10_fdr_snr\fig2c --reps 64
+.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\fig2c_synthetic_injection.py `
+  --out-dir drafts\26-08-10_fdr_snr\fig2c
+```
+
+另有 z 侧扫描（`analysis\26-08-10-project-report\fig2a_upper_limit_cfd50.py`、
+`fig2a_z_crossarm_cfd50.py` —— 预注册时代 tmp 脚本的参数化副本，已在同输入上验证
+复现其数字）、数据集 A 重建（`build_dataset_a.py --bands <...> --defect-cols <...>`；
+主批次加剔 567、补充加剔 970 —— 更宽窗口下新落入带内的热列）及其下游
+（`dataset_a_traces.py`、`dataset_a_fig2a_analysis.py`、`dataset_a_g2.py`、
+`dataset_a_frame_injection.py --bands <...>`）。
 
 PDF 版本（`DOCS/26-08-10-project-report-zh.pdf`）从工作树根目录用 pandoc + XeLaTeX
 构建；全部引擎/字体/过滤器设置在
@@ -575,18 +604,18 @@ pandoc docs\26-08-10-project-report-zh.md -o docs\26-08-10-project-report-zh.pdf
 
 | 图 | 来源 | 生成器 |
 |---|---|---|
-| 图 3（C1）数据预览 | 本报告 | `analysis/26-08-10-project-report/render_report_data_preview.py`（输入：派生 H5 + 策展事件表） |
-| 图 4（C2）注入 | 本报告 | `render_report_injection.py`（重跑帧级注入；g⁽²⁾ 面板读取 `drafts/26-08-06_fig2c/fig2c_injection_report.json`） |
-| 图 5（C3）灵敏度 | `drafts/26-08-06_fig2c/power_gate_ul95_vs_period.png`（复制） | `fig2c_power_gate.py` |
-| 图 6（C4）fig2a 复制品 | `analysis/26-08-04-derived-hbt-time-reference/fig2a_replica.png` | `render_fig2a_comparison.py` |
-| 图 8（C5）fig2c 复制品 | `analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png` | `render_fig2c_comparison.py` |
+| 图 3（C1）数据预览 | 本报告 | `analysis/26-08-10-project-report/render_report_data_preview.py`（输入：派生 H5 + 策展事件表；fdr-snr 窗口） |
+| 图 4（C2）注入 | 本报告 | `render_report_injection.py`（重跑帧级注入；g⁽²⁾ 面板读取 `drafts/26-08-10_fdr_snr/fig2c/fig2c_injection_report.json`） |
+| 图 5（C3）灵敏度 | `drafts/26-08-10_fdr_snr/fig2c/power_gate_ul95_vs_period.png`（复制） | `fig2c_power_gate.py`（基于 fdr-snr 曲线） |
+| 图 6（C4）fig2a 复制品 | `figures/fig2a_replica_fdrsnr.png` | `render_fig2a_comparison.py --npz <fdr-snr 曲线> --caption-file fig2a_replica_caption_fdrsnr.txt` |
+| 图 8（C5）fig2c 复制品 | `figures/fig2c_replica_fdrsnr.png` | `render_fig2c_comparison.py --out-dir drafts/26-08-10_fdr_snr/fig2c --caption-file fig2c_replica_caption_fdrsnr.txt` |
 | 图 9（C6）k 空间条纹 | 重新渲染进本报告 | `measure_kspace_fringe_oscillation.py` |
 | 图 10（C7）总览图 | 本报告 | `render_report_summary.py`（数字带逐条溯源注释） |
 | §1.2 论文裁图 | `fig2a_paper_original.png` / `fig2c_paper_original.png` | `tmp/paper_crop/`（从库内 PDF 以 300 dpi 裁出） |
-| §6.1 offset-zoom | `fig2a_offset_zoom.png` | `render_offset_zoom.py` |
-| §6.3 补充图版 | `fig2a_replica_supplement.png`、`fig2c_replica_supplement_bin4px.png` | 同一生成器，补充批次 npz/立方体 |
-| §6.1 z 上限谱 | `figures/fig_z_upper_limit.png`（复制自 `drafts/26-08-06_fig2a_cfd50/`） | `tmp/fig2a_upper_limit_cfd50.py` |
-| 附录 A.2 检验面板 | `figures/fig2c_science_tests_bin4px.png`（复制自 `drafts/26-08-06_fig2c/`） | `fig2c_science_tests.py` |
+| §6.1 offset-zoom | `figures/fig2a_offset_zoom_fdrsnr.png` | `render_offset_zoom.py --npz <fdr-snr 曲线>` |
+| §6.3 补充图版 | `figures/fig2a_replica_supplement_fdrsnr.png`、`figures/fig2c_replica_supplement_fdrsnr.png` | 同一生成器，补充 fdr-snr npz/立方体 + `--work-title` |
+| §6.1 z 上限谱 | `figures/fig_z_upper_limit.png` | `analysis/26-08-10-project-report/fig2a_upper_limit_cfd50.py`（预注册时代 tmp 脚本的参数化副本；同输入下复现其数字） |
+| 附录 A.2 检验面板 | `figures/fig2c_science_tests_bin4px.png`（复制自 `drafts/26-08-10_fdr_snr/fig2c/`） | `fig2c_science_tests.py` |
 | 附录 B.2 t0 比较 | `figures/fig_t0_method_comparison.png`（复制自 `drafts/26-08-06_fig2a_cfd50/`） | `tmp/fig2a_t0_method_comparison.py` |
 
 ## 附录 F. 词汇表

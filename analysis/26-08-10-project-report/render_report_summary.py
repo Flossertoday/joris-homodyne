@@ -13,10 +13,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 SCIENCE_JSON = Path(
-    "E:/Documents/Codex/joris-homodyne/drafts/26-08-06_fig2c/fig2c_science_report.json"
+    "drafts/26-08-10_fdr_snr/fig2c/fig2c_science_report.json"
 )
 SUPPLEMENT_SCIENCE_JSON = Path(
-    "E:/Documents/Codex/joris-homodyne/drafts/26-08-06_fig2c_supplement/fig2c_science_report.json"
+    "drafts/26-08-10_fdr_snr/fig2c_supplement/fig2c_science_report.json"
 )
 OUT_PATH = Path(__file__).resolve().parent / "figures" / "fig_results_dashboard.png"
 
@@ -41,16 +41,16 @@ def build_dashboard_data():
                 "dataset A, supplement",
             ],
             "values": np.array([
-                0.0123,   # DOCS/26-08-04-fig2a.md 2026-08-06, CFD50, main batch
-                0.0084,   # DOCS/26-08-06-hbt-supplement.md §5, supplement batch
-                0.0131,   # DOCS/26-08-08-dataset-a.md, dataset A main (raw)
-                0.0083,   # DOCS/26-08-08-dataset-a.md, dataset A supplement (raw)
+                0.0118,   # fdr-snr rerun 2026-08-11, main batch (drafts/26-08-10_fdr_snr/fig2a)
+                0.0094,   # fdr-snr rerun 2026-08-11, supplement batch
+                0.0124,   # dataset A main (fdr-snr bands), raw
+                0.0085,   # dataset A supplement (fdr-snr bands), raw
             ]),
             "corrected_values": np.array([
                 np.nan,
                 np.nan,
-                0.0226,   # DOCS/26-08-08-dataset-a.md: dilution-corrected (S/(S+N))
-                0.0161,   # DOCS/26-08-08-dataset-a.md: dilution-corrected
+                0.0226,   # dataset A main (fdr-snr bands): dilution-corrected (S/(S+N))
+                0.0174,   # dataset A supplement (fdr-snr bands): dilution-corrected
             ]),
             "band_min": 0.4,
             "band_max": 0.7,
@@ -66,10 +66,10 @@ def build_dashboard_data():
                 "dataset A, supplement",
             ],
             "values": np.array([
-                _read_g2_ul95_median(SCIENCE_JSON),  # drafts/26-08-06_fig2c/fig2c_science_report.json
-                _read_g2_ul95_median(SUPPLEMENT_SCIENCE_JSON),  # drafts/26-08-06_fig2c_supplement/fig2c_science_report.json; sanity: 0.496
-                0.58,    # DOCS/26-08-08-dataset-a.md
-                0.488,   # DOCS/26-08-08-dataset-a.md
+                _read_g2_ul95_median(SCIENCE_JSON),  # drafts/26-08-10_fdr_snr/fig2c/fig2c_science_report.json; sanity: 0.670
+                _read_g2_ul95_median(SUPPLEMENT_SCIENCE_JSON),  # drafts/26-08-10_fdr_snr/fig2c_supplement/fig2c_science_report.json; sanity: 0.547
+                0.508,   # dataset A main (fdr-snr bands): drafts/26-08-10_fdr_snr/dataset_a_g2/fig2c_science_report.json
+                0.491,   # dataset A supplement (fdr-snr bands): drafts/26-08-10_fdr_snr/dataset_a_supplement_g2/fig2c_science_report.json
             ]),
             "band_min": 0.2,
             "band_max": 1.2,
@@ -85,27 +85,27 @@ def build_dashboard_data():
                 "dataset A, supplement",
             ],
             "L_values": np.array([
-                0.310,   # drafts/26-08-06_fig2c/g2_summary.json main 4 px
-                1.304,   # drafts/26-08-06_fig2c_supplement/g2_summary.json supplement 4 px
-                0.531,   # DOCS/26-08-08-dataset-a.md local-floor beta
-                1.256,   # DOCS/26-08-08-dataset-a.md supplement local-floor beta
+                0.658,   # drafts/26-08-10_fdr_snr/fig2c/g2_summary.json main 4 px
+                1.249,   # drafts/26-08-10_fdr_snr/fig2c_supplement/g2_summary.json supplement 4 px
+                0.755,   # dataset A main (fdr-snr bands) local-floor beta
+                1.126,   # dataset A supplement (fdr-snr bands) local-floor beta
             ]),
             "L_sem": np.array([
-                0.380,
-                0.320,
-                0.258,
-                0.291,
+                0.297,
+                0.383,
+                0.213,
+                0.284,
             ]),
             "R_values": np.array([
-                1.114,
-                0.990,
-                1.065,
-                0.952,
+                1.093,
+                1.057,
+                1.073,   # dataset A main (fdr-snr) local-floor beta
+                0.973,   # dataset A supplement (fdr-snr) local-floor beta
             ]),
             "R_sem": np.array([
-                0.188,
-                0.117,
-                0.135,
+                0.162,
+                0.125,
+                0.127,
                 0.108,
             ]),
         },

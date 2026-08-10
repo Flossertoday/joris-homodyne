@@ -251,7 +251,7 @@ R 56 %) is the direct empirical reading of the power gate's "borderline" verdict
 Three complements, detailed in the appendices:
 
 - **Frame-level injection through the curated "dataset A" chain** (real event patches
-  planted into real frames): 98.8–99.6 % of injected blobs survive curation with zero
+  planted into real frames): 99.1–100 % of injected blobs survive curation with zero
   time-zero perturbation, and the injected 9.84 ps modulation is recovered at the
   expected amplitude (Appendix A.4).
 - **Estimator bias checks on synthetic inputs**: on synthetic Poisson cubes the
@@ -394,13 +394,16 @@ UL95 median **0.547**. Every conclusion from the main batch held
 supplement panels).
 
 **Dataset A** — a curated re-extraction keeping only events that can physically be
-condensate signal (in-band, off the one defective column, not touching frame edges;
-161 357 of 275 218 events kept in the main batch, verified as an exact subset), with a
+condensate signal (in-band, off the defective columns, not touching frame edges;
+192 168 of 275 218 events kept in the main batch, verified as an exact subset), with a
 per-band local noise floor replacing the global-mean β: identical conclusions with
-tighter limits (population UL95 0.0131, 0.0226 after noise-dilution correction;
-g⁽²⁾ oscillation UL95 median 0.58; and for the supplement's dataset A: population
-UL95 0.0083, g⁽²⁾ oscillation UL95 median 0.488), and better
-paper-strength injection detection (L 31 % / R 81 %) from the purer noise model.
+tighter limits (population UL95 0.0124, 0.0226 after noise-dilution correction;
+g⁽²⁾ oscillation UL95 median 0.508, the same 4.7 ps bin-edge marginal maximum at
+p = 0.050, not reproduced at 2 px; and for the supplement's dataset A: population
+UL95 0.0085, g⁽²⁾ oscillation UL95 median 0.49, the same marginal L-pair cell at a
+short bin-edge period (p = 0.030; null at 2 px)), and paper-strength injection
+detection of L 25 % / 44 % and R 88 % / 81 % (main / supplement)
+from the purer noise model.
 
 The nulls persist across the pipeline variant, the window choice, and the noise model —
 in everything tried here, they follow the data.
@@ -443,9 +446,9 @@ value sits on Poisson within error.*
 
 | Paper claim (observable) | This work | Verdict | Evidence |
 |---|---|---|---|
-| Fig. 2(a): anti-phase population alternation, ~10 ps, full contrast (measured z ≈ ±0.4–0.5) | flat traces; UL95 1.2 % (main) / 0.8 % (supplement) / 2.3 % (dataset A, dilution-corrected) of z | **Not reproduced — decisive** (paper signal ≳30× above limits) | §6.1, Fig. 6 |
-| Fig. 2(c): g⁽²⁾(0)(t) switches Poisson↔bunched in phase with the oscillation, peaks 1.2→≳2 | pooled Poisson-consistent; oscillation UL95 0.81 / 0.50 / 0.58 / 0.49 by batch/curation; four pre-registered tests null | **Not reproduced within sensitivity** (limits cover the paper range's upper half) | §6.2, Fig. 8 |
-| Anti-phase between the two condensates (both observables) | weak *positive* common-mode correlation in both (r = +0.17 intensity; r = +0.10 g⁽²⁾) | **Not reproduced; sign opposite** | §6.1–6.2 |
+| Fig. 2(a): anti-phase population alternation, ~10 ps, full contrast (measured z ≈ ±0.4–0.5) | flat traces; UL95 1.2 % (main) / 0.9 % (supplement) / 2.3 % (dataset A, dilution-corrected) of z | **Not reproduced — decisive** (paper signal ≳30× above limits) | §6.1, Fig. 6 |
+| Fig. 2(c): g⁽²⁾(0)(t) switches Poisson↔bunched in phase with the oscillation, peaks 1.2→≳2 | pooled Poisson-consistent; oscillation UL95 0.67 / 0.55 / 0.51 / 0.49 by batch/curation; four pre-registered tests null (the only marginal cells sit at the 4-px bin edge, 4.7–6.0 ps, and do not reproduce at 2 px) | **Not reproduced within sensitivity** (limits cover the paper range's upper half) | §6.2, Fig. 8 |
+| Anti-phase between the two condensates (both observables) | weak *positive* common-mode correlation in intensity (r = +0.21); g⁽²⁾ correlation consistent with zero (r = +0.003) | **Not reproduced; sign opposite** | §6.1–6.2 |
 | Bunching-envelope growth with time | late−early differences consistent with zero | **Not reproduced** | §6.2 (d) |
 | Josephson dynamics exists in the device | confirmed — as 74.4 ps relative-phase winding in k-space, populations unmodulated | **Confirmed, different quadrature** | §7, Fig. 9 |
 
@@ -547,8 +550,8 @@ This calibration is why 4 px is the reporting width throughout.
 | fig2c-style cube-level, strong (peak g⁽²⁾−1 = 6→8), 16 replicas | 9.84 ps anti-phase, growing envelope | ensemble bias L −11.2 %, R −12.7 %; period within 2 %: L 14/16, R 16/16; all replicas significant | bias marginally outside the 10 % band — an underestimate, conservative for nulls |
 | fig2c-style cube-level, paper strength (1.5→2), 16 replicas | same | ensemble L +40 %, R −1.7 % (16 replicas, noisy); single-replica detection L 38 %, R 56 % | partial detection = the borderline regime |
 | supplement cube-level | same protocols | strong: L −7.7 %, R −3.6 %; paper: L −6.4 %, R −9.7 %, detection L 6 %, R 75 % | pass |
-| dataset A cube-level | same | strong: L −2.2 %, R −7.9 % (main), L −9.2 %, R −4.6 % (supplement); paper-strength detection L 31 %, R 81–100 % | pass; purity gain converts to detection rate |
-| dataset A frame-level (real frames + 394 real event patches) | z-mode: 10 867 blobs in 2856 frames; bunching-mode: 252 blobs (126 cross-arm pairs) | retention 98.8 % / 99.6 %; zero t0 perturbation; recovered amplitudes match the dilution expectation within 10 % | pass |
+| dataset A cube-level | same protocols | strong: L −11.4 %, R −9.7 % (main), L −3.6 %, R −4.3 % (supplement); paper-strength detection L 25 % / 44 %, R 88 % / 81 % (main / supplement) | pass; purity gain converts to detection rate |
+| dataset A frame-level (real frames + real event patches) | z-mode: 12 421 blobs in 2856 frames; bunching-mode: 340 blobs (170 cross-arm pairs, A_pk = 6, all 19 992 frames) | retention 99.1 % / 100 %; zero t0 perturbation; recovered amplitudes match the dilution expectation within 10 % | pass |
 
 ### A.5 Extraction self-consistency
 
@@ -637,11 +640,13 @@ noise floor is a stable fixed pattern in x (block correlation 0.97), so a global
 misestimates per-band floors by ±30–50 %. Dataset A uses **per-band local-linear
 floors** (35 px fit windows, 30 px guard bands against the measured 25–30 px signal
 tails; B1 one-sided toward the detection edge), ≈20 % lower on average; floor variants
-bracket the systematic. Effect on the headline numbers: pooled g⁽²⁾(0) L 0.531
-(local) vs 0.307 (global) — the bracket is smaller than the ±0.38 statistical error —
+bracket the systematic. Effect on the headline numbers: pooled g⁽²⁾(0) L 0.755
+(local) vs 0.648 (global) — the bracket is smaller than the ±0.21 statistical error —
 and the old-global variant reproduces the pre-curation numbers nearly bitwise,
 confirming the estimator chain. Curation itself: out-of-band, defective-column (main:
-col 676; supplement: 11 hot columns), and frame-edge-touching events removed;
+cols 567 and 676 — 567 becomes in-band under the wider fdr-snr B2; supplement: the
+11 hot columns plus 970, newly in-band under fdr-snr B4), and frame-edge-touching
+events removed;
 morphology cuts were evaluated and rejected (signal and noise are the same MCP-cloud
 objects; best discriminator 1.7:1 vs 3:1 break-even).
 
@@ -669,6 +674,34 @@ The report figures are regenerated from the worktree root with:
   analysis\26-08-04-derived-hbt-time-reference\measure_kspace_fringe_oscillation.py `
   --h5 <derived H5> --out analysis\26-08-10-project-report\figures\fig_kspace_fringe.png
 ```
+
+The 2026-08-11 fdr-snr window switch recomputed every number from the curated
+(window-agnostic) event tables with the production scripts, driven by
+`FIG2C_BAND_WINDOWS` / `--bands`; intermediates live in `drafts/26-08-10_fdr_snr/`
+(main-batch windows below; the supplement batch uses 352,431,538,665,763,880,964,1099):
+
+```powershell
+$env:FIG2C_BAND_WINDOWS = "368,471,560,685,798,903,999,1118"
+.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\compute_g2_fig2c.py `
+  --table <curated events H5> --out-dir drafts\26-08-10_fdr_snr\fig2c
+.\.venv\Scripts\python.exe analysis\26-08-10-project-report\build_fdrsnr_traces.py `
+  --table <curated events H5> --bands $env:FIG2C_BAND_WINDOWS `
+  --out drafts\26-08-10_fdr_snr\fig2a\hbt_traces.npz
+.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\fig2c_science_tests.py `
+  --out-dir drafts\26-08-10_fdr_snr\fig2c
+.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\fig2c_power_gate.py `
+  --npz drafts\26-08-10_fdr_snr\fig2a\hbt_traces.npz --out-dir drafts\26-08-10_fdr_snr\fig2c --reps 64
+.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\fig2c_synthetic_injection.py `
+  --out-dir drafts\26-08-10_fdr_snr\fig2c
+```
+
+plus the z-side scans (`analysis\26-08-10-project-report\fig2a_upper_limit_cfd50.py`,
+`fig2a_z_crossarm_cfd50.py` — parameterized copies of the registration-era tmp
+scripts, verified to reproduce their numbers on the same input), the dataset A
+rebuild (`build_dataset_a.py --bands <...> --defect-cols <...>`; 567 added for the
+main batch and 970 for the supplement, newly in-band under the wider windows) and its
+downstream (`dataset_a_traces.py`, `dataset_a_fig2a_analysis.py`, `dataset_a_g2.py`,
+`dataset_a_frame_injection.py --bands <...>`).
 
 The PDF version (`DOCS/26-08-10-project-report.pdf`) is built from the worktree root
 with pandoc + XeLaTeX; all engine/font/filter settings live in
@@ -704,18 +737,18 @@ pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
 
 | figure | source | generator |
 |---|---|---|
-| Fig. 3 (C1) data preview | this report | `analysis/26-08-10-project-report/render_report_data_preview.py` (inputs: derived H5 + curated event table) |
-| Fig. 4 (C2) injection | this report | `render_report_injection.py` (re-runs the frame-level injection; g⁽²⁾ panel reads `drafts/26-08-06_fig2c/fig2c_injection_report.json`) |
-| Fig. 5 (C3) sensitivity | `drafts/26-08-06_fig2c/power_gate_ul95_vs_period.png` (copied) | `fig2c_power_gate.py` |
-| Fig. 6 (C4) fig2a replica | `analysis/26-08-04-derived-hbt-time-reference/fig2a_replica.png` | `render_fig2a_comparison.py` |
-| Fig. 8 (C5) fig2c replica | `analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png` | `render_fig2c_comparison.py` |
+| Fig. 3 (C1) data preview | this report | `analysis/26-08-10-project-report/render_report_data_preview.py` (inputs: derived H5 + curated event table; fdr-snr windows) |
+| Fig. 4 (C2) injection | this report | `render_report_injection.py` (re-runs the frame-level injection; g⁽²⁾ panel reads `drafts/26-08-10_fdr_snr/fig2c/fig2c_injection_report.json`) |
+| Fig. 5 (C3) sensitivity | `drafts/26-08-10_fdr_snr/fig2c/power_gate_ul95_vs_period.png` (copied) | `fig2c_power_gate.py` (on the fdr-snr traces) |
+| Fig. 6 (C4) fig2a replica | `figures/fig2a_replica_fdrsnr.png` | `render_fig2a_comparison.py --npz <fdr-snr traces> --caption-file fig2a_replica_caption_fdrsnr.txt` |
+| Fig. 8 (C5) fig2c replica | `figures/fig2c_replica_fdrsnr.png` | `render_fig2c_comparison.py --out-dir drafts/26-08-10_fdr_snr/fig2c --caption-file fig2c_replica_caption_fdrsnr.txt` |
 | Fig. 9 (C6) k-space fringes | re-rendered into this report | `measure_kspace_fringe_oscillation.py` |
 | Fig. 10 (C7) dashboard | this report | `render_report_summary.py` (numbers with per-entry provenance comments) |
 | §1.2 paper crops | `fig2a_paper_original.png` / `fig2c_paper_original.png` | `tmp/paper_crop/` (300 dpi from the in-repo PDF) |
-| §6.1 offset-zoom | `fig2a_offset_zoom.png` | `render_offset_zoom.py` |
-| §6.3 supplement panels | `fig2a_replica_supplement.png`, `fig2c_replica_supplement_bin4px.png` | same renderers, supplement npz/cubes |
-| §6.1 z upper-limit spectrum | `figures/fig_z_upper_limit.png` (copied from `drafts/26-08-06_fig2a_cfd50/`) | `tmp/fig2a_upper_limit_cfd50.py` |
-| App. A.2 test panel | `figures/fig2c_science_tests_bin4px.png` (copied from `drafts/26-08-06_fig2c/`) | `fig2c_science_tests.py` |
+| §6.1 offset-zoom | `figures/fig2a_offset_zoom_fdrsnr.png` | `render_offset_zoom.py --npz <fdr-snr traces>` |
+| §6.3 supplement panels | `figures/fig2a_replica_supplement_fdrsnr.png`, `figures/fig2c_replica_supplement_fdrsnr.png` | same renderers, supplement fdr-snr npz/cubes + `--work-title` |
+| §6.1 z upper-limit spectrum | `figures/fig_z_upper_limit.png` | `analysis/26-08-10-project-report/fig2a_upper_limit_cfd50.py` (parameterized copy of the registration-era tmp script; reproduces its numbers on the same input) |
+| App. A.2 test panel | `figures/fig2c_science_tests_bin4px.png` (copied from `drafts/26-08-10_fdr_snr/fig2c/`) | `fig2c_science_tests.py` |
 | App. B.2 t0 comparison | `figures/fig_t0_method_comparison.png` (copied from `drafts/26-08-06_fig2a_cfd50/`) | `tmp/fig2a_t0_method_comparison.py` |
 
 ## Appendix F. Glossary
