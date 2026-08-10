@@ -131,7 +131,7 @@ verified against the sources (supplement: 498 stratified frames, 0 mismatches).
 *Figure 3 (C1). (a) One realization: a single background-subtracted frame (sqrt
 intensity scale). Emission arrives as sparse single-photon spots on a ~105 counts/px
 pedestal; the bright laser reference pulse at the left edge provides each frame's time
-origin — the cyan line marks the leading-edge 50 % crossing (CFD50, §3 step 3) that
+origin — the cyan line marks the leading-edge 50 % crossing (CFD50, §3.3) that
 defines it for this frame. (b) All 275 218 detected photon events of the main batch
 after per-frame alignment: four vertical emission bands emerge. (c) Column profile of
 the aligned events: the four bands B1–B4 and their pairing into Left = B1+B3 and
@@ -162,65 +162,191 @@ Three structural facts matter for everything downstream:
 
 ## 3. From frames to physics: the measurement pipeline
 
-The chain turns 20 000 raw frames into accumulated intensity traces and a per-photon
-event table, and from there into g⁽²⁾(0)(t). Each stage below states what is done and
-the physical reason; how the stage is checked is the subject of §4, and the full
-validation records are in Appendix A.
+The pipeline's job is to turn 20 000 raw camera frames into the two observables of
+§1.2: the accumulated per-condensate intensity traces (the Fig. 2(a) analog) and the
+per-condensate zero-delay g⁽²⁾(0)(t) (the Fig. 2(c) analog). Two properties of the
+data dictate its shape:
 
-1. **Conversion.** MATLAB v7.3 exports → per-experiment HDF5 (schema 2), keeping only
-   the streak-camera payload, with per-source-file provenance and pixel-exact
-   verification. *Reason:* immutable raws stay untouched; every derived number traces
-   to a hashed source frame.
-2. **Background subtraction.** The measured per-pixel background (≈105 counts) is
-   subtracted from every frame. *Reason:* the streak pedestal is large compared to
-   single-photon spots; using the *measured* background (not a fitted one) avoids
-   injecting model bias into the photon detector.
-3. **Per-frame time zero (CFD50).** On the reference pulse's leading edge, the 50 %-of-
-   peak crossing row, sub-row interpolated — a constant-fraction discriminator (CFD),
-   the standard answer to amplitude walk and pulse-shape breathing. *Reason:* the
-   reference pulse's shape breathes frame to frame; a centroid or fixed-threshold
-   crossing tracks that breathing (+2.7 ps bias, 1.3 ps/frame scatter), the CFD does
-   not (§4, Appendix B.2). 8 of 20 000 frames (0.04 %) fail the signal-quality cut and
-   are excluded and recorded.
-4. **Photon-event detection.** 8-connected bright components above 25 counts
-   (integrated, post-background) and ≥2 px in detection columns 350–1150, each reduced
-   to a count-weighted sub-pixel centroid. The threshold sits at the knee of a
-   sensitivity scan. *Reason:* one photon triggers a multi-pixel microchannel-plate
-   (MCP) cloud; component-wise integration recovers one event per photon.
-5. **Band windows and pairing.** The four emission bands are located on the photon-event
-   column histogram (out-of-band floor is Poisson, so a 5σ sub-window threshold with
-   gap bridging finds the bands; the analog profile's lumpy fixed-pattern baseline
-   cannot be thresholded this way) — a count-threshold rule on the event histogram,
-   no profile fitting is involved. Windows: B1 380–450, B2 570–680, B3 810–880,
-   B4 1010–1110; pairing L = {B1,B3}, R = {B2,B4} per the geometry checks of §2.2.
-   The chosen windows sit within 0.6 % of the signal-to-noise optimum (Appendix B.1).
-6. **Products.** Per band: accumulated mean/SEM traces after sub-row alignment to the
-   per-frame time zero, in two parallel sources — *photon* (event counts) and *analog*
-   (integrated counts). Per dataset: a curated per-photon **event table**
-   (frame, sub-pixel x/y, jitter-corrected τ = y − t0, amplitude; 275 218 events main,
-   661 090 supplement) and (frames × 4 bands × time-bin) **count cubes** at 1/2/4 px
-   binning. The event table and the traces come from a *single* detection pass, with an
-   automatic table↔traces reconstruction check at the end of every extraction.
-7. **The g⁽²⁾ estimator.** For each condensate, cross-arm coincidences of its two bands
-   (L: B1×B3; R: B2×B4) per time bin. Each pairing correlates a condensate *with
-   itself* — the two arms are two independent copies of the same emission after the
-   beamsplitter — so L and R are the auto-correlations of condensate 1 and condensate
-   2 respectively; no condensate-1×condensate-2 cross-correlation enters this report
-   (archived as follow-up, §8.3). g⁽²⁾(0)(t) comes from per-frame counts n₁,n₂ with the
-   paper's normally ordered ratio, plus a residual-background correction β estimated
-   from out-of-band events per time bin (β removes the noise contribution to the mean;
-   the variance cost is irreducible, §5). Displayed per-bin error bands use a
-   null-analytic ("plug-in") SEM — at ~10⁻³ occupancy per bin the Gaussian error bar of
-   a single bin is meaningless, so the band shows the experiment's resolution around
-   the Poisson line; window-pooled values use leave-one-frame-out jackknife SEMs
-   (Monte-Carlo-calibrated, Appendix A.3).
-8. **Statistical policy.** Two rules were fixed before the real-data g⁽²⁾ was ever
-   computed: a **power gate** (compute what the dataset can resolve, from measured
-   rates, before running the estimator; if the paper's range is not covered, the
-   deliverable degrades to an upper-limit report — it did), and **pre-registered
-   decision criteria** (four tests with surrogate null distributions, written down
-   2026-08-06 ahead of the computation). Any positive result would additionally have
-   had to survive injection recovery (§4) — none was triggered.
+- **The signal is sparse single-photon emission on a large detector pedestal.** The
+  background must therefore be *measured*, not fitted, and the photon detector must
+  be kept free of model assumptions wherever possible.
+- **The time base wanders.** The streak sweep's origin drifts by ~13 ps rms from
+  frame to frame — far wider than any analysis bin — so every frame must be
+  re-referenced to the laser pulse recorded on that same frame before any
+  accumulation makes sense.
+
+The chain has eight stages:
+
+1. **Conversion** — MATLAB exports to verified HDF5 frames.
+2. **Background subtraction** — remove the measured per-pixel pedestal.
+3. **Per-frame time zero** — CFD50 timing on the reference pulse.
+4. **Photon-event detection** — one event per photon via bright-component finding.
+5. **Band windows and pairing** — locate the four emission bands; assign bands to
+   condensates.
+6. **Products** — accumulated traces, a curated event table, count cubes.
+7. **The g⁽²⁾ estimator** — cross-arm coincidences with background correction.
+8. **Statistical policy** — the power gate and pre-registered decision criteria.
+
+The subsections below state, for each stage, what is done and the physical reason
+behind it. How each stage is *checked* on controlled inputs is the subject of §4,
+with the full records in Appendix A; the rejected alternatives, and what would change
+under them, are compared in Appendix B.
+
+### 3.1 Conversion and provenance
+
+The raw material is MATLAB v7.3 export files. Conversion copies only the
+streak-camera payload into per-experiment HDF5 files (schema 2), recording per-frame
+provenance and verifying the copy pixel-exactly against the source (volumes and
+checksums: §2.1). The raw files are never touched by any analysis step.
+
+*Why.* Two guarantees are cheap at this stage and impossible to retrofit: the raws
+stay immutable, and every derived number traces back to a hashed source frame.
+
+### 3.2 Background subtraction
+
+Each frame carries a per-pixel pedestal of ≈105 counts (the unexposed streak level),
+measured in a dedicated background condition and subtracted frame-by-frame. The same
+measurement applies to the supplement batch; that was verified directly on the data
+(median off-signal difference +0.02 counts/px, §2.2).
+
+*Why.* The pedestal is large compared to single-photon spots, so detection on
+un-subtracted frames would measure pedestal shape, not photons. Using the *measured*
+background rather than a fitted model keeps model bias out of the photon detector.
+Subtraction removes the pedestal's level but not its fluctuation: a Poisson-like
+residual detector noise remains, which also triggers the photon detector. This
+residue is not a detail — §5 shows it is 45–55 % of in-band events and the
+second-largest error lever of the whole measurement.
+
+### 3.3 Per-frame time zero: CFD50
+
+Part of the excitation laser is split off and lands on the same frame (columns
+~170–215, outside the detection columns), giving each frame its own time reference.
+The time zero t0 is the row where the reference pulse's leading edge crosses 50 % of
+its peak height, interpolated to sub-row precision — a constant-fraction discriminator
+(CFD), the standard timing answer to amplitude walk (shot-to-shot height variation)
+and pulse-shape breathing (width variation). The delay between sample pulse and
+reference pulse was measured at 0.32 ± 0.20 ps — consistent with zero — so no offset
+correction is applied. Frames whose reference pulse fails a signal-quality cut are
+excluded and recorded: 8 of 20 000 (0.04 %) in the main batch, 29 of 72 000 in the
+supplement.
+
+*Why.* Without per-frame re-referencing, the 13 ps two-state wander would smear every
+time structure over many analysis bins. And the estimator must be constant-fraction
+because the reference pulse's shape breathes: a centroid or fixed-threshold crossing
+tracks that breathing and inherits it as timing error (+2.7 ps mean bias, 1.3 ps
+per-frame scatter — measured in Appendix B.2), while the 50 %-of-peak crossing is
+immune by construction. The end-to-end injection test of §4 confirms it on ground
+truth: CFD50 is unbiased at −0.10 ± 0.33 px (0.32 ps), far below the 4 px analysis
+bin.
+
+### 3.4 Photon-event detection
+
+Within detection columns 350–1150, the detector finds 8-connected bright
+components — contiguous blobs of pixels above threshold — keeps those with integrated
+post-background amplitude ≥ 25 counts and size ≥ 2 px, and reduces each to a
+count-weighted sub-pixel centroid. The 25-count threshold sits at the knee of a
+sensitivity scan.
+
+*Why.* One photon does not light one pixel: it triggers a multi-pixel charge cloud on
+the microchannel-plate (MCP) intensifier. Integrating each cloud back into one
+component recovers one event per photon, and the centroid restores sub-pixel
+position. The resulting localization error is 0.16–0.17 px RMS per axis (§5,
+Appendix B.3) — irrelevant under the 1–4 px analysis binning.
+
+### 3.5 Band windows and pairing
+
+The four emission bands of §2.2 are located on the column histogram of detected
+photon events: the histogram is folded into 10-px sub-windows, the baseline and its
+σ are taken from the lowest-40 % sub-windows, and bands are the contiguous runs above
+baseline + 5σ, with gap bridging at baseline + 2σ. This is a pure count-threshold
+rule — no profile fitting. It runs on the *event* histogram rather than the analog
+intensity profile for a concrete reason: the event histogram's out-of-band floor is
+flat Poisson and therefore thresholdable, while the analog profile sits on a lumpy
+fixed-pattern baseline that no σ-rule can threshold cleanly (Appendix B.1).
+
+The resulting windows are B1 = 380–450, B2 = 570–680, B3 = 810–880, B4 = 1010–1110
+px. They are deliberately peak-*core* integration windows, narrower than the full
+peak widths: away from a band center the signal density falls while the
+residual-noise density stays flat, so the tails contribute mostly noise. Width scans
+of S/√(S+N) place these windows within 0.6 % of the signal-to-noise optimum
+(Appendix B.1). Finally, the bands are paired into condensates —
+Left = {B1, B3}, Right = {B2, B4} — per the geometry checks of §2.2: the B1↔B2
+spacing matches the calibrated condensate spacing, the B1↔B3 spacing matches the arm
+separation, and only this pairing reproduces the no-pulse intensity ratio.
+
+### 3.6 Products: traces, event table, and count cubes
+
+A single detection pass produces everything the analysis consumes, in three
+synchronized products:
+
+- **Accumulated traces.** Per band, mean and SEM intensity versus time after sub-row
+  alignment to the per-frame time zero — in two parallel sources: *photon* (event
+  counts) and *analog* (integrated counts). These feed the population observable of
+  §6.1.
+- **Event table.** A curated per-photon list — frame, sub-pixel x/y,
+  jitter-corrected τ = y − t0, amplitude: 275 218 events in the main batch,
+  661 090 in the supplement. This is the archival form for the follow-up analyses of
+  §8.3.
+- **Count cubes.** (frames × 4 bands × time-bin) count arrays at 1/2/4 px binning —
+  the direct input of the g⁽²⁾ estimator.
+
+Because table and traces come from *one* pass, their consistency is checkable
+mechanically: every extraction ends with an automatic table→traces reconstruction
+test (integer counts must rebuild the traces; tolerances and records in
+Appendix A.5).
+
+### 3.7 The g⁽²⁾ estimator
+
+For each condensate, the estimator correlates its two bands *across the HBT arms* per
+time bin: L as B1×B3, R as B2×B4. Each pairing correlates a condensate with
+*itself* — after the 50:50 beamsplitter the two arms are two independent copies of
+the same emission — so L and R are the auto-correlations of the left and right
+condensate respectively. A condensate-1×condensate-2 cross-correlation carries
+different physics and does not enter this report; the products are archived for it
+(§8.3).
+
+Per time bin, g⁽²⁾(0) is the paper's normally ordered ratio of the per-frame counts
+n₁, n₂ in the two arms, g⁽²⁾(0) = ⟨n₁n₂⟩/(⟨n₁⟩⟨n₂⟩), averaged over frames. Because
+the ratio is normally ordered and the two arms dilute the same photon stream
+independently, the (unequal, unknown) arm efficiencies cancel exactly — no arm
+calibration is needed (§1.1).
+
+The residual detector noise enters every term of the ratio and is corrected, not
+ignored. Its expected count per band and bin, β, is measured from out-of-band events
+in the same time bin (the out-of-band density is flat in τ, χ²/ndf = 1.16,
+Appendix A.1); the estimator subtracts β from the per-arm means and the matching
+product terms from the coincidence moment, which removes the noise contribution
+without bias. What subtraction cannot remove is the extra counting variance the noise
+adds — that cost is irreducible on the analysis side and is carried into §5's error
+budget.
+
+Two error bars appear in §6 because two different questions are asked. The per-bin
+*displayed* band is a null-analytic ("plug-in") SEM: at ~10⁻³ occupancy per bin, a
+single bin's Gaussian error bar is meaningless, so the band instead shows the
+experiment's resolution around the Poisson line — it answers "could a deviation have
+been seen here?". The *window-pooled* value answers "is the average g⁽²⁾ Poisson?"
+and uses a leave-one-frame-out jackknife SEM, Monte-Carlo-calibrated in
+Appendix A.3.
+
+### 3.8 Statistical policy: the power gate and pre-registration
+
+Two rules were fixed **before the real-data g⁽²⁾ was ever computed**:
+
+- **The power gate.** From the measured band rates and residual-noise density,
+  compute what the dataset can resolve *before* running the estimator: per-bin SEMs,
+  pooled precision, oscillation sensitivity versus period. The gate's verdict was
+  "borderline" — only the upper half of the paper's amplitude range is covered
+  (§5) — and the pre-agreed consequence was that the deliverable degrades from a
+  detection claim to an upper-limit report. §6 is that report.
+- **Pre-registered decision criteria.** The four science tests (bunching existence,
+  oscillation, anti-phase, envelope growth), their statistics, surrogate null
+  constructions, and significance thresholds were written down on 2026-08-06, ahead
+  of the computation (Appendix A.1). Any positive result would additionally have had
+  to survive injection recovery (§4); none was triggered.
+
+*Why.* A null is only informative if the criteria were not tuned to the data after
+the fact. The power gate makes the null *quantitative* in addition — it turns "we see
+nothing" into "nothing above this amplitude exists", the UL95 numbers of §6.
 
 ## 4. Recovery of known signals
 
@@ -354,7 +480,7 @@ everywhere.*
 
 *Figure 8 (C5). The paper's Fig. 2(c) (left) vs this work (right): g⁽²⁾(0)(t) of each
 condensate (L = B1×B3 blue, R = B2×B4 red), 4 px bins; the shaded band is the experiment's
-resolution (plug-in SEM, §3 step 7) around the Poisson line. The curve is statistics-limited
+resolution (plug-in SEM, §3.7) around the Poisson line. The curve is statistics-limited
 per bin by construction; the information is in the pooled value and the oscillation
 limits.*
 
@@ -653,7 +779,7 @@ pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
 |---|---|
 | `DOCS/adiyatullin2017-fig2a.md` / `adiyatullin2017-fig2c.md` | paper-side fact archive + target decomposition (G-criteria) — §1 sources |
 | `DOCS/26-08-04-fig2a.md` | fig2a pipeline, band windows, null + sensitivity — §3, §6.1 |
-| `DOCS/26-08-04-fig2c.md` | power gate, pre-registered tests, upper-limit report — §3 step 8, §6.2, App. A |
+| `DOCS/26-08-04-fig2c.md` | power gate, pre-registered tests, upper-limit report — §3.8, §6.2, App. A |
 | `DOCS/26-08-06-hbt-supplement.md` | 72 000-frame supplement batch — §6.3 |
 | `DOCS/26-08-08-dataset-a.md` | dataset A curation + downstream re-analysis — §6.3, App. B.4 |
 | `DOCS/26-08-08-dataset-a-noise-model.md` | noise-floor structure — §5, App. B.4 |
