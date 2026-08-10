@@ -1,0 +1,80 @@
+{
+  "created_utc": "2026-08-10T06:52:36+00:00",
+  "source": {
+    "h5": "E:/Documents/Codex/joris-homodyne/DATA/26-08-04-derived-hbt-time-reference/26-08-04_hbt_time_reference.h5",
+    "pulse_condition": "synchroscan_kspace_image",
+    "calib_condition": "kspace_no_pulse_intensity_calibration",
+    "window_ps": 2000.0,
+    "ps_per_px": 1.968503937007874,
+    "window_convention": "metadata-conventions.toml [streak_camera.time_range_0804] (synchroscan 2 ns, user-verified 2026-08-07)"
+  },
+  "fringe_rows": [
+    60,
+    400
+  ],
+  "fringe_cols": [
+    400,
+    1000
+  ],
+  "fixed_k_periods_ps": [
+    47.806524184476935,
+    74.36570428696413,
+    74.36570428696413,
+    74.36570428696413,
+    74.36570428696413,
+    74.36570428696413,
+    74.36570428696413,
+    74.36570428696413,
+    74.36570428696413,
+    74.36570428696413
+  ],
+  "fixed_k_median_ps": 74.36570428696413,
+  "fft2_peaks": [
+    {
+      "period_ps": 74.36570428696413,
+      "spatial_period_px": 200.0,
+      "power": 12822165.22773024
+    },
+    {
+      "period_ps": 83.66141732283465,
+      "spatial_period_px": 200.0,
+      "power": 12672635.097886376
+    },
+    {
+      "period_ps": 95.61304836895388,
+      "spatial_period_px": 200.0,
+      "power": 9239923.448935047
+    },
+    {
+      "period_ps": 111.5485564304462,
+      "spatial_period_px": 200.0,
+      "power": 7652214.382356779
+    },
+    {
+      "period_ps": 133.85826771653544,
+      "spatial_period_px": 200.0,
+      "power": 6150160.510053309
+    },
+    {
+      "period_ps": 74.36570428696413,
+      "spatial_period_px": 150.0,
+      "power": 5688991.714049414
+    }
+  ],
+  "prior_periods_ps": [
+    74.4,
+    83.7
+  ],
+  "per_frame_peak_over_median": [
+    11.238146824953136,
+    16.870834091533066,
+    16.870834091533066,
+    18.16670148667716,
+    12.021813345902554,
+    15.388219357785918,
+    11.757833815836618,
+    11.757833815836618,
+    11.238146824953136,
+    11.238146824953136
+  ]
+}
