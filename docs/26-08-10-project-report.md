@@ -134,7 +134,10 @@ verified against the sources (supplement: 498 stratified frames, 0 mismatches).
 intensity scale). Emission arrives as sparse single-photon spots on a ~105 counts/px
 pedestal; the bright laser reference pulse at the left edge provides each frame's time
 origin — the cyan line marks the leading-edge 50 % crossing (CFD50, §3.3) that
-defines it for this frame. (b) All 275 218 detected photon events of the main batch
+defines it for this frame. Detected photon events are marked in the same style as the
+frame-overlay previews: open circle = kept (centroid column inside a band window),
+× = rejected (outside the bands) — 8 of 18 events are kept in this frame.
+(b) All 275 218 detected photon events of the main batch
 after per-frame alignment: four vertical emission bands emerge. (c) Column profile of
 the aligned events: the four bands B1–B4 and their pairing into Left = B1+B3 and
 Right = B2+B4 (each condensate is imaged by both HBT arms; the 210 px B1↔B2 spacing
