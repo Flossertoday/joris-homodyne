@@ -5,8 +5,8 @@
 This report closes the attempt to reproduce the two core measurements of
 Adiyatullin et al., "Periodic squeezing in a polariton Josephson junction",
 *Nat. Commun.* **8**:1329 (2017), on our own streak-camera data. It is organized as a
-funnel: first what the data is (§2), how it is processed (§3), and the evidence that the
-processing is correct and its limits known (§4–§5); then the reproduction result (§6),
+funnel: first what the data is (§2), how it is processed (§3), and how the
+processing is checked and where its limits lie (§4–§5); then the reproduction result (§6),
 the dynamics the data *does* contain (§7), and conclusions (§8). Validation records and
 method comparisons are collected in the appendices.
 
@@ -15,19 +15,20 @@ method comparisons are collected in the appendices.
 - **Instrument.** We built a single-sweep, photon-resolved Hanbury Brown–Twiss (HBT)
   analysis chain for streak-camera frames of a polariton Josephson dimer: per-frame
   time-zero from a laser reference pulse (constant-fraction discrimination, CFD),
-  per-photon event extraction, spatial band pairing of the two mesas × two HBT arms,
-  and the paper's own normally ordered g⁽²⁾ estimator. Every stage is checked on
+  per-photon event extraction, spatial band pairing of the two condensates × two HBT
+  arms, and the paper's own normally ordered g⁽²⁾ estimator. Every stage is checked on
   controlled inputs (§4).
 - **Reproduction target.** The paper's Fig. 2(a) — anti-phase population alternation
-  between the two mesas at a ~10 ps period — and Fig. 2(c) — zero-delay g⁽²⁾ switching
-  between Poisson (1) and bunched (>1) in step with that oscillation (§1).
+  between the two condensates (the paper's mesas) at a ~10 ps period — and Fig. 2(c) —
+  zero-delay g⁽²⁾ switching between Poisson (1) and bunched (>1) in step with that
+  oscillation (§1).
 - **Result.** Neither observable reproduces on our data — across two independent
   acquisition batches and two independent event curations. For the population
   observable the null is decisive: the upper limits sit far below the paper's
   full-contrast signal. For g⁽²⁾ the window-pooled statistic is Poisson-consistent in
   both arms, and any reference-locked oscillation is bounded below the top of the
   paper's amplitude range. All numbers: §6; one-figure summary: §8.
-- **Why we trust the nulls.** The same chain recovers injected paper-type signals
+- **Checks behind the nulls.** The same chain recovers injected paper-type signals
   end-to-end; the decision criteria were registered before the data was analyzed; and
   the longer independent batch tightens every upper limit without changing any
   conclusion (§4, §6.3).
@@ -40,7 +41,7 @@ method comparisons are collected in the appendices.
   range calls for a substantially longer acquisition — or, more effectively, a lower
   detector background (§5 quantifies the trade). The curated event tables and count
   cubes for both batches are archived and ready for the follow-up 2-D g⁽²⁾(t₁,t₂) and
-  cross-mesa analyses (§8).
+  cross-condensate analyses (§8).
 
 ## 1. Introduction and the reproduction target
 
@@ -100,8 +101,8 @@ paper's resonant bonding/antibonding pulse and 30 ps window. We therefore replic
 the *measurement pipeline and the observable form*, on the closest observables our
 platform produces, and we state regime differences as boundaries (§8) rather than
 papering over them. Where the paper left method choices undocumented (time-zero
-algorithm, photon threshold, background treatment, L/R mapping), we made and validated
-our own — they are listed with their evidence in §3 and Appendix B.
+algorithm, photon threshold, background treatment, L/R mapping), we made our own and
+checked them — the choices and their tests are listed in §3 and Appendix B.
 
 **Datasets covered.** The campaign runs on the 26-08-04 HBT acquisition family
 (main batch + a 3.6× longer supplement batch of the same condition); the earlier
@@ -130,20 +131,24 @@ verified against the sources (supplement: 498 stratified frames, 0 mismatches).
 
 ![Data preview](../analysis/26-08-10-project-report/figures/fig_data_preview.png)
 
-*Figure 1 (C1). (a) One realization: a single background-subtracted frame (sqrt
+*Figure 3 (C1). (a) One realization: a single background-subtracted frame (sqrt
 intensity scale). Emission arrives as sparse single-photon spots on a ~105 counts/px
 pedestal; the bright laser reference pulse at the left edge provides each frame's time
-origin. (b) All 275 218 detected photon events of the main batch after per-frame
-alignment: four vertical emission bands emerge. (c) Column profile of the aligned
-events: the four bands B1–B4 and their pairing into Left = B1+B3 and Right = B2+B4
-(each mesa is imaged by both HBT arms; the 210 px B1↔B2 spacing matches the 204 px
-real-space mesa spacing from the no-pulse calibration, and the 430 px B1↔B3 spacing is
-the arm separation).*
+origin — the cyan line marks the leading-edge 50 % crossing (CFD50, §3 step 3) that
+defines it for this frame. (b) All 275 218 detected photon events of the main batch
+after per-frame alignment: four vertical emission bands emerge. (c) Column profile of
+the aligned events: the four bands B1–B4 and their pairing into Left = B1+B3 and
+Right = B2+B4 (each condensate is imaged by both HBT arms; the 210 px B1↔B2 spacing
+matches the 204 px real-space condensate spacing from the no-pulse calibration, and
+the 430 px B1↔B3 spacing is the arm separation). The shaded windows are peak-core
+integration windows, deliberately narrower than the full peak widths — the tails add
+mostly residual noise (S/N optimization, Appendix B.1).*
 
 Three structural facts matter for everything downstream:
 
-1. **Four bands, two mesas, two arms.** On the single-sweep frames each mesa appears
-   once per HBT arm, giving four emission bands; pairing them as L = {B1, B3},
+1. **Four bands, two condensates, two arms.** On the single-sweep frames each
+   condensate appears once per HBT arm, giving four emission bands; pairing them as
+   L = {B1, B3},
    R = {B2, B4} reproduces the no-pulse real-space intensity ratio (0.586/0.579 per
    arm vs 0.578 calibration), while the cross pairing gives inconsistent ratios
    (0.59/1.51) and is rejected.
@@ -162,7 +167,7 @@ Three structural facts matter for everything downstream:
 
 The chain turns 20 000 raw frames into accumulated intensity traces and a per-photon
 event table, and from there into g⁽²⁾(0)(t). Each stage below states what is done and
-the physical reason; the evidence that it works is the subject of §4, and the full
+the physical reason; how the stage is checked is the subject of §4, and the full
 validation records are in Appendix A.
 
 1. **Conversion.** MATLAB v7.3 exports → per-experiment HDF5 (schema 2), keeping only
@@ -198,8 +203,12 @@ validation records are in Appendix A.
    661 090 supplement) and (frames × 4 bands × time-bin) **count cubes** at 1/2/4 px
    binning. The event table and the traces come from a *single* detection pass, with an
    automatic table↔traces reconstruction check at the end of every extraction.
-7. **The g⁽²⁾ estimator.** For each mesa, cross-arm coincidences of its two bands
-   (L: B1×B3; R: B2×B4) per time bin: g⁽²⁾(0)(t) from per-frame counts n₁,n₂ with the
+7. **The g⁽²⁾ estimator.** For each condensate, cross-arm coincidences of its two bands
+   (L: B1×B3; R: B2×B4) per time bin. Each pairing correlates a condensate *with
+   itself* — the two arms are two independent copies of the same emission after the
+   beamsplitter — so L and R are the auto-correlations of condensate 1 and condensate
+   2 respectively; no condensate-1×condensate-2 cross-correlation enters this report
+   (archived as follow-up, §8.3). g⁽²⁾(0)(t) comes from per-frame counts n₁,n₂ with the
    paper's normally ordered ratio, plus a residual-background correction β estimated
    from out-of-band events per time bin (β removes the noise contribution to the mean;
    the variance cost is irreducible, §5). Displayed per-bin error bands use a
@@ -215,14 +224,14 @@ validation records are in Appendix A.
    2026-08-06 ahead of the computation). Any positive result would additionally have
    had to survive injection recovery (§4) — none was triggered.
 
-## 4. The instrument works: recovery of known signals
+## 4. Recovery of known signals
 
-The strongest evidence that the chain above is correct is that it recovers signals we
-planted — end-to-end, from synthetic frames through the untouched production code.
+The check on the chain above is whether it recovers signals we planted — end-to-end,
+from synthetic frames through the untouched production code.
 
 ![Injection recovery](../analysis/26-08-10-project-report/figures/fig_injection_recovery.png)
 
-*Figure 2 (C2). Left: end-to-end recovery of an injected anti-phase population
+*Figure 4 (C2). Left: end-to-end recovery of an injected anti-phase population
 oscillation (period 9.84 ps — the paper's Josephson period — z amplitude 0.5, locked to
 the true per-frame time zero) in synthetic frames that carry **measured** reference-pulse
 shapes with their real frame-to-frame breathing, the measured background level, and the
@@ -242,10 +251,10 @@ Three complements, detailed in the appendices:
   planted into real frames): 98.8–99.6 % of injected blobs survive curation with zero
   time-zero perturbation, and the injected 9.84 ps modulation is recovered at the
   expected amplitude (Appendix A.4).
-- **The estimator is unbiased by construction checks**: on synthetic Poisson cubes the
+- **Estimator bias checks on synthetic inputs**: on synthetic Poisson cubes the
   g⁽²⁾ estimator returns 1 within Monte-Carlo tolerance, and the analytic SEMs match
   64-replica Monte Carlo within 4 % at the working bin width (Appendix A.3).
-- **Method choices are not load-bearing**: the conclusions are identical under the
+- **Robustness to method choices**: the conclusions are identical under the
   alternative time-zero estimator, under the alternative (four-Gaussian) band-window
   semantics, and under the alternative (global-mean) background model — each comparison
   is quantified in Appendix B.
@@ -292,7 +301,7 @@ ever ran (the power gate), Monte-Carlo-verified:
 
 ![Sensitivity vs period](../analysis/26-08-10-project-report/figures/fig_sensitivity_vs_period.png)
 
-*Figure 3 (C3). Minimum resolvable reference-locked g⁽²⁾ oscillation amplitude (95 %)
+*Figure 5 (C3). Minimum resolvable reference-locked g⁽²⁾ oscillation amplitude (95 %)
 vs period for 1/2/4 px bins; gray band = the paper's Fig. 2(c) amplitude range
 (g⁽²⁾−1 ≈ 0.2–1.2). The 4 px width passes Monte-Carlo validation for both arms and is
 the working width. The dataset covers the upper half of the paper's range.*
@@ -304,13 +313,13 @@ covering the paper's lower bound.
 
 ## 6. The reproduction result
 
-With the instrument characterized, here is what it measures on the real data.
+With the pipeline's limits quantified, here is what it measures on the real data.
 
 ### 6.1 Population dynamics: no anti-phase alternation
 
 ![Fig. 2(a) replica](../analysis/26-08-04-derived-hbt-time-reference/fig2a_replica.png)
 
-*Figure 4 (C4). The paper's Fig. 2(a) (left) vs this work (right): accumulated Left
+*Figure 6 (C4). The paper's Fig. 2(a) (left) vs this work (right): accumulated Left
 (B1+B3, blue) and Right (B2+B4, red) intensity, log scale, peak-normalized, 19 992
 frames. The traces are flat; the early (t ≲ 150 ps) left-side dip is a monotonic
 overdamped recovery, not an oscillation. The paper's full-contrast anti-phase
@@ -344,8 +353,8 @@ everywhere.*
 
 ![Fig. 2(c) replica](../analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png)
 
-*Figure 5 (C5). The paper's Fig. 2(c) (left) vs this work (right): g⁽²⁾(0)(t) of each
-mesa (L = B1×B3 blue, R = B2×B4 red), 4 px bins; the shaded band is the experiment's
+*Figure 8 (C5). The paper's Fig. 2(c) (left) vs this work (right): g⁽²⁾(0)(t) of each
+condensate (L = B1×B3 blue, R = B2×B4 red), 4 px bins; the shaded band is the experiment's
 resolution (plug-in SEM, §3 step 7) around the Poisson line. The curve is statistics-limited
 per bin by construction; the information is in the pooled value and the oscillation
 limits.*
@@ -383,8 +392,8 @@ g⁽²⁾ oscillation UL95 median 0.58; and for the supplement's dataset A: popu
 UL95 0.0083, g⁽²⁾ oscillation UL95 median 0.488), and better
 paper-strength injection detection (L 31 % / R 81 %) from the purer noise model.
 
-The nulls are therefore a property of the data, not of the pipeline, the window choice,
-or the noise model.
+The nulls persist across the pipeline variant, the window choice, and the noise model —
+in everything tried here, they follow the data.
 
 ### 6.4 The precursor dataset (26-07-31)
 
@@ -403,7 +412,7 @@ real-space population modulation.
 
 ![k-space fringes](../analysis/26-08-10-project-report/figures/fig_kspace_fringe.png)
 
-*Figure 6 (C6). Synchroscan k-space images (camera-internal accumulation, hence immune
+*Figure 9 (C6). Synchroscan k-space images (camera-internal accumulation, hence immune
 to the per-frame time-base wander): the two-condensate interference pattern forms a
 tilted checkerboard — fringes that tilt with time are a relative phase that winds with
 time. A fixed-k column oscillates with main period **74.4 ps** (9 of 10 k-bins;
@@ -423,7 +432,7 @@ analysis — a different acquisition, listed in §8.
 
 ![Results dashboard](../analysis/26-08-10-project-report/figures/fig_results_dashboard.png)
 
-*Figure 7 (C7). All quantitative conclusions in one view. Top: population-oscillation
+*Figure 10 (C7). All quantitative conclusions in one view. Top: population-oscillation
 95 % upper limits (z-space) for the two batches and the two curations, against the
 paper's full-contrast band. Middle: g⁽²⁾ oscillation 95 % upper limits against the
 paper's amplitude range. Bottom: window-pooled g⁽²⁾(0) with ±1 SEM against the Poisson
@@ -434,11 +443,11 @@ value sits on Poisson within error.*
 
 | Paper claim (observable) | This work | Verdict | Evidence |
 |---|---|---|---|
-| Fig. 2(a): anti-phase population alternation, ~10 ps, full contrast (measured z ≈ ±0.4–0.5) | flat traces; UL95 1.2 % (main) / 0.8 % (supplement) / 2.3 % (dataset A, dilution-corrected) of z | **Not reproduced — decisive** (paper signal ≳30× above limits) | §6.1, Fig. 4 |
-| Fig. 2(c): g⁽²⁾(0)(t) switches Poisson↔bunched in phase with the oscillation, peaks 1.2→≳2 | pooled Poisson-consistent; oscillation UL95 0.81 / 0.50 / 0.58 / 0.49 by batch/curation; four pre-registered tests null | **Not reproduced within sensitivity** (limits cover the paper range's upper half) | §6.2, Fig. 5 |
-| Anti-phase between the two mesas (both observables) | weak *positive* common-mode correlation in both (r = +0.17 intensity; r = +0.10 g⁽²⁾) | **Not reproduced; sign opposite** | §6.1–6.2 |
+| Fig. 2(a): anti-phase population alternation, ~10 ps, full contrast (measured z ≈ ±0.4–0.5) | flat traces; UL95 1.2 % (main) / 0.8 % (supplement) / 2.3 % (dataset A, dilution-corrected) of z | **Not reproduced — decisive** (paper signal ≳30× above limits) | §6.1, Fig. 6 |
+| Fig. 2(c): g⁽²⁾(0)(t) switches Poisson↔bunched in phase with the oscillation, peaks 1.2→≳2 | pooled Poisson-consistent; oscillation UL95 0.81 / 0.50 / 0.58 / 0.49 by batch/curation; four pre-registered tests null | **Not reproduced within sensitivity** (limits cover the paper range's upper half) | §6.2, Fig. 8 |
+| Anti-phase between the two condensates (both observables) | weak *positive* common-mode correlation in both (r = +0.17 intensity; r = +0.10 g⁽²⁾) | **Not reproduced; sign opposite** | §6.1–6.2 |
 | Bunching-envelope growth with time | late−early differences consistent with zero | **Not reproduced** | §6.2 (d) |
-| Josephson dynamics exists in the device | confirmed — as 74.4 ps relative-phase winding in k-space, populations unmodulated | **Confirmed, different quadrature** | §7, Fig. 6 |
+| Josephson dynamics exists in the device | confirmed — as 74.4 ps relative-phase winding in k-space, populations unmodulated | **Confirmed, different quadrature** | §7, Fig. 9 |
 
 ### 8.2 Boundaries (what this campaign does not say)
 
@@ -457,8 +466,9 @@ value sits on Poisson within error.*
 
 ### 8.3 What comes next
 
-- **2-D g⁽²⁾(t₁,t₂)** (the paper's Fig. 3) and **cross-mesa** LR/RL correlations: the
-  event tables and count cubes of both batches are already archived for exactly this.
+- **2-D g⁽²⁾(t₁,t₂)** (the paper's Fig. 3) and **cross-condensate** LR/RL correlations:
+  the event tables and count cubes of both batches are already archived for exactly
+  this.
 - **Statistics**: ≈3×10⁵ frames at current rates cover the paper's lower g⁽²⁾ bound;
   halving the detector background is worth ≈2× frames (acquisition-side only).
 - **Phase dynamics at single-sweep level**: per-frame k-space imaging or per-frame
@@ -468,10 +478,11 @@ value sits on Poisson within error.*
   periods are measured in-frame).
 
 **Declaration.** The reproduction campaign against Adiyatullin et al. 2017 Fig. 2(a)
-and Fig. 2(c) is **complete**: both observables were measured with a validated
-pipeline on two independent batches and two curations; the results are null with
-quantified upper limits; the instrument's resolving power is known and its shortfall
-against the paper's lower amplitude range is quantified with a concrete remedy.
+and Fig. 2(c) is **complete**: both observables were measured on two independent
+batches and two curations with a pipeline whose every stage was checked on controlled
+inputs (§4, Appendix A); the results are null with quantified upper limits; the
+instrument's resolving power is known and its shortfall against the paper's lower
+amplitude range is quantified with a concrete remedy.
 
 ---
 
@@ -604,7 +615,7 @@ tails; B1 one-sided toward the detection edge), ≈20 % lower on average; floor 
 bracket the systematic. Effect on the headline numbers: pooled g⁽²⁾(0) L 0.531
 (local) vs 0.307 (global) — the bracket is smaller than the ±0.38 statistical error —
 and the old-global variant reproduces the pre-curation numbers nearly bitwise,
-certifying the estimator chain. Curation itself: out-of-band, defective-column (main:
+confirming the estimator chain. Curation itself: out-of-band, defective-column (main:
 col 676; supplement: 11 hot columns), and frame-edge-touching events removed;
 morphology cuts were evaluated and rejected (signal and noise are the same MCP-cloud
 objects; best discriminator 1.7:1 vs 3:1 break-even).
@@ -668,13 +679,13 @@ pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
 
 | figure | source | generator |
 |---|---|---|
-| Fig. 1 (C1) data preview | this report | `analysis/26-08-10-project-report/render_report_data_preview.py` (inputs: derived H5 + curated event table) |
-| Fig. 2 (C2) injection | this report | `render_report_injection.py` (re-runs the frame-level injection; g⁽²⁾ panel reads `drafts/26-08-06_fig2c/fig2c_injection_report.json`) |
-| Fig. 3 (C3) sensitivity | `drafts/26-08-06_fig2c/power_gate_ul95_vs_period.png` (copied) | `fig2c_power_gate.py` |
-| Fig. 4 (C4) fig2a replica | `analysis/26-08-04-derived-hbt-time-reference/fig2a_replica.png` | `render_fig2a_comparison.py` |
-| Fig. 5 (C5) fig2c replica | `analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png` | `render_fig2c_comparison.py` |
-| Fig. 6 (C6) k-space fringes | re-rendered into this report | `measure_kspace_fringe_oscillation.py` |
-| Fig. 7 (C7) dashboard | this report | `render_report_summary.py` (numbers with per-entry provenance comments) |
+| Fig. 3 (C1) data preview | this report | `analysis/26-08-10-project-report/render_report_data_preview.py` (inputs: derived H5 + curated event table) |
+| Fig. 4 (C2) injection | this report | `render_report_injection.py` (re-runs the frame-level injection; g⁽²⁾ panel reads `drafts/26-08-06_fig2c/fig2c_injection_report.json`) |
+| Fig. 5 (C3) sensitivity | `drafts/26-08-06_fig2c/power_gate_ul95_vs_period.png` (copied) | `fig2c_power_gate.py` |
+| Fig. 6 (C4) fig2a replica | `analysis/26-08-04-derived-hbt-time-reference/fig2a_replica.png` | `render_fig2a_comparison.py` |
+| Fig. 8 (C5) fig2c replica | `analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png` | `render_fig2c_comparison.py` |
+| Fig. 9 (C6) k-space fringes | re-rendered into this report | `measure_kspace_fringe_oscillation.py` |
+| Fig. 10 (C7) dashboard | this report | `render_report_summary.py` (numbers with per-entry provenance comments) |
 | §1.2 paper crops | `fig2a_paper_original.png` / `fig2c_paper_original.png` | `tmp/paper_crop/` (300 dpi from the in-repo PDF) |
 | §6.1 offset-zoom | `fig2a_offset_zoom.png` | `render_offset_zoom.py` |
 | §6.3 supplement panels | `fig2a_replica_supplement.png`, `fig2c_replica_supplement_bin4px.png` | same renderers, supplement npz/cubes |
@@ -715,6 +726,9 @@ pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
   recommended future band detector.
 - **CSI**: Cauchy–Schwarz inequality of intensity correlations — a classical-field
   test, out of scope here.
-- **mesa**: one of the two coupled condensate traps; **reservoir**: the incoherent
-  exciton bath feeding them under nonresonant pumping; **Stark kick**: the
-  optical-Stark pulse that triggers the dynamics in our platform.
+- **condensate / mesa**: the two coupled traps holding the condensates are etched
+  circular mesas in the paper's sample; in our platform the corresponding objects are
+  two reservoir-fed condensates (left/right, or 1/2). This report says "condensate"
+  for our own data and keeps "mesa" only where the paper's sample is described.
+  **reservoir**: the incoherent exciton bath feeding them under nonresonant pumping;
+  **Stark kick**: the optical-Stark pulse that triggers the dynamics in our platform.

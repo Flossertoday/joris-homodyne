@@ -35,7 +35,7 @@ CAPTION = (
     "Left: original Fig. 2(a) of Adiyatullin et al. 2017 (Nat. Commun. 8:1329) — accumulated emission intensity of the left (blue) and right\n"
     "(red) mesa on a logarithmic scale, showing anti-phase population oscillations; the gray band marks the low-confidence SNR<20 region.\n"
     "Right: this work — replication on the 26-08-04 HBT batch (20000 single-sweep frames; photon-event source, rebin 8 ≈ 7.9 ps/bin, peak-\n"
-    "normalized). Each mesa is recorded simultaneously by both HBT arms; the plotted intensity sums its two arm bands (Left = B1+B3,\n"
+    "normalized). Each condensate is recorded simultaneously by both HBT arms; the plotted intensity sums its two arm bands (Left = B1+B3,\n"
     "Right = B2+B4). The per-frame time zero is calibrated by CFD50, leading-edge constant-fraction discrimination on the reference\n"
     "pulse (50%-of-peak crossing, sub-row interpolated), placing the origin ~2.7 ps earlier than the former half-max centroid definition;\n"
     "the measured StreakCamBackG background is subtracted. Outcome: no anti-phase oscillation — cross-arm z fluctuations are\n"

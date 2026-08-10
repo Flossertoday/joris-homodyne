@@ -113,16 +113,21 @@ def render(out_path=OUT_PATH):
         f"sqrt counts (magma, 0..p99.9 = {vmax_a:.0f})"
     )
 
-    # Reference-pulse ROI rectangle (dashed)
+    # Reference-pulse ROI rectangle (dashed) + the production CFD50 time origin
     r0, r1, c0, c1 = REFERENCE_ROI
     rect = mpatches.Rectangle(
         (c0, r0), c1 - c0, r1 - r0,
         linewidth=1.6, edgecolor="cyan", facecolor="none", linestyle="--", zorder=4,
     )
     ax_a.add_patch(rect)
+    t0_row = eht.estimate_t0_cfd(frame_bg)
+    t0_y = t0_row if np.isfinite(t0_row) else 0.5 * (r0 + r1)
+    if np.isfinite(t0_row):
+        ax_a.plot([c0, c1], [t0_row, t0_row], color="cyan", lw=1.8, zorder=5)
     ax_a.annotate(
-        "laser reference pulse\n(per-frame time origin)",
-        xy=(0.5 * (c0 + c1), r0), xycoords="data",
+        "laser reference pulse; the leading-edge 50 %\n"
+        "crossing (cyan line) is the per-frame time origin",
+        xy=(0.5 * (c0 + c1), t0_y), xycoords="data",
         xytext=(c1 + 60, r0 + 30), textcoords="data",
         arrowprops=dict(arrowstyle="->", color="cyan", lw=1.2),
         color="cyan", fontsize=9, va="top",
@@ -197,7 +202,7 @@ def render(out_path=OUT_PATH):
     for xc in DETECTION_COLS:
         ax_b.axvline(xc, color="white", linestyle=":", lw=1.0, zorder=3)
 
-    # Mesa brackets
+    # Condensate-pairing brackets
     def bracket(ax, x0, x1, y, label):
         ax.plot([x0, x1], [y, y], color="white", lw=1.5, zorder=4)
         ax.plot([x0, x0], [y - 4, y], color="white", lw=1.5, zorder=4)
@@ -234,7 +239,7 @@ def render(out_path=OUT_PATH):
         color = LR_COLORS[LR_OF_BAND[name]]
         ax_c.axvspan(x0, x1, color=color, alpha=0.18, zorder=1)
         stroke_text(
-            ax_c, 0.5 * (x0 + x1), ax_c.get_ylim()[1] * 0.97, name,
+            ax_c, 0.5 * (x0 + x1), ax_c.get_ylim()[1] * 0.88, name,
             fontsize=10, fontweight="bold", color=color,
         )
     # L/R pairing legend
@@ -255,7 +260,7 @@ def render(out_path=OUT_PATH):
     ax_c.text(
         0.5 * (BAND_CENTERS["B1"] + BAND_CENTERS["B2"]),
         ax_c.get_ylim()[1] * 0.78,
-        "210 px ≈ mesa spacing\n(204 px in real space)",
+        "210 px ≈ condensate spacing\n(204 px in real space)",
         ha="center", va="bottom", fontsize=8,
     )
 
@@ -270,6 +275,17 @@ def render(out_path=OUT_PATH):
         ax_c.get_ylim()[1] * 0.52,
         "430 px = HBT arm separation",
         ha="center", va="bottom", fontsize=8,
+    )
+
+    ax_c.text(
+        0.98, 0.02,
+        "shaded = S/N-optimal peak-core integration windows\n"
+        "(≈μ±1.0–1.45σ, σ ≈ 35 px), not fits: the peak tails\n"
+        "are noise-dominated and excluded by design (App. B.1)",
+        transform=ax_c.transAxes, ha="right", va="bottom", fontsize=8,
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85,
+                  edgecolor="none"),
+        zorder=6,
     )
 
     ax_c.set_xlim(300, 1200)
