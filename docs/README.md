@@ -2,8 +2,8 @@
 
 本目录只保留需要长期维护、用户能够直接审阅的文档：
 
-- [26-08-10-project-report.md](26-08-10-project-report.md)：**项目报告（英文，复刻收尾判定）**——Adiyatullin 2017 Fig. 2(a)/2(c) 复刻尝试的总报告：数据、管线、验证、误差、零结果结论与 claim–evidence 对照表；合作者/组会入口，先读这篇。另有带图 [PDF 版](26-08-10-project-report.pdf)（构建命令见报告 Appendix C）。
-- [26-08-10-project-report-zh.md](26-08-10-project-report-zh.md)：上述项目报告的**中文版**（[PDF 版](26-08-10-project-report-zh.pdf)）——与英文版逐节对应，数字/代码/图逐一相同；中文读者入口。
+- [26-08-10-project-report.md](26-08-10-project-report.md)：**项目报告（英文，复刻收尾判定）**——Adiyatullin 2017 Fig. 2(a)/2(c) 复刻尝试的总报告：数据、管线、验证、误差、零结果结论与 claim–evidence 对照表；合作者/组会入口，先读这篇。另有带图 [PDF 版](26-08-10-project-report.pdf)（不入 git，随报告更新本地重建；构建命令见报告 Appendix C）。
+- [26-08-10-project-report-zh.md](26-08-10-project-report-zh.md)：上述项目报告的**中文版**（[PDF 版](26-08-10-project-report-zh.pdf)，同不入 git）——与英文版逐节对应，数字/代码/图逐一相同；中文读者入口。
 - [experiment-plan.md](experiment-plan.md)：当前装置下的分阶段实验路线和判定门槛。
 - [measurement-claims.md](measurement-claims.md)：Josephson 动力学、强度关联、CSI 与 squeezing 各自能支持什么结论。
 - [literature.md](literature.md)：核心论文、相邻先例及其对本项目的实际约束。

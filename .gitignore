@@ -22,6 +22,11 @@ hbt-time-reference-0804-preview/
 *.log
 *.partial
 
+# Report PDFs — rebuilt locally with pandoc as the report evolves
+# (build commands in the report's Appendix C); not committed
+docs/26-08-10-project-report.pdf
+docs/26-08-10-project-report-zh.pdf
+
 # Editor and OS state
 .DS_Store
 Thumbs.db
