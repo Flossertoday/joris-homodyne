@@ -9,12 +9,17 @@
 - `compare_band_window_figures.py` —— 方法栅格/参数平台/增长曲线/合成基准四图；
 - `compute_full_column_profiles.py` —— 两批次全列 analog 廓线（复核检测列界用）；
 - `render_roi_morphology.py` —— 发射支撑区行走 + ROI 正确性指标 + 形态图；
+- `recompute_event_hist.py` —— 以 widened 检测列界（默认 330–1150）重算事件柱直方图
+  （其余管线参数逐位不变，并对存档 350 报告做稳定区逐位 QA）；
 - `band_windows_method_grid.png` —— 方法栅格对比（sqrt 压缩纵轴，两批次）；
 - `band_windows_robustness.png` —— 阈值参数平台；
 - `band_windows_snr_growth.png` —— S/√(S+N) 增长曲线与各方法窗宽落点；
 - `band_windows_synthetic.png` —— 合成恢复基准；
 - `roi_fullrange_overview.png` —— 全列 analog 廓线：检测列界 350–1150 排除/切到什么；
 - `roi_band_morphology.png` —— 逐带发射形态与各方法窗缘位置；
-- `results/` —— `band_windows_summary.json`、`roi_morphology_summary.json`。
+- `results/` —— `band_windows_summary.json`、`roi_morphology_summary.json`；
+- `col330/` —— 左界 330 重跑的完整交付：重算的两批次 `bands_report_col330_*.json`
+  （输入）、全列 analog 廓线 `full_column_profile_*_col330.npy`、六张 `_col330` 图
+  与两个 `_col330` summary json（结果）。
 
-测试：`tests/test_compare_band_window_methods.py`（17 项，自含合成数据）。
+测试：`tests/test_compare_band_window_methods.py`（19 项，自含合成数据）。

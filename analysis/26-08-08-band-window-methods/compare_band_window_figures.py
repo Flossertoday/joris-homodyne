@@ -12,13 +12,16 @@ def _shade(ax, windows, color, alpha=0.22, lw=0):
         ax.axvspan(x0, x1, color=color, alpha=alpha, lw=lw)
 
 
-def _sqrt_ax_setup(ax, hist, floor, xlim=(320, 1180)):
+def _sqrt_ax_setup(ax, hist, floor, xlim=None):
+    if xlim is None:
+        xlim = (cw.DET_RANGE[0] - 30, cw.DET_RANGE[1] + 30)
     cols = np.arange(hist.size)
     ax.plot(cols, np.sqrt(np.clip(hist, 0, None)), color="black", lw=0.7)
     ax.plot(cols, np.sqrt(floor), color="tab:blue", lw=1.0)
     ax.set_xlim(*xlim)
-    # ignore the edge hot-column spikes when scaling the compressed axis
-    inner = np.arange(355, 1145)
+    # ignore the hot-column spikes when scaling the compressed axis
+    inner = np.arange(cw.DET_RANGE[0] + 5, cw.DET_RANGE[1] - 5)
+    inner = np.setdiff1d(inner, list(cw.EDGE_HOT))
     ax.set_ylim(0, np.sqrt(hist[inner].max()) * 1.14)
 
 

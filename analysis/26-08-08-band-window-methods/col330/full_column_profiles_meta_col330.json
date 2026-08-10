@@ -1,0 +1,20 @@
+{
+  "main": {
+    "source": "E:/Documents/Codex/joris-homodyne/DATA/26-08-04-derived-hbt-time-reference/26-08-04_hbt_time_reference.h5",
+    "n_frames": 20000,
+    "rows": [
+      32,
+      986
+    ],
+    "note": "same pass as the event histogram recompute"
+  },
+  "supplement": {
+    "source": "E:/Documents/Codex/joris-homodyne/DATA/26-08-04-derived-hbt-time-reference/26-08-04_hbt_time_reference_supplement.h5",
+    "n_frames": 72000,
+    "rows": [
+      32,
+      986
+    ],
+    "note": "same pass as the event histogram recompute"
+  }
+}
