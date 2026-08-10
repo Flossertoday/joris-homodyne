@@ -263,6 +263,18 @@ class TestPairCounts(unittest.TestCase):
         np.testing.assert_array_equal(N1, cube[:, 1, :])
         np.testing.assert_array_equal(N2, cube[:, 3, :])
 
+    def test_cross_mesa_pairs(self):
+        cube = np.arange(2 * 4 * 3, dtype=np.int32).reshape(2, 4, 3)
+        beta = np.full((4, 3), 0.1)
+        N1, N2, b1, b2 = est.pair_counts(cube, beta, "LR")
+        np.testing.assert_array_equal(N1, cube[:, 0, :])
+        np.testing.assert_array_equal(N2, cube[:, 3, :])
+        np.testing.assert_array_equal(b1, beta[0])
+        np.testing.assert_array_equal(b2, beta[3])
+        N1, N2, b1, b2 = est.pair_counts(cube, beta, "RL")
+        np.testing.assert_array_equal(N1, cube[:, 1, :])
+        np.testing.assert_array_equal(N2, cube[:, 2, :])
+
 
 if __name__ == "__main__":
     unittest.main()

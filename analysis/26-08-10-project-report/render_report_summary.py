@@ -76,7 +76,7 @@ def build_dashboard_data():
             "band_label": "paper Fig. 2(c): g2−1 = 0.2–1.2",
         },
         "panel_c": {
-            "title": "window-pooled g^(2)(0) (4 px bins, ±1 jackknife SEM)",
+            "title": "window-pooled g^(2)(0): the full two-condensate matrix (4 px bins, ±1 jackknife SEM)",
             "ylabel": "pooled g^(2)(0) in 0–820 ps window",
             "y_categories": [
                 "main batch",
@@ -107,6 +107,30 @@ def build_dashboard_data():
                 0.125,
                 0.127,
                 0.108,
+            ]),
+            "LR_values": np.array([
+                0.832,   # drafts/26-08-10_fdr_snr/cross_main/g2_cross_summary.json 4 px (fdr-snr)
+                1.207,   # drafts/26-08-10_fdr_snr/cross_supp/g2_cross_summary.json 4 px (fdr-snr)
+                0.881,   # drafts/26-08-10_fdr_snr/cross_main_da (local-floor beta, fdr-snr bands)
+                1.056,   # drafts/26-08-10_fdr_snr/cross_supp_da (local-floor beta, fdr-snr bands)
+            ]),
+            "LR_sem": np.array([
+                0.218,
+                0.224,
+                0.156,
+                0.174,
+            ]),
+            "RL_values": np.array([
+                0.982,
+                1.000,
+                0.974,
+                1.018,
+            ]),
+            "RL_sem": np.array([
+                0.226,
+                0.216,
+                0.177,
+                0.178,
             ]),
         },
     }
@@ -180,18 +204,21 @@ def render(data, out_path=OUT_PATH):
     ax.invert_yaxis()
     ax.grid(True, which="both", axis="x", ls=":", lw=0.5)
 
-    # ---- Panel C: window-pooled g2(0) ----
+    # ---- Panel C: window-pooled g2(0), full two-condensate matrix ----
     ax = axes[2]
     cats = data["panel_c"]["y_categories"]
     y = np.arange(len(cats))
-    x_L = y - 0.15
-    x_R = y + 0.15
-    ax.errorbar(x_L, data["panel_c"]["L_values"], yerr=data["panel_c"]["L_sem"],
-                fmt="o", color="tab:blue", markersize=9, capsize=4,
-                label="L")
-    ax.errorbar(x_R, data["panel_c"]["R_values"], yerr=data["panel_c"]["R_sem"],
-                fmt="s", color="tab:red", markersize=9, capsize=4,
-                label="R")
+    series = (
+        ("L", "L = B1\u00d7B3", "o", "tab:blue", -0.27),
+        ("R", "R = B2\u00d7B4", "s", "tab:red", -0.09),
+        ("LR", "LR = B1\u00d7B4", "D", "tab:purple", 0.09),
+        ("RL", "RL = B2\u00d7B3", "^", "tab:green", 0.27),
+    )
+    for key, label, marker, color, offset in series:
+        ax.errorbar(y + offset, data["panel_c"][f"{key}_values"],
+                    yerr=data["panel_c"][f"{key}_sem"],
+                    fmt=marker, color=color, markersize=8, capsize=4,
+                    label=label)
     ax.axhline(1.0, color="black", linestyle="--", lw=1.2, label="Poisson")
     ax.set_xticks(y)
     ax.set_xticklabels(cats)
@@ -199,7 +226,7 @@ def render(data, out_path=OUT_PATH):
     ax.set_title(data["panel_c"]["title"])
     ax.set_ylim(-0.2, 2.5)
     ax.set_yticks([-0.2, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5])
-    ax.legend(loc="upper right")
+    ax.legend(loc="upper right", ncol=2, fontsize=8)
     ax.grid(True, axis="y", ls=":", lw=0.5)
 
     fig.savefig(out_path, dpi=150)

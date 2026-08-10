@@ -15,6 +15,7 @@ import numpy as np
 from matplotlib import patches as mpatches
 from matplotlib import pyplot as plt
 from matplotlib.colors import PowerNorm
+from matplotlib.lines import Line2D
 from matplotlib.patheffects import withStroke
 
 # Make project analysis modules importable from the worktree.
@@ -45,6 +46,13 @@ LR_OF_BAND = {"B1": "L", "B2": "R", "B3": "L", "B4": "R"}
 LR_COLORS = {"L": "tab:blue", "R": "tab:red"}
 DETECTION_COLS = (350, 1150)
 REFERENCE_ROI = (110, 210, 170, 215)
+
+# Event marking in panel (a): same detection and kept/rejected style as the
+# frame-overlay previews (render_frame_overlays.py) — kept = open circle when
+# the centroid column falls inside a band window, rejected = "x" otherwise.
+EVENT_THRESHOLD = 25.0  # counts above the measured background (CFD50 Fig. 2(a) value)
+KEPT_COLOR = "deepskyblue"
+REJECTED_COLOR = "0.65"
 
 
 def load_frame_and_background():
@@ -84,6 +92,41 @@ def add_band_shades(axis, y_frac=0.94, alpha=0.18):
             transform=axis.get_xaxis_transform(),
             fontsize=10, fontweight="bold", color=color, zorder=5,
         )
+
+
+def band_membership(cols):
+    """True where the event centroid column falls inside any band window."""
+    member = np.zeros(cols.shape, dtype=bool)
+    for x0, x1 in BANDS.values():
+        member |= (cols >= x0) & (cols < x1)
+    return member
+
+
+def mark_events_kept_rejected(axis, frame_bg):
+    """Overlay detected events as kept (open circle) / rejected (x) markers.
+
+    Same detection (`extract_hbt_traces.detect_events` at EVENT_THRESHOLD) and
+    the same marker style as the frame-overlay previews
+    (hbt-time-reference-0804-preview/frame_overlays*).
+    """
+    rows, cols = eht.detect_events(frame_bg, EVENT_THRESHOLD)
+    kept = band_membership(cols)
+    axis.scatter(
+        cols[~kept], rows[~kept],
+        s=25, marker="x", c=REJECTED_COLOR, linewidths=0.7, zorder=6,
+    )
+    axis.scatter(
+        cols[kept], rows[kept],
+        s=60, facecolors="none", edgecolors=KEPT_COLOR, linewidths=1.0, zorder=6,
+    )
+    legend_handles = [
+        Line2D([], [], marker="x", color=REJECTED_COLOR, ls="none",
+               label=f"rejected ({int((~kept).sum())})"),
+        Line2D([], [], marker="o", markerfacecolor="none",
+               markeredgecolor=KEPT_COLOR, ls="none",
+               label=f"kept ({int(kept.sum())})"),
+    ]
+    axis.legend(handles=legend_handles, loc="upper right", fontsize=8)
 
 
 def render(out_path=OUT_PATH):
@@ -143,6 +186,7 @@ def render(out_path=OUT_PATH):
     )
 
     add_band_shades(ax_a, y_frac=0.07, alpha=0.22)
+    mark_events_kept_rejected(ax_a, frame_bg)
     ax_a.set_xlim(0, frame_bg.shape[1])
     ax_a.set_ylim(frame_bg.shape[0], 0)
     ax_a.set_xlabel("detector column [px]")
@@ -243,7 +287,6 @@ def render(out_path=OUT_PATH):
             fontsize=10, fontweight="bold", color=color,
         )
     # L/R pairing legend
-    from matplotlib.lines import Line2D
     legend_elements = [
         Line2D([0], [0], color=LR_COLORS["L"], lw=6, alpha=0.5, label="Left = B1 + B3"),
         Line2D([0], [0], color=LR_COLORS["R"], lw=6, alpha=0.5, label="Right = B2 + B4"),
