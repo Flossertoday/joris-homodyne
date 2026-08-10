@@ -1,6 +1,6 @@
 # Reproducing Adiyatullin et al. 2017 on single-sweep HBT data — project report
 
-**Date:** 2026-08-10 · **Status:** reproduction campaign complete (null results, quantified) · **Audience:** collaborators / group meeting · **PDF:** [26-08-10-project-report.pdf](26-08-10-project-report.pdf)
+**Date:** 2026-08-10 · **Status:** reproduction campaign complete (null results, quantified) · **Audience:** collaborators / group meeting · **PDF:** [26-08-10-project-report.pdf](26-08-10-project-report.pdf) · **中文版：** [26-08-10-project-report-zh.md](26-08-10-project-report-zh.md)
 
 This report closes the attempt to reproduce the two core measurements of
 Adiyatullin et al., "Periodic squeezing in a polariton Josephson junction",

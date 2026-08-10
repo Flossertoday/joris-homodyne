@@ -1,0 +1,20 @@
+# Pandoc defaults for the Chinese PDF build of docs/26-08-10-project-report-zh.md
+# (see Appendix C of the report). Run from the worktree root (paths below are
+# resolved from there):
+#   pandoc docs\26-08-10-project-report-zh.md -o docs\26-08-10-project-report-zh.pdf `
+#     --defaults=analysis\26-08-10-project-report\pdf_build_zh.yaml
+pdf-engine: xelatex
+resource-path: ["docs"]
+toc: true
+toc-depth: 2
+filters:
+  - analysis/26-08-10-project-report/pdf_code_breaks.lua
+include-in-header:
+  - analysis/26-08-10-project-report/pdf_preamble.tex
+variables:
+  geometry: margin=2.4cm
+  fontsize: 11pt
+  linkcolor: NavyBlue
+  urlcolor: NavyBlue
+  mainfont: Cambria
+  CJKmainfont: Microsoft YaHei

@@ -37,7 +37,7 @@
 
 ## 文档入口
 
-- [项目报告（复刻收尾判定，英文）](docs/26-08-10-project-report.md)（[PDF 版](docs/26-08-10-project-report.pdf)）
+- [项目报告（复刻收尾判定，英文）](docs/26-08-10-project-report.md)（[PDF 版](docs/26-08-10-project-report.pdf)）；[中文版](docs/26-08-10-project-report-zh.md)（[PDF 版](docs/26-08-10-project-report-zh.pdf)）
 - [实验路线](docs/experiment-plan.md)
 - [测量与物理主张](docs/measurement-claims.md)
 - [文献判断和来源](docs/literature.md)
