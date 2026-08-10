@@ -104,10 +104,8 @@ papering over them. Where the paper left method choices undocumented (time-zero
 algorithm, photon threshold, background treatment, L/R mapping), we made our own and
 checked them — the choices and their tests are listed in §3 and Appendix B.
 
-**Datasets covered.** The campaign runs on the 26-08-04 HBT acquisition family
-(main batch + a 3.6× longer supplement batch of the same condition); the earlier
-26-07-31 single-sweep dataset (2 × 1000 frames) served as the precursor where the
-estimator and the statistics-first policy were developed (§6.4).
+**Datasets covered.** The campaign runs on the 26-08-04 HBT acquisition family: the
+main batch plus a 3.6× longer supplement batch of the same condition.
 
 ## 2. Data: what the raw material looks like
 
@@ -115,7 +113,6 @@ estimator and the statistics-first policy were developed (§6.4).
 
 | Dataset | Content | Frames | Role |
 |---|---|---|---|
-| `26-07-31-single-sweep` | streak frames, 2 conditions (`ZeroOrderPowerRatio` 0.05 / 0.18) | 2 × 1000 | precursor (§6.4) |
 | `26-08-04-hbt-time-reference`, main condition `hbt_condensate_josephson_regime` | single-sweep real-space HBT frames with laser time reference on the side | 20 000 (19 992 kept; 8 frames fail time-zero) | primary |
 | same acquisition, 8 further conditions | synchroscan k-space / real-space images, no-pulse intensity calibrations, backgrounds, focus cross-sections, delay calibration | 10 each | calibration (the k-space condition drives §7) |
 | supplement batch of the same HBT condition ("New folder (10)") | identical acquisition metadata except sweep length; signal ≈65 % of main batch | 72 000 (71 971 kept; 29 fail) | independent confirmation (§6.3) |
@@ -193,7 +190,8 @@ validation records are in Appendix A.
 5. **Band windows and pairing.** The four emission bands are located on the photon-event
    column histogram (out-of-band floor is Poisson, so a 5σ sub-window threshold with
    gap bridging finds the bands; the analog profile's lumpy fixed-pattern baseline
-   cannot be thresholded this way). Windows: B1 380–450, B2 570–680, B3 810–880,
+   cannot be thresholded this way) — a count-threshold rule on the event histogram,
+   no profile fitting is involved. Windows: B1 380–450, B2 570–680, B3 810–880,
    B4 1010–1110; pairing L = {B1,B3}, R = {B2,B4} per the geometry checks of §2.2.
    The chosen windows sit within 0.6 % of the signal-to-noise optimum (Appendix B.1).
 6. **Products.** Per band: accumulated mean/SEM traces after sub-row alignment to the
@@ -265,10 +263,11 @@ Knowing precisely what the measurement *cannot* see is what makes the nulls of �
 informative. The error budget decomposes as follows (numbers for the main batch;
 the supplement scales accordingly).
 
-**Event localization** (from the 26-07-31 precursor study, same detector): 0.16–0.17 px
-RMS per axis, dominated by a deterministic sub-pixel window-truncation bias
-(0.13 px), not by detector noise (0.002 px); artificial-spot injection completeness
-92 %. Irrelevant under the 1–4 px analysis binning.
+**Event localization** (from a synthetic-spot injection study on the same streak
+camera, `DOCS/peak-localization-error.md`): 0.16–0.17 px RMS per axis, dominated by a
+deterministic sub-pixel window-truncation bias (0.13 px), not by detector noise
+(0.002 px); spot-recovery completeness 92 %. Irrelevant under the 1–4 px analysis
+binning.
 
 **Time-zero.** Per-frame sweep wander is 13.2 ps rms (two-state, real synchroscan
 behavior — the two timing estimators agree on it to 0.1 ps). After CFD50 alignment the
@@ -395,16 +394,6 @@ paper-strength injection detection (L 31 % / R 81 %) from the purer noise model.
 The nulls persist across the pipeline variant, the window choice, and the noise model —
 in everything tried here, they follow the data.
 
-### 6.4 The precursor dataset (26-07-31)
-
-The earlier single-sweep dataset (2 × 1000 frames, no time reference) is where the
-estimator was built: trackpy-based event localization (validated against 2-D Gaussian
-fits, 92 % within 0.2 px), four-Gaussian band attribution (μ±2σ acceptance), and the
-same Supplementary-Note-1 g⁽²⁾ estimator. Its full g⁽²⁾ matrix came out
-Poisson-consistent within ~1.5σ at 1000 frames — a statistics-limited null that closed
-that dataset and motivated two design decisions for the 26-08-04 campaign: acquire with
-a per-frame time reference, and run the power gate *before* the science computation.
-
 ## 7. The dynamics we do see: phase winding in k-space
 
 The oscillation the collaborators expect is present in the apparatus — just not as
@@ -461,8 +450,8 @@ value sits on Poisson within error.*
    space.
 4. The two batches differ physically (signal rate, L/R ratio) and were analyzed
    stand-alone, not pooled.
-5. Nothing here bears on the 26-07-31 retry of Fig. 2(a) or on the single-kick
-   trajectory question (per-frame/hierarchical analysis) — both remain open by design.
+5. Nothing here bears on the single-kick trajectory question (per-frame/hierarchical
+   analysis) — it remains open by design.
 
 ### 8.3 What comes next
 
@@ -560,12 +549,13 @@ baseline is not thresholdable), folded into 10-px sub-windows; baseline and σ f
 lowest-40 % sub-windows; bands = runs above baseline+5σ with baseline+2σ gap bridging;
 runs touching the detection-column edge are discarded as truncation artifacts.
 
-- **vs the 26-07-31 four-Gaussian rule.** A constant-background + four-Gaussian fit of
-  the main-batch histogram converges to μ = 415.9/623.7/845.0/1061.2 px
-  (≤1.5 px from the window centers), σ ≈ 34.5–37.9 px. The production windows are
-  ≈ μ±(1.0–1.45)σ — peak-core *integration* windows; the 26-07-31 μ±2σ rule is a peak
-  *attribution* criterion (deliberately wide). Ported verbatim, that rule would give
-  170–190 px windows (2–3× wider) and push the residual-noise fraction above 50 %.
+- **vs a four-Gaussian attribution rule.** The windows come from the count-threshold
+  rule above, not from a fit. For width reference, a constant-background +
+  four-Gaussian fit of the main-batch histogram converges to
+  μ = 415.9/623.7/845.0/1061.2 px (≤1.5 px from the window centers), σ ≈ 34.5–37.9 px;
+  the production windows are ≈ μ±(1.0–1.45)σ of these peaks — peak-core *integration*
+  windows. A μ±2σ attribution-style rule would instead give 170–190 px windows
+  (2–3× wider) and push the residual-noise fraction above 50 %.
 - **S/N optimality.** Width scans of S/√(S+N) place the production windows within
   0.6 % of optimum (a later all-rows refinement: ~1 % for B2/B4, ~6–7 % for the
   narrower B1/B3 — the basis of the fdr-snr recommendation, not a retroactive change).
@@ -601,9 +591,10 @@ the correct answer to amplitude/shape walk) plus this evidence.
 ### B.3 Event localization
 
 Production: trackpy (Crocker–Grier) count-weighted centroid, diameter 7, minmass 300.
-Against circular 2-D Gaussian fits on 1 518 peaks (26-07-31): 92.2 % agree within
-0.2 px, median 0.052 px, no systematic offset; Gaussians fail on non-Gaussian
-elongated MCP clouds (edge collisions), centroids do not. Error budget in §5.
+Against circular 2-D Gaussian fits on 1 518 peaks from the same detector study
+(`DOCS/peak-localization-error.md`): 92.2 % agree within 0.2 px, median 0.052 px, no
+systematic offset; Gaussians fail on non-Gaussian elongated MCP clouds (edge
+collisions), centroids do not. Error budget in §5.
 
 ### B.4 Residual-noise model and dataset A
 

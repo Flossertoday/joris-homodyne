@@ -279,9 +279,9 @@ def render(out_path=OUT_PATH):
 
     ax_c.text(
         0.98, 0.02,
-        "shaded = S/N-optimal peak-core integration windows\n"
-        "(≈μ±1.0–1.45σ, σ ≈ 35 px), not fits: the peak tails\n"
-        "are noise-dominated and excluded by design (App. B.1)",
+        "shaded = S/N-optimal peak-core integration windows,\n"
+        "not fits (peak σ ≈ 35 px; windows ≈ ±1.0–1.45σ):\n"
+        "the peak tails are noise-dominated (App. B.1)",
         transform=ax_c.transAxes, ha="right", va="bottom", fontsize=8,
         bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85,
                   edgecolor="none"),
