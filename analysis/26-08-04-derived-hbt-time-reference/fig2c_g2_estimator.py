@@ -15,12 +15,14 @@ the 26-08-04 HBT condition:
     measured-background-subtracted before event detection, so beta only
     carries detector-noise clusters that pass the event threshold).
 
-Only the quantities Fig. 2(c) needs are implemented: the zero-delay diagonal
-g2(0)(t) with the paper-style three-term propagated SEM, and the
-window-pooled g2(0) with a leave-one-frame-out jackknife SEM. The full 2-D
-map g2(t1, t2) (paper Fig. 3) and cross-mesa correlations are out of scope
-(docs/adiyatullin2017-fig2c.md, G9). Diagonal-only keeps the per-frame
-algebra O(frames x bins) with no FFT, which matters at 20000 frames.
+Only the zero-delay diagonal g2(0)(t) with the paper-style three-term
+propagated SEM, and the window-pooled g2(0) with a leave-one-frame-out
+jackknife SEM are implemented; the same functions serve the same-mesa
+pairs (compute_g2_fig2c.py) and the cross-mesa pairs LR/RL
+(compute_g2_cross_mesa.py). The full 2-D map g2(t1, t2) (paper Fig. 3)
+remains out of scope (docs/adiyatullin2017-fig2c.md, G9). Diagonal-only
+keeps the per-frame algebra O(frames x bins) with no FFT, which matters
+at 20000 frames.
 
 Conventions match compute_g2_matrix.py: N1, N2 are (frames, bins) per-frame
 count matrices; beta1, beta2 are per-frame background expectations per bin;
@@ -61,6 +63,13 @@ BAND_NAMES = ("B1", "B2", "B3", "B4")
 # Same-mesa pairs correlate the two independent HBT arms of one mesa:
 # L = B1 x B3, R = B2 x B4.
 SAME_MESA_PAIRS = {"L": (0, 2), "R": (1, 3)}
+# Cross-mesa pairs correlate the two different mesas across the HBT arms:
+# LR = B1 x B4, RL = B2 x B3. Both estimate the same condensate-1 x
+# condensate-2 g2; cross-arm keeps the two detection channels independent
+# (the same-arm cross pairs B1 x B2 / B3 x B4 share one streak trace and
+# its fixed-pattern noise), so LR and RL are two independent measurements
+# of the cross-correlation (compute_g2_cross_mesa.py).
+CROSS_MESA_PAIRS = {"LR": (0, 3), "RL": (1, 2)}
 
 # Event-detection column range of the Fig. 2(a) pipeline.
 EVENT_COL_RANGE = (350, 1150)
@@ -248,6 +257,7 @@ def pooled_zero_delay(
 def pair_counts(
     cube: np.ndarray, beta: np.ndarray, pair: str
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """(N1, N2, beta1, beta2) for a same-mesa pair ('L' or 'R')."""
-    first, second = SAME_MESA_PAIRS[pair]
+    """(N1, N2, beta1, beta2) for a same-mesa ('L'/'R') or cross-mesa
+    ('LR'/'RL') pair."""
+    first, second = {**SAME_MESA_PAIRS, **CROSS_MESA_PAIRS}[pair]
     return cube[:, first, :], cube[:, second, :], beta[first], beta[second]

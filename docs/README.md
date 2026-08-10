@@ -14,6 +14,7 @@
 - [26-08-04-fig2a.md](26-08-04-fig2a.md)：26-08-04 HBT 批次复刻 Adiyatullin 2017 Fig. 2(a) 的管线、配对证据与交替振荡零结果（含灵敏度验证）。
 - [26-08-04-fig2c.md](26-08-04-fig2c.md)：26-08-04 HBT 批次复刻 Fig. 2(c)（g⁽²⁾(0)(t)）的执行文档：G3 门槛结论、G6 判据预登记、上限报告结果（四项检验全部零结果）与复现命令。
 - [26-08-06-hbt-supplement.md](26-08-06-hbt-supplement.md)：26-08-04 HBT 补充批次（72000 帧）的 g2 与 intensity 同管线分析：采集条件确认、带窗重定案、零结果（上限收紧）、G3 borderline / G6 全零 / G7 通过。
+- [26-08-11-g2-cross-mesa.md](26-08-11-g2-cross-mesa.md)：交叉 g2（condensate 1×2,LR=B1×B4 / RL=B2×B3 跨臂对）的首次计算——g2 矩阵的最后一块，两批次 pooled 全部与 1 兼容（零结果），复用同 mesa 估计器。
 - [26-08-08-dataset-a.md](26-08-08-dataset-a.md)：数据集A——"排除一切不可能是数据的峰"的策展（横向 ROI/缺陷列/触边；形态学不可分的证据）、噪声局部地板模型、只引用数据集A的 Fig. 2(a)/2(c) 重算（零结果不变、上限收紧）与帧级/立方级注入验证（算法对论文强度信号灵敏）。
 - [sem-limitations.md](sem-limitations.md)：g2 测量 SEM 的限制因素分解（帧数/信号率/底噪/bin 宽×周期/t0）、底噪问题的证据与量级、帧数需求表。
 - [peak-localization.md](peak-localization.md)：单帧峰定位算法（Crocker–Grier/trackpy）、圆心语义与二维高斯拟合对照证据。
