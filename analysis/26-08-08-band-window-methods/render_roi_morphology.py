@@ -212,8 +212,11 @@ def fig_fullrange(batches_info, out_dir):
         )
         ax.set_xlim(0, 1344)
     axes.ravel()[-1].set_xlabel("detector column [pixel]")
-    fig.suptitle("What the detection column range 350-1150 contains and excludes",
-                 fontsize=11)
+    fig.suptitle(
+        f"What the detection column range {cw.DET_RANGE[0]}-{cw.DET_RANGE[1]} "
+        f"contains and excludes",
+        fontsize=11,
+    )
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     path = out_dir / "roi_fullrange_overview.png"
     fig.savefig(path, dpi=150)
@@ -248,6 +251,12 @@ def fig_band_morphology(batches_info, out_dir):
                 ax.plot(cols, np.sqrt(ana[z0:z1]), color="tab:cyan", lw=1.0,
                         alpha=0.85, label="analog profile (scaled, smoothed)")
             ax.axvspan(s0, s1, color="gray", alpha=0.18, label="emission support")
+            ana_s = info.get("analog_supports")
+            if ana_s is not None:
+                a0, a1 = ana_s[row][0], ana_s[row][1]
+                ax.axvline(a0, color="tab:cyan", ls="--", lw=1.1,
+                           label="analog support edges" if row == 0 else None)
+                ax.axvline(a1, color="tab:cyan", ls="--", lw=1.1)
             if s[2]:
                 ax.axvline(cw.DET_RANGE[0], color="tab:red", lw=1.4)
             if s[3]:
@@ -288,9 +297,9 @@ def fig_band_morphology(batches_info, out_dir):
             ax.set_xlim(z0, z1)
             trunc = []
             if s[2]:
-                trunc.append("LEFT CUT by detection range")
+                trunc.append("LEFT EDGE AT RANGE BOUNDARY")
             if s[3]:
-                trunc.append("RIGHT CUT by detection range")
+                trunc.append("RIGHT EDGE AT RANGE BOUNDARY")
             title = f"{bn}  support ({s0},{s1})"
             if row == 0:
                 title = f"{name} batch  " + title
@@ -325,7 +334,11 @@ def main():
     ap.add_argument("--supp-report", default="drafts/26-08-06_fig2a_supplement/bands_report.json")
     ap.add_argument("--profiles-dir", default="drafts/26-08-08_band_window_methods")
     ap.add_argument("--out-dir", default="drafts/26-08-08_band_window_methods")
+    ap.add_argument("--det-range", type=int, nargs=2, default=None,
+                    help="detection column range (default: as archived, 350 1150)")
     args = ap.parse_args()
+    if args.det_range is not None:
+        cw.configure(args.det_range)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -378,6 +391,7 @@ def main():
         summary[name]["analog_supports"] = [
             {"x0": s[0], "x1": s[1], "threshold": s[4]} for s in ana_supports
         ]
+        b["analog_supports"] = ana_supports
         print(f"== {name}")
         print("  event supports :", [(s[0], s[1], s[2], s[3]) for s in supports])
         print("  analog supports:", [(s[0], s[1]) for s in ana_supports])

@@ -44,6 +44,12 @@ Outputs (--out-dir):
 - band_windows_synthetic.png     synthetic-recovery benchmark
 - band_windows_summary.json      machine-readable scores
 
+--det-range LO HI retargets the detection column range (default 350 1150,
+the archived extraction range). All methods read DET_RANGE/SUBWINDOW_EDGES
+at call time via configure(); the figures module shares the configured
+module instance. The 330 1150 rerun consumes the recomputed histograms from
+recompute_event_hist.py (the archived ones contain no events left of 350).
+
 Run (from the repository/worktree root; JSON paths are repo-relative):
 
     .\\.venv\\Scripts\\python.exe analysis\\26-08-08-band-window-methods\\compare_band_window_methods.py \
@@ -65,13 +71,34 @@ import numpy as np
 from scipy import ndimage, optimize, signal, stats
 
 DET_RANGE = (350, 1150)  # detect_events column range (both batches)
-EDGE_HOT = (350, 351, 1147, 1148)  # known hot edge columns (dataset-A doc)
+# Truncation pile-up columns at the detection-range edges: components cut by
+# the range boundary land their centroids 0-2 px inside it (330 recompute
+# evidence: the 350/351 spikes moved to 330/331 with the boundary and 350/351
+# fell back to floor level — they are range-edge artifacts, NOT the physical
+# hot detector columns like the interior 567/744/970).
+EDGE_HOT = (350, 351, 1147, 1148)
 N_COLS = 1344
 
 MAIN_REF_WINDOWS = [(380, 450), (570, 680), (810, 880), (1010, 1110)]
 SUPP_MANUAL_WINDOWS = [(350, 440), (540, 680), (770, 860), (970, 1100)]
 
 SUBWINDOW_EDGES = np.arange(DET_RANGE[0], DET_RANGE[1] + 1, 10)  # 80 x 10 px
+
+
+def configure(det_range):
+    """Set the detection column range and the derived per-range state.
+
+    Every method reads DET_RANGE / SUBWINDOW_EDGES / EDGE_HOT at call time, so
+    one configure() call before any method call retargets the whole
+    comparison. EDGE_HOT tracks the range edges (truncation pile-up columns:
+    lo, lo+1 and hi-3, hi-2), so it must be re-derived whenever the range
+    moves; configure((350, 1150)) reproduces the archived default exactly.
+    """
+    global DET_RANGE, SUBWINDOW_EDGES, EDGE_HOT
+    DET_RANGE = (int(det_range[0]), int(det_range[1]))
+    SUBWINDOW_EDGES = np.arange(DET_RANGE[0], DET_RANGE[1] + 1, 10)
+    EDGE_HOT = (DET_RANGE[0], DET_RANGE[0] + 1, DET_RANGE[1] - 3,
+                DET_RANGE[1] - 2)
 
 
 # --------------------------------------------------------------------------
@@ -287,9 +314,9 @@ def method_otsu(hist, smooth_sigma=3.0):
 
 
 def _mask_edge_hot(hist, floor):
-    """Replace the known hot edge columns by the local floor value (defect
-    masking, same practice as the dataset-A curation) so peak-based methods
-    do not latch onto the 1-px spikes at 350/351/1147/1148.
+    """Replace the range-edge pile-up columns by the local floor value (same
+    practice as the dataset-A curation) so peak-based methods do not latch
+    onto the 1-px truncation spikes at the detection-range edges (EDGE_HOT).
     """
     y = hist.copy()
     y[list(EDGE_HOT)] = floor[list(EDGE_HOT)]
@@ -390,9 +417,9 @@ def _poisson_fdr_columns(hist, floor, q):
 def _snr_optimal_window(hist, floor, center, h_min=15, h_max=100, cap=None):
     """Aperture-photometry growth curve: half-width maximizing S/sqrt(S+N).
 
-    The scan never includes the detection-range edge hot columns
-    (350/351/1147/1148, known defects), so windows stay inside
-    [DET_RANGE[0]+2, DET_RANGE[1]-4].
+    Windows stay inside [DET_RANGE[0]+2, DET_RANGE[1]-4], which keeps the
+    edge pile-up columns (EDGE_HOT) out of any window regardless of where
+    the detection range starts.
     """
     if cap is not None:
         h_max = min(h_max, cap)
@@ -525,45 +552,55 @@ def main():
     ap.add_argument("--supp-report", default="drafts/26-08-06_fig2a_supplement/bands_report.json")
     ap.add_argument("--out-dir", default="drafts/26-08-08_band_window_methods")
     ap.add_argument("--synthetic-reps", type=int, default=50)
+    ap.add_argument("--det-range", type=int, nargs=2, default=None,
+                    help="detection column range (default: as archived, 350 1150)")
     args = ap.parse_args()
+
+    # compare_band_window_figures imports this file under its module name,
+    # which is a DIFFERENT module object than __main__ when run as a script.
+    # Configure and use that shared instance so the figures see the same
+    # detection range.
+    import compare_band_window_methods as cw
+    if args.det_range is not None:
+        cw.configure(args.det_range)
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     batches = {
         "main": {
-            "hist": load_hist(args.main_report),
+            "hist": cw.load_hist(args.main_report),
             "mu0": [415.0, 625.0, 845.0, 1060.0],
-            "ref_windows": MAIN_REF_WINDOWS,
+            "ref_windows": cw.MAIN_REF_WINDOWS,
             "ref_label": "incumbent windows",
         },
         "supplement": {
-            "hist": load_hist(args.supp_report),
+            "hist": cw.load_hist(args.supp_report),
             "mu0": [395.0, 610.0, 815.0, 1035.0],
-            "ref_windows": SUPP_MANUAL_WINDOWS,
+            "ref_windows": cw.SUPP_MANUAL_WINDOWS,
             "ref_label": "manual windows",
         },
     }
 
-    summary = {"batches": {}}
+    summary = {"det_range": list(cw.DET_RANGE), "batches": {}}
     for name, b in batches.items():
         hist = b["hist"]
-        floor = local_floor(hist)
+        floor = cw.local_floor(hist)
         b["floor"] = floor
-        refs = ref_centers_for("main" if name == "main" else "supplement")
-        results = run_methods(hist, floor, b["mu0"])
+        refs = cw.ref_centers_for("main" if name == "main" else "supplement")
+        results = cw.run_methods(hist, floor, b["mu0"])
         b["results"] = results
         scored = {}
         for key, r in results.items():
             scored[key] = dict(r)
-            scored[key].update(score_windows(hist, floor, r["windows"], refs))
+            scored[key].update(cw.score_windows(hist, floor, r["windows"], refs))
         summary["batches"][name] = {
             "scores": scored,
             "ref_windows": b["ref_windows"],
         }
-        print(f"== {name}: floor range {floor[det_cols()].min():.0f}.."
-              f"{floor[det_cols()].max():.0f} events/col")
-        for key, _ in METHOD_ORDER:
+        print(f"== {name}: floor range {floor[cw.det_cols()].min():.0f}.."
+              f"{floor[cw.det_cols()].max():.0f} events/col")
+        for key, _ in cw.METHOD_ORDER:
             s = scored[key]
             print(f"  {key:12s} n={s['n_bands']} fom={s.get('fom', float('nan')):.1f} "
                   f"rmse={s.get('center_rmse', float('nan'))} windows={s['windows']}")

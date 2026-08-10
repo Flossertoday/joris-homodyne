@@ -236,5 +236,40 @@ class TestEmissionSupport(unittest.TestCase):
         self.assertLess(narrow["coverage"], 0.9)
 
 
+class TestConfigureDetRange(unittest.TestCase):
+    """configure() retargets the detection range; the supplement failure mode
+    (B1's thresholded run touches the 350 left edge and is discarded whole) is
+    a property of the edge position, not of the data: with the edge at 330 the
+    incumbent recovers B1 on the identical synthetic. Caveat: the synthetic
+    floor does not model the boundary truncation pile-up; on the REAL
+    supplement histogram the pile-up follows the edge and subwin5 still fails
+    at k=5 (docs/26-08-08-band-window-methods.md, section 结果 6)."""
+
+    def tearDown(self):
+        cbwm.configure((350, 1150))
+
+    def test_configure_updates_derived_state(self):
+        cbwm.configure((330, 1150))
+        self.assertEqual(cbwm.DET_RANGE, (330, 1150))
+        self.assertEqual(cbwm.SUBWINDOW_EDGES[0], 330)
+        self.assertEqual(cbwm.SUBWINDOW_EDGES[-1], 1150)
+        self.assertEqual(cbwm.det_cols()[0], 330)
+        # edge pile-up columns track the boundary (330 rerun evidence)
+        self.assertEqual(cbwm.EDGE_HOT, (330, 331, 1147, 1148))
+        cbwm.configure((350, 1150))
+        self.assertEqual(cbwm.EDGE_HOT, (350, 351, 1147, 1148))
+
+    def test_incumbent_recovers_b1_with_edge_at_330(self):
+        cbwm.configure((330, 1150))
+        hist = make_hist(
+            shelf_floor(), [550, 1000, 550, 800], mus=MU_SUPP, seed=13,
+        )
+        windows = cbwm.method_subwindow(hist, k=5.0)["windows"]
+        self.assertEqual(len(windows), 4)
+        centers = [0.5 * (x0 + x1 - 1) for (x0, x1) in windows]
+        for c, mu in zip(centers, MU_SUPP):
+            self.assertLess(abs(c - mu), 30.0)
+
+
 if __name__ == "__main__":
     unittest.main()
