@@ -1,0 +1,5 @@
+% Extra preamble for the PDF build of docs/26-08-10-project-report.md.
+% Cambria Italic lacks U+2272/U+2273 (≲/≳); route them to the math font.
+\usepackage{newunicodechar}
+\newunicodechar{≲}{\ensuremath{\lesssim}}
+\newunicodechar{≳}{\ensuremath{\gtrsim}}

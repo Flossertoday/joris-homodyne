@@ -1,6 +1,6 @@
 # Reproducing Adiyatullin et al. 2017 on single-sweep HBT data — project report
 
-**Date:** 2026-08-10 · **Status:** reproduction campaign complete (null results, quantified) · **Audience:** collaborators / group meeting
+**Date:** 2026-08-10 · **Status:** reproduction campaign complete (null results, quantified) · **Audience:** collaborators / group meeting · **PDF:** [26-08-10-project-report.pdf](26-08-10-project-report.pdf)
 
 This report closes the attempt to reproduce the two core measurements of
 Adiyatullin et al., "Periodic squeezing in a polariton Josephson junction",
@@ -629,8 +629,20 @@ The report figures are regenerated from the worktree root with:
 .\.venv\Scripts\python.exe analysis\26-08-10-project-report\render_report_data_preview.py
 .\.venv\Scripts\python.exe analysis\26-08-10-project-report\render_report_injection.py
 .\.venv\Scripts\python.exe analysis\26-08-10-project-report\render_report_summary.py
-.\.venv\Scripts\python.exe analysis\26-08-04-derived-hbt-time-reference\measure_kspace_fringe_oscillation.py `
+.\.venv\Scripts\python.exe `
+  analysis\26-08-04-derived-hbt-time-reference\measure_kspace_fringe_oscillation.py `
   --h5 <derived H5> --out analysis\26-08-10-project-report\figures\fig_kspace_fringe.png
+```
+
+The PDF version (`DOCS/26-08-10-project-report.pdf`) is built from the worktree root
+with pandoc + XeLaTeX; all engine/font/filter settings live in
+`analysis/26-08-10-project-report/pdf_build.yaml` (Cambria covers the Greek/symbol
+inventory, Microsoft YaHei the two CJK anchor characters above, and a Lua filter lets
+long code spans wrap inside table cells):
+
+```powershell
+pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
+  --defaults=analysis\26-08-10-project-report\pdf_build.yaml
 ```
 
 ## Appendix D. Sub-report index
