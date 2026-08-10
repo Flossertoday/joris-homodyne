@@ -366,14 +366,22 @@ SEM[g⁽²⁾(0)] ≈ 1/√(F·s₁·s₂) × 1/√(purity₁·purity₂)，
   （z ≈ ±0.4–0.5）。在先验周期处的定向拟合：
   9.84 ps |A| = 0.0041（UL95 0.0116）；74.4 ps 0.0038（0.0113）；
   83.7 ps 0.0090（0.0165）。
-- 最直接的观察 —— 减去各臂均值并放大平台涨落，叠加 ±1 SEM 带
-  （[offset-zoom 图](../analysis/26-08-04-derived-hbt-time-reference/fig2a_offset_zoom.png)）——
+- 最直接的观察 —— 图 7 的加常数 offset 放大图 ——
   发现误差带处处重叠，且有弱的**正**共模相关（r = +0.174，p = 0.023）：缓慢的
   共同漂移，符号与反相相反。
 
+![加常数 offset 放大图](../analysis/26-08-04-derived-hbt-time-reference/fig2a_offset_zoom.png)
+
+*图 7。图 6 曲线的加常数 offset 放大图：Right（B2+B4）臂平移常数
+c = mean(L) − mean(R)，使两臂共享 0–820 ps 窗口均值，再以放大的线性强度坐标
+叠加 ±1 SEM 带绘制。与图 6 的乘性峰值归一化不同，加性平移保持各臂噪声幅度
+不变，因此误差带的重叠 —— 或反相跷跷板式起伏（若存在）—— 可直接判读。
+上：全窗口；下：平稳段 t ≥ 150 ps（更紧的 y 轴）。误差带处处重叠；残余相关
+弱为正（共模漂移）。*
+
 ![z 上限谱](../analysis/26-08-10-project-report/figures/fig_z_upper_limit.png)
 
-*这些数字背后的扫描：拟合的 z 振荡幅度及其 |A|+2σ 95 % 上限对周期（左，对数
+*图 8。这些数字背后的扫描：拟合的 z 振荡幅度及其 |A|+2σ 95 % 上限对周期（左，对数
 坐标），以及去趋势的合并 z(t) 及其 ±1 SEM 带（右）。没有任何周期突出；上限处处
 保持在 1–2 % 水平。*
 
@@ -381,7 +389,7 @@ SEM[g⁽²⁾(0)] ≈ 1/√(F·s₁·s₂) × 1/√(purity₁·purity₂)，
 
 ![图 2(c) 复制品](../analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png)
 
-*图 8（C5）。论文图 2(c)（左）与本工作（右）：每个凝聚体的 g⁽²⁾(0)(t)
+*图 9（C5）。论文图 2(c)（左）与本工作（右）：每个凝聚体的 g⁽²⁾(0)(t)
 （L = B1×B3 蓝，R = B2×B4 红），4 px bin；阴影带是实验在泊松线附近的分辨能力
 （plug-in SEM，§3.7）。曲线按构造逐 bin 受统计限制；信息在汇总值与振荡
 上限中。*
@@ -422,7 +430,7 @@ L = 1.304 ± 0.320 / R = 0.990 ± 0.117（与泊松一致），四个预注册�
 
 ![k 空间条纹](../analysis/26-08-10-project-report/figures/fig_kspace_fringe.png)
 
-*图 9（C6）。同步扫描 k 空间图像（相机内部累积，因此不受逐帧时基漂移影响）：双
+*图 10（C6）。同步扫描 k 空间图像（相机内部累积，因此不受逐帧时基漂移影响）：双
 凝聚体干涉图样形成倾斜棋盘格 —— 随时间倾斜的条纹即随时间缠绕的相对相位。固定
 k 列以主周期 **74.4 ps** 振荡（10 个 k-bin 中 9 个；次周期 83.7 ps），在 10 帧中
 每一帧单独可见（二维 FFT 峰/中位数比 11–18）。无脉冲 k 空间标定只显示光滑的静态
@@ -438,7 +446,7 @@ k 列以主周期 **74.4 ps** 振荡（10 个 k-bin 中 9 个；次周期 83.7 p
 
 ![结果总览](../analysis/26-08-10-project-report/figures/fig_results_dashboard.png)
 
-*图 10（C7）。全部定量结论一图总览。上：两个批次、两次策展的布居振荡 95 % 上限
+*图 11（C7）。全部定量结论一图总览。上：两个批次、两次策展的布居振荡 95 % 上限
 （z 空间），对照论文全对比度带。中：g⁽²⁾ 振荡 95 % 上限，对照论文幅度区间。
 下：整窗汇总 g⁽²⁾(0) 及 ±1 SEM，对照泊松线。每项上限都远低于相应的论文信号；
 每个汇总值都在误差内落在泊松上。*
@@ -448,10 +456,10 @@ k 列以主周期 **74.4 ps** 振荡（10 个 k-bin 中 9 个；次周期 83.7 p
 | 论文主张（可观测量） | 本工作 | 判定 | 证据 |
 |---|---|---|---|
 | 图 2(a)：反相布居交替，~10 ps，全对比度（实测 z ≈ ±0.4–0.5） | 曲线平坦；UL95 为 z 的 1.2 %（主）/ 0.8 %（补充）/ 2.3 %（数据集 A，稀释修正后） | **未复现 —— 决定性**（论文信号 ≳ 上限的 30×） | §6.1，图 6 |
-| 图 2(c)：g⁽²⁾(0)(t) 随振荡同相在泊松↔聚束间切换，峰 1.2→≳2 | 汇总与泊松一致；振荡 UL95 按批次/策展为 0.81 / 0.50 / 0.58 / 0.49；四个预注册检验全部为零 | **在灵敏度内未复现**（上限覆盖论文区间上半段） | §6.2，图 8 |
+| 图 2(c)：g⁽²⁾(0)(t) 随振荡同相在泊松↔聚束间切换，峰 1.2→≳2 | 汇总与泊松一致；振荡 UL95 按批次/策展为 0.81 / 0.50 / 0.58 / 0.49；四个预注册检验全部为零 | **在灵敏度内未复现**（上限覆盖论文区间上半段） | §6.2，图 9 |
 | 两凝聚体间反相（两种可观测量） | 两者都呈弱的*正*共模相关（r = +0.17 强度；r = +0.10 g⁽²⁾） | **未复现；符号相反** | §6.1–6.2 |
 | 聚束包络随时间增长 | 晚−早差与零一致 | **未复现** | §6.2 (d) |
-| 器件中存在约瑟夫森动力学 | 确认 —— 以 k 空间 74.4 ps 相对相位缠绕的形式，布居不调制 | **确认，但在另一正交分量上** | §7，图 9 |
+| 器件中存在约瑟夫森动力学 | 确认 —— 以 k 空间 74.4 ps 相对相位缠绕的形式，布居不调制 | **确认，但在另一正交分量上** | §7，图 10 |
 
 ### 8.2 边界（本工作未说的内容）
 
@@ -657,13 +665,13 @@ pandoc docs\26-08-10-project-report-zh.md -o docs\26-08-10-project-report-zh.pdf
 | 图 4（C2）注入 | 本报告 | `render_report_injection.py`（重跑帧级注入；g⁽²⁾ 面板读取 `drafts/26-08-06_fig2c/fig2c_injection_report.json`） |
 | 图 5（C3）灵敏度 | `drafts/26-08-06_fig2c/power_gate_ul95_vs_period.png`（复制） | `fig2c_power_gate.py` |
 | 图 6（C4）fig2a 复制品 | `analysis/26-08-04-derived-hbt-time-reference/fig2a_replica.png` | `render_fig2a_comparison.py` |
-| 图 8（C5）fig2c 复制品 | `analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png` | `render_fig2c_comparison.py` |
-| 图 9（C6）k 空间条纹 | 重新渲染进本报告 | `measure_kspace_fringe_oscillation.py` |
-| 图 10（C7）总览图 | 本报告 | `render_report_summary.py`（数字带逐条溯源注释） |
+| 图 7 offset-zoom | `analysis/26-08-04-derived-hbt-time-reference/fig2a_offset_zoom.png` | `render_offset_zoom.py` |
+| 图 8 z 上限谱 | `figures/fig_z_upper_limit.png`（复制自 `drafts/26-08-06_fig2a_cfd50/`） | `tmp/fig2a_upper_limit_cfd50.py` |
+| 图 9（C5）fig2c 复制品 | `analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png` | `render_fig2c_comparison.py` |
+| 图 10（C6）k 空间条纹 | 重新渲染进本报告 | `measure_kspace_fringe_oscillation.py` |
+| 图 11（C7）总览图 | 本报告 | `render_report_summary.py`（数字带逐条溯源注释） |
 | §1.2 论文裁图 | `fig2a_paper_original.png` / `fig2c_paper_original.png` | `tmp/paper_crop/`（从库内 PDF 以 300 dpi 裁出） |
-| §6.1 offset-zoom | `fig2a_offset_zoom.png` | `render_offset_zoom.py` |
 | §6.3 补充图版 | `fig2a_replica_supplement.png`、`fig2c_replica_supplement_bin4px.png` | 同一生成器，补充批次 npz/立方体 |
-| §6.1 z 上限谱 | `figures/fig_z_upper_limit.png`（复制自 `drafts/26-08-06_fig2a_cfd50/`） | `tmp/fig2a_upper_limit_cfd50.py` |
 | 附录 A.2 检验面板 | `figures/fig2c_science_tests_bin4px.png`（复制自 `drafts/26-08-06_fig2c/`） | `fig2c_science_tests.py` |
 | 附录 B.2 t0 比较 | `figures/fig_t0_method_comparison.png`（复制自 `drafts/26-08-06_fig2a_cfd50/`） | `tmp/fig2a_t0_method_comparison.py` |
 

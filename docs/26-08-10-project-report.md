@@ -461,24 +461,33 @@ Quantitatively, on z = (I_L − I_R)/(I_L + I_R):
   Targeted fits at the
   a-priori periods: 9.84 ps |A| = 0.0041 (UL95 0.0116); 74.4 ps 0.0038 (0.0113);
   83.7 ps 0.0090 (0.0165).
-- The most sensitive direct look — subtracting each arm's mean and magnifying the
-  plateau fluctuations with ±1 SEM bands
-  ([offset-zoom figure](../analysis/26-08-04-derived-hbt-time-reference/fig2a_offset_zoom.png)) —
+- The most sensitive direct look — the additive-offset zoom of Figure 7 —
   finds the bands overlapping everywhere and a weak **positive** common-mode correlation
   (r = +0.174, p = 0.023): slow shared drift, the opposite sign from anti-phase.
 
+![Additive-offset zoom](../analysis/26-08-04-derived-hbt-time-reference/fig2a_offset_zoom.png)
+
+*Figure 7. Additive-offset zoom of the Figure 6 traces: the Right (B2+B4) arm is
+shifted by a constant c = mean(L) − mean(R) so both arms share the 0–820 ps window
+mean, and the result is drawn on a magnified linear intensity axis with ±1 SEM bands.
+Unlike the multiplicative peak normalization of Figure 6, the additive shift
+preserves each arm's noise amplitude, so the band overlap — or an anti-phase
+see-saw, were one present — can be judged directly. Top: the full window; bottom:
+the stationary part t ≥ 150 ps on a tighter y-axis. The bands overlap everywhere;
+the residual correlation is weakly positive (common-mode drift).*
+
 ![z upper-limit spectrum](../analysis/26-08-10-project-report/figures/fig_z_upper_limit.png)
 
-*The scan behind these numbers: fitted z-oscillation amplitude and its |A|+2σ 95 %
-upper limit vs period (left, log scale), and the detrended combined z(t) with its
-±1 SEM band (right). No period stands out; the upper limit stays at the 1–2 % level
-everywhere.*
+*Figure 8. The scan behind these numbers: fitted z-oscillation amplitude and its
+|A|+2σ 95 % upper limit vs period (left, log scale), and the detrended combined z(t)
+with its ±1 SEM band (right). No period stands out; the upper limit stays at the
+1–2 % level everywhere.*
 
 ### 6.2 Photon statistics: Poisson-consistent, no bunching switching
 
 ![Fig. 2(c) replica](../analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png)
 
-*Figure 8 (C5). The paper's Fig. 2(c) (left) vs this work (right): g⁽²⁾(0)(t) of each
+*Figure 9 (C5). The paper's Fig. 2(c) (left) vs this work (right): g⁽²⁾(0)(t) of each
 condensate (L = B1×B3 blue, R = B2×B4 red), 4 px bins; the shaded band is the experiment's
 resolution (plug-in SEM, §3.7) around the Poisson line. The curve is statistics-limited
 per bin by construction; the information is in the pooled value and the oscillation
@@ -527,7 +536,7 @@ real-space population modulation.
 
 ![k-space fringes](../analysis/26-08-10-project-report/figures/fig_kspace_fringe.png)
 
-*Figure 9 (C6). Synchroscan k-space images (camera-internal accumulation, hence immune
+*Figure 10 (C6). Synchroscan k-space images (camera-internal accumulation, hence immune
 to the per-frame time-base wander): the two-condensate interference pattern forms a
 tilted checkerboard — fringes that tilt with time are a relative phase that winds with
 time. A fixed-k column oscillates with main period **74.4 ps** (9 of 10 k-bins;
@@ -547,7 +556,7 @@ analysis — a different acquisition, listed in §8.
 
 ![Results dashboard](../analysis/26-08-10-project-report/figures/fig_results_dashboard.png)
 
-*Figure 10 (C7). All quantitative conclusions in one view. Top: population-oscillation
+*Figure 11 (C7). All quantitative conclusions in one view. Top: population-oscillation
 95 % upper limits (z-space) for the two batches and the two curations, against the
 paper's full-contrast band. Middle: g⁽²⁾ oscillation 95 % upper limits against the
 paper's amplitude range. Bottom: window-pooled g⁽²⁾(0) with ±1 SEM against the Poisson
@@ -559,10 +568,10 @@ value sits on Poisson within error.*
 | Paper claim (observable) | This work | Verdict | Evidence |
 |---|---|---|---|
 | Fig. 2(a): anti-phase population alternation, ~10 ps, full contrast (measured z ≈ ±0.4–0.5) | flat traces; UL95 1.2 % (main) / 0.8 % (supplement) / 2.3 % (dataset A, dilution-corrected) of z | **Not reproduced — decisive** (paper signal ≳30× above limits) | §6.1, Fig. 6 |
-| Fig. 2(c): g⁽²⁾(0)(t) switches Poisson↔bunched in phase with the oscillation, peaks 1.2→≳2 | pooled Poisson-consistent; oscillation UL95 0.81 / 0.50 / 0.58 / 0.49 by batch/curation; four pre-registered tests null | **Not reproduced within sensitivity** (limits cover the paper range's upper half) | §6.2, Fig. 8 |
+| Fig. 2(c): g⁽²⁾(0)(t) switches Poisson↔bunched in phase with the oscillation, peaks 1.2→≳2 | pooled Poisson-consistent; oscillation UL95 0.81 / 0.50 / 0.58 / 0.49 by batch/curation; four pre-registered tests null | **Not reproduced within sensitivity** (limits cover the paper range's upper half) | §6.2, Fig. 9 |
 | Anti-phase between the two condensates (both observables) | weak *positive* common-mode correlation in both (r = +0.17 intensity; r = +0.10 g⁽²⁾) | **Not reproduced; sign opposite** | §6.1–6.2 |
 | Bunching-envelope growth with time | late−early differences consistent with zero | **Not reproduced** | §6.2 (d) |
-| Josephson dynamics exists in the device | confirmed — as 74.4 ps relative-phase winding in k-space, populations unmodulated | **Confirmed, different quadrature** | §7, Fig. 9 |
+| Josephson dynamics exists in the device | confirmed — as 74.4 ps relative-phase winding in k-space, populations unmodulated | **Confirmed, different quadrature** | §7, Fig. 10 |
 
 ### 8.2 Boundaries (what this campaign does not say)
 
@@ -800,13 +809,13 @@ pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
 | Fig. 4 (C2) injection | this report | `render_report_injection.py` (re-runs the frame-level injection; g⁽²⁾ panel reads `drafts/26-08-06_fig2c/fig2c_injection_report.json`) |
 | Fig. 5 (C3) sensitivity | `drafts/26-08-06_fig2c/power_gate_ul95_vs_period.png` (copied) | `fig2c_power_gate.py` |
 | Fig. 6 (C4) fig2a replica | `analysis/26-08-04-derived-hbt-time-reference/fig2a_replica.png` | `render_fig2a_comparison.py` |
-| Fig. 8 (C5) fig2c replica | `analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png` | `render_fig2c_comparison.py` |
-| Fig. 9 (C6) k-space fringes | re-rendered into this report | `measure_kspace_fringe_oscillation.py` |
-| Fig. 10 (C7) dashboard | this report | `render_report_summary.py` (numbers with per-entry provenance comments) |
+| Fig. 7 offset-zoom | `analysis/26-08-04-derived-hbt-time-reference/fig2a_offset_zoom.png` | `render_offset_zoom.py` |
+| Fig. 8 z upper-limit spectrum | `figures/fig_z_upper_limit.png` (copied from `drafts/26-08-06_fig2a_cfd50/`) | `tmp/fig2a_upper_limit_cfd50.py` |
+| Fig. 9 (C5) fig2c replica | `analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png` | `render_fig2c_comparison.py` |
+| Fig. 10 (C6) k-space fringes | re-rendered into this report | `measure_kspace_fringe_oscillation.py` |
+| Fig. 11 (C7) dashboard | this report | `render_report_summary.py` (numbers with per-entry provenance comments) |
 | §1.2 paper crops | `fig2a_paper_original.png` / `fig2c_paper_original.png` | `tmp/paper_crop/` (300 dpi from the in-repo PDF) |
-| §6.1 offset-zoom | `fig2a_offset_zoom.png` | `render_offset_zoom.py` |
 | §6.3 supplement panels | `fig2a_replica_supplement.png`, `fig2c_replica_supplement_bin4px.png` | same renderers, supplement npz/cubes |
-| §6.1 z upper-limit spectrum | `figures/fig_z_upper_limit.png` (copied from `drafts/26-08-06_fig2a_cfd50/`) | `tmp/fig2a_upper_limit_cfd50.py` |
 | App. A.2 test panel | `figures/fig2c_science_tests_bin4px.png` (copied from `drafts/26-08-06_fig2c/`) | `fig2c_science_tests.py` |
 | App. B.2 t0 comparison | `figures/fig_t0_method_comparison.png` (copied from `drafts/26-08-06_fig2a_cfd50/`) | `tmp/fig2a_t0_method_comparison.py` |
 
