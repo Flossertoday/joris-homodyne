@@ -1,6 +1,6 @@
 # Reproducing Adiyatullin et al. 2017 on single-sweep HBT data — project report
 
-**Date:** 2026-08-10 · **Status:** reproduction campaign complete (null results, quantified) · **Audience:** collaborators / group meeting · **PDF:** [26-08-10-project-report.pdf](26-08-10-project-report.pdf) · **中文版：** [26-08-10-project-report-zh.md](26-08-10-project-report-zh.md)
+**Date:** 2026-08-11 (revised from 2026-08-10: band windows switched to the fdr-snr rule, every number recomputed — Appendix B.1) · **Status:** reproduction campaign complete (null results, quantified) · **Audience:** collaborators / group meeting · **PDF:** [26-08-10-project-report.pdf](26-08-10-project-report.pdf) · **中文版：** [26-08-10-project-report-zh.md](26-08-10-project-report-zh.md)
 
 This report closes the attempt to reproduce the two core measurements of
 Adiyatullin et al., "Periodic squeezing in a polariton Josephson junction",
@@ -135,20 +135,21 @@ origin — the cyan line marks the leading-edge 50 % crossing (CFD50, §3 step 3
 defines it for this frame. (b) All 275 218 detected photon events of the main batch
 after per-frame alignment: four vertical emission bands emerge. (c) Column profile of
 the aligned events: the four bands B1–B4 and their pairing into Left = B1+B3 and
-Right = B2+B4 (each condensate is imaged by both HBT arms; the 210 px B1↔B2 spacing
+Right = B2+B4 (each condensate is imaged by both HBT arms; the 203 px B1↔B2 spacing
 matches the 204 px real-space condensate spacing from the no-pulse calibration, and
-the 430 px B1↔B3 spacing is the arm separation). The shaded windows are peak-core
-integration windows, deliberately narrower than the full peak widths — the tails add
-mostly residual noise (S/N optimization, Appendix B.1).*
+the 431 px B1↔B3 spacing is the arm separation). The shaded windows are the emission
+bands as located by the Poisson-FDR detector and trimmed to the S/N-optimal width
+(§3 step 5, Appendix B.1) — they follow the measured peaks; only the noise-dominated
+far tails lie outside.*
 
 Three structural facts matter for everything downstream:
 
 1. **Four bands, two condensates, two arms.** On the single-sweep frames each
    condensate appears once per HBT arm, giving four emission bands; pairing them as
    L = {B1, B3},
-   R = {B2, B4} reproduces the no-pulse real-space intensity ratio (0.586/0.579 per
-   arm vs 0.578 calibration), while the cross pairing gives inconsistent ratios
-   (0.59/1.51) and is rejected.
+   R = {B2, B4} reproduces the no-pulse real-space intensity ratio (noise-subtracted
+   L/R per arm 0.594/0.600 vs 0.578 calibration), while the cross pairing gives an
+   inconsistent ratio (0.96) and is rejected.
 2. **A per-frame time reference.** The split-off laser pulse lands on the same frame
    (cols ~170–215, outside the detection columns). The sweep's two-state wander is
    ~13 ps rms — far larger than the analysis bin width — so per-frame alignment to
@@ -188,12 +189,15 @@ validation records are in Appendix A.
    sensitivity scan. *Reason:* one photon triggers a multi-pixel microchannel-plate
    (MCP) cloud; component-wise integration recovers one event per photon.
 5. **Band windows and pairing.** The four emission bands are located on the photon-event
-   column histogram (out-of-band floor is Poisson, so a 5σ sub-window threshold with
-   gap bridging finds the bands; the analog profile's lumpy fixed-pattern baseline
-   cannot be thresholded this way) — a count-threshold rule on the event histogram,
-   no profile fitting is involved. Windows: B1 380–450, B2 570–680, B3 810–880,
-   B4 1010–1110; pairing L = {B1,B3}, R = {B2,B4} per the geometry checks of §2.2.
-   The chosen windows sit within 0.6 % of the signal-to-noise optimum (Appendix B.1).
+   column histogram with a per-column Poisson test against a local floor, thresholded
+   by a Benjamini–Hochberg FDR rule, and trimmed to the per-band S/√(S+N)-optimal
+   width — the "fdr-snr" detector selected by the 8-method comparison study of
+   Appendix B.1 (no profile fitting is involved; the analog profile's lumpy
+   fixed-pattern baseline cannot be thresholded this way). Windows (main batch):
+   B1 368–471, B2 560–685, B3 798–903, B4 999–1118 (supplement batch: 352–431,
+   538–665, 763–880, 964–1099); pairing L = {B1,B3}, R = {B2,B4} per the geometry
+   checks of §2.2. The window choice is not load-bearing: the registration-era
+   windows give the same conclusions (Appendix B.1).
 6. **Products.** Per band: accumulated mean/SEM traces after sub-row alignment to the
    per-frame time zero, in two parallel sources — *photon* (event counts) and *analog*
    (integrated counts). Per dataset: a curated per-photon **event table**
@@ -239,9 +243,10 @@ unbiased (−0.10 ± 0.33 px); the former centroid estimator is biased +2.71 px 
 1.25 px scatter because it tracks the pulse-shape breathing, which is why the pipeline
 uses CFD50. Right: cube-level g⁽²⁾ injection — a paper-style modulation (9.84 ps,
 anti-phase, growing envelope) added to the real measured rates and residual background:
-the ensemble amplitude bias stays within the pre-set 10 % acceptance criterion at both
-injection strengths; the single-replica detection rate at paper strength (L 19 %,
-R 50 %) is the direct empirical reading of the power gate's "borderline" verdict (§5).*
+the strong-injection ensemble amplitude bias is −11 % (L) / −13 % (R) — marginally
+outside the pre-set 10 % acceptance band, an amplitude *underestimate* (conservative
+for upper limits); the single-replica detection rate at paper strength (L 38 %,
+R 56 %) is the direct empirical reading of the power gate's "borderline" verdict (§5).*
 
 Three complements, detailed in the appendices:
 
@@ -282,8 +287,8 @@ with F frames, per-arm signal rate s, and purity = signal/(signal+noise). Measur
 | factor | value | consequence |
 |---|---|---|
 | frames F | 19 992 (main) / 71 971 (supplement) | SEM ∝ 1/√F |
-| signal rate s | 0.50–1.21 events/frame/arm (0–820 ps) | quadratic lever |
-| residual detector noise | **45–55 % of in-band events** | SEM ×2.0–2.3 ⇔ losing 4–5× frames |
+| signal rate s | 0.61–1.25 events/frame/arm (0–820 ps) | quadratic lever |
+| residual detector noise | **48–62 % of in-band events** | SEM ×2.0–2.5 ⇔ losing 4–6× frames |
 | bin width × period | sinc penalty 1.32× at 9.84 ps, ≈1 at 74.4 ps (4 px bins) | harmless at our (longer) periods |
 | time-zero residual | 0.32 ps | negligible |
 
@@ -295,8 +300,9 @@ narrowing the windows gains 1–4 %. Only acquisition-side background reduction 
 and it helps quadratically, noise halving ≈ frames doubling.
 
 **Resolving power vs the paper.** The figure below is the measurement's frequency-
-dependent 95 % sensitivity floor, computed from measured rates before the estimator
-ever ran (the power gate), Monte-Carlo-verified:
+dependent 95 % sensitivity floor, computed from the measured rates (the power gate,
+re-run under the final band windows and Monte-Carlo-verified — the pre-analysis
+record is Appendix A.1):
 
 ![Sensitivity vs period](../analysis/26-08-10-project-report/figures/fig_sensitivity_vs_period.png)
 
@@ -306,8 +312,9 @@ vs period for 1/2/4 px bins; gray band = the paper's Fig. 2(c) amplitude range
 the working width. The dataset covers the upper half of the paper's range.*
 
 Frame-count outlook at current rates (4 px, anti-phase-combined median / at 9.84 ps):
-20 k frames → 0.78 / 1.01 (measured: 0.81 / 1.09 — the gate was accurate);
-72 k → 0.41 / 0.53; 92 k pooled → 0.36 / 0.47; **≈3×10⁵ frames → 0.20 / 0.26**,
+20 k frames → 0.77 / 0.99 (measured on the scan: 0.67 / 0.74 — the gate is
+conservative); 72 k → 0.41 / 0.52; 92 k pooled → 0.36 / 0.46;
+**≈3×10⁵ frames → 0.20 / 0.26**,
 covering the paper's lower bound.
 
 ## 6. The reproduction result
@@ -316,30 +323,29 @@ With the pipeline's limits quantified, here is what it measures on the real data
 
 ### 6.1 Population dynamics: no anti-phase alternation
 
-![Fig. 2(a) replica](../analysis/26-08-04-derived-hbt-time-reference/fig2a_replica.png)
+![Fig. 2(a) replica](../analysis/26-08-10-project-report/figures/fig2a_replica_fdrsnr.png)
 
 *Figure 6 (C4). The paper's Fig. 2(a) (left) vs this work (right): accumulated Left
 (B1+B3, blue) and Right (B2+B4, red) intensity, log scale, peak-normalized, 19 992
-frames. The traces are flat; the early (t ≲ 150 ps) left-side dip is a monotonic
-overdamped recovery, not an oscillation. The paper's full-contrast anti-phase
-alternation is absent. (The panel's baked-in caption quotes the scan as 0.008–0.019,
-median 0.012 — the definitive values are those in the text below.)*
+frames, Poisson-FDR + S/N-optimal band windows. The traces are flat; the early
+(t ≲ 150 ps) left-side dip is a monotonic overdamped recovery, not an oscillation.
+The paper's full-contrast anti-phase alternation is absent.*
 
 Quantitatively, on z = (I_L − I_R)/(I_L + I_R):
 
-- Cross-arm detrended-fluctuation correlations are insignificant (r = 0.030,
-  permutation p = 0.525; r = 0.095, p = 0.145 at two binnings).
+- Cross-arm detrended-fluctuation correlations are insignificant (r = −0.001,
+  permutation p = 0.995; r = 0.045, p = 0.555 at two binnings).
 - A reference-locked sinusoid scan over 3–200 ps periods gives a 95 % upper limit on
-  the z amplitude of **0.0123 median / 0.0193 worst** — i.e. ≈1–2 % intensity
+  the z amplitude of **0.0118 median / 0.0185 worst** — i.e. ≈1–2 % intensity
   modulation, against the paper's full-contrast measured signal (z ≈ ±0.4–0.5).
   Targeted fits at the
-  a-priori periods: 9.84 ps |A| = 0.0041 (UL95 0.0116); 74.4 ps 0.0038 (0.0113);
-  83.7 ps 0.0090 (0.0165).
+  a-priori periods: 9.84 ps |A| = 0.0057 (UL95 0.0129); 74.4 ps 0.0015 (0.0087);
+  83.7 ps 0.0042 (0.0114).
 - The most sensitive direct look — subtracting each arm's mean and magnifying the
   plateau fluctuations with ±1 SEM bands
-  ([offset-zoom figure](../analysis/26-08-04-derived-hbt-time-reference/fig2a_offset_zoom.png)) —
+  ([offset-zoom figure](../analysis/26-08-10-project-report/figures/fig2a_offset_zoom_fdrsnr.png)) —
   finds the bands overlapping everywhere and a weak **positive** common-mode correlation
-  (r = +0.174, p = 0.023): slow shared drift, the opposite sign from anti-phase.
+  (r = +0.212, p = 0.005): slow shared drift, the opposite sign from anti-phase.
 
 ![z upper-limit spectrum](../analysis/26-08-10-project-report/figures/fig_z_upper_limit.png)
 
@@ -350,7 +356,7 @@ everywhere.*
 
 ### 6.2 Photon statistics: Poisson-consistent, no bunching switching
 
-![Fig. 2(c) replica](../analysis/26-08-04-derived-hbt-time-reference/fig2c_replica.png)
+![Fig. 2(c) replica](../analysis/26-08-10-project-report/figures/fig2c_replica_fdrsnr.png)
 
 *Figure 8 (C5). The paper's Fig. 2(c) (left) vs this work (right): g⁽²⁾(0)(t) of each
 condensate (L = B1×B3 blue, R = B2×B4 red), 4 px bins; the shaded band is the experiment's
@@ -358,28 +364,33 @@ resolution (plug-in SEM, §3 step 7) around the Poisson line. The curve is stati
 per bin by construction; the information is in the pooled value and the oscillation
 limits.*
 
-- **Window-pooled g⁽²⁾(0)** (0–820 ps, 4 px, jackknife): **L = 0.310 ± 0.380**,
-  **R = 1.114 ± 0.188** — z = −1.82 / +0.60, both consistent with Poisson (|z| < 2,
+- **Window-pooled g⁽²⁾(0)** (0–820 ps, 4 px, jackknife): **L = 0.658 ± 0.297**,
+  **R = 1.093 ± 0.162** — z = −1.15 / +0.58, both consistent with Poisson (|z| < 2,
   pre-registered threshold).
-- **The four pre-registered tests** (criteria fixed 2026-08-06, before the computation;
-  200 circular-shift surrogates): (a) no significantly bunched/antibunched bin
-  (p = 0.32 / 0.86); (b) no significant reference-locked oscillation (combined
-  p = 0.15) — 95 % upper limit **0.812 median** over 3–200 ps, 1.086 at the paper's
-  9.84 ps period, 0.680 / 0.540 at the measured k-space periods 74.4 / 83.7 ps;
-  (c) no anti-phase — the detrended L/R correlation is weakly *positive*
-  (r = +0.100, p = 0.886 one-sided), mirroring §6.1's common-mode drift;
-  (d) no envelope growth (late-minus-early pooled g⁽²⁾−1: L +0.159, p = 0.45;
-  R +0.176, p = 0.37).
+- **The four pre-registered tests** (criteria fixed 2026-08-06, before any real-data
+  computation; 200 circular-shift surrogates): (a) no significantly
+  bunched/antibunched bin (p = 0.94 / 0.65); (b) oscillation: nothing at the a-priori
+  periods (9.84 / 74.4 / 83.7 ps all <1.1σ) — the 3–200 ps scan maximum sits at
+  **4.7 ps, the 4-px bin edge**, marginally above the surrogate null at 4 px
+  (max |A|/σ = 4.44 vs null q95 4.21, p = 0.035) and **not reproduced at 2 px**
+  (1.5σ, p = 0.22), i.e. a noise fluctuation at the binning edge, not a signal
+  candidate; the 95 % upper limit on the oscillation amplitude is **0.67 median**
+  over 3–200 ps (0.74 at 9.84 ps, 0.52 / 0.43 at 74.4 / 83.7 ps); (c) no anti-phase —
+  the detrended L/R correlation is consistent with zero (r = +0.003, p = 0.542);
+  (d) no envelope growth (late-minus-early pooled g⁽²⁾−1: L +0.47, p = 0.30;
+  R +0.31, p = 0.17).
 
 ### 6.3 An independent batch and an independent curation say the same thing
 
 **Supplement batch** (71 971 frames, same condition, acquired back-to-back; analyzed
 stand-alone because its signal rate is ≈65 % of the main batch): the same flat traces
-(anti-phase UL95 median **0.0084**), pooled g⁽²⁾(0) L = 1.304 ± 0.320 /
-R = 0.990 ± 0.117 (Poisson-consistent), all four pre-registered tests null, oscillation
-UL95 median **0.496**. Every limit tightened; every conclusion held
-([fig2a](../analysis/26-08-04-derived-hbt-time-reference/fig2a_replica_supplement.png) /
-[fig2c](../analysis/26-08-04-derived-hbt-time-reference/fig2c_replica_supplement_bin4px.png)
+(anti-phase UL95 median **0.0094**), pooled g⁽²⁾(0) L = 1.249 ± 0.383 /
+R = 1.057 ± 0.125 (Poisson-consistent), all four pre-registered tests null — the only
+marginal cell (pair L, 4 px, p = 0.025) sits at 6.0 ps, again the bin edge, and does
+not reproduce at 2 px — oscillation
+UL95 median **0.547**. Every conclusion from the main batch held
+([fig2a](../analysis/26-08-10-project-report/figures/fig2a_replica_supplement_fdrsnr.png) /
+[fig2c](../analysis/26-08-10-project-report/figures/fig2c_replica_supplement_fdrsnr.png)
 supplement panels).
 
 **Dataset A** — a curated re-extraction keeping only events that can physically be
@@ -452,6 +463,10 @@ value sits on Poisson within error.*
    stand-alone, not pooled.
 5. Nothing here bears on the single-kick trajectory question (per-frame/hierarchical
    analysis) — it remains open by design.
+6. The band windows were switched to the Poisson-FDR + S/N-optimal rule (fdr-snr) on
+   2026-08-11, after the registration-era analysis; every number in this report is the
+   fdr-snr value, and the registration-era windows give the same conclusions
+   (Appendix B.1).
 
 ### 8.3 What comes next
 
@@ -491,7 +506,11 @@ amplitude range is quantified with a concrete remedy.
   0.81). Its "borderline" verdict (only the upper half of the paper's 0.2–1.2 range
   covered) triggered the pre-agreed downgrade to an upper-limit deliverable, confirmed
   with the user on 2026-08-06. The supplement batch's gate passed the same way
-  (predicted 0.52, measured 0.50).
+  (predicted 0.52, measured 0.50). These numbers are the pre-analysis record, computed
+  under the registration-era windows. Re-run under the final fdr-snr windows
+  (χ²/ndf = 1.10): predicted pooled L ±0.36 / R ±0.19 (measured 0.30 / 0.16),
+  oscillation sensitivity median 0.77 (measured 0.67), supplement 0.74
+  (measured 0.55) — verdict unchanged (borderline).
 
 ### A.2 Surrogate null distributions
 
@@ -506,15 +525,18 @@ on both data and surrogates.
 *The oscillation test at the working 4 px width: fitted |A| scans for both pairs and
 the anti-phase combination with the combined UL95 curve (left; dotted marks at the
 a-priori periods 9.84 / 74.4 / 83.7 ps), and the observed scan-maximum statistic
-against its surrogate null distribution (right; p = 0.154).*
+against its surrogate null distribution (right; p = 0.035 — the maximum sits at
+4.7 ps, the 4-px bin edge, and does not reproduce at 2 px; §6.2).*
 
 ### A.3 Monte-Carlo calibration of the analytic errors
 
 64 synthetic Poisson replicas through the estimator chain: at the working 4 px width
-the analytic UL95 agrees with MC within 4 % for both pairs (ratios 1.04/1.01 — pass);
-2 px passes for R (1.03) but not L (1.54 — heavy-tailed; used qualitatively only);
-1 px fails (spike-dominated). Pooled jackknife SEMs sit within 0.86–1.07 of MC.
-Supplement: 4 px and 2 px ratios within [1.000, 1.024]; 1 px L fails identically.
+the analytic UL95 agrees with MC within 4 % for both pairs and both batches (main
+1.021/1.013; supplement 1.033/0.997 — pass);
+2 px passes for R (1.044/1.010) but not L (1.319/1.345 — heavy-tailed; used
+qualitatively only);
+1 px fails (spike-dominated). Pooled jackknife SEMs sit within 0.86–1.08 of MC.
+This calibration is why 4 px is the reporting width throughout.
 This calibration is why 4 px is the reporting width throughout.
 
 ### A.4 Injection record (full)
@@ -522,9 +544,9 @@ This calibration is why 4 px is the reporting width throughout.
 | test | injected | recovered | verdict |
 |---|---|---|---|
 | fig2a-style frame-level, real reference shapes (1500 synthetic frames) | z = 0.5 anti-phase, 9.84 ps | period 9.87 ps; t0 bias −0.10 px, std 0.33 px; amplitude at the noise-diluted expectation | pass (<2 % period error) |
-| fig2c-style cube-level, strong (peak g⁽²⁾−1 = 6→8), 16 replicas | 9.84 ps anti-phase, growing envelope | ensemble bias L −4.5 %, R −9.0 %; period within 2 %: L 11/16, R 16/16; all replicas significant | pass (<10 % bias) |
-| fig2c-style cube-level, paper strength (1.5→2), 16 replicas | same | ensemble unbiased (L +4.1 %, R −5.6 %); single-replica detection L 19 %, R 50 % | unbiased; partial detection = the borderline regime |
-| supplement cube-level | same protocols | strong: L +0.2 %, R −4.1 %; paper: L −7.4 %, R +4.3 %, detection L 19 %, R 81 % | pass |
+| fig2c-style cube-level, strong (peak g⁽²⁾−1 = 6→8), 16 replicas | 9.84 ps anti-phase, growing envelope | ensemble bias L −11.2 %, R −12.7 %; period within 2 %: L 14/16, R 16/16; all replicas significant | bias marginally outside the 10 % band — an underestimate, conservative for nulls |
+| fig2c-style cube-level, paper strength (1.5→2), 16 replicas | same | ensemble L +40 %, R −1.7 % (16 replicas, noisy); single-replica detection L 38 %, R 56 % | partial detection = the borderline regime |
+| supplement cube-level | same protocols | strong: L −7.7 %, R −3.6 %; paper: L −6.4 %, R −9.7 %, detection L 6 %, R 75 % | pass |
 | dataset A cube-level | same | strong: L −2.2 %, R −7.9 % (main), L −9.2 %, R −4.6 % (supplement); paper-strength detection L 31 %, R 81–100 % | pass; purity gain converts to detection rate |
 | dataset A frame-level (real frames + 394 real event patches) | z-mode: 10 867 blobs in 2856 frames; bunching-mode: 252 blobs (126 cross-arm pairs) | retention 98.8 % / 99.6 %; zero t0 perturbation; recovered amplitudes match the dilution expectation within 10 % | pass |
 
@@ -543,34 +565,46 @@ These comparisons justify each production choice; none of them changes a conclus
 
 ### B.1 Band-window determination
 
-Production method (since 2026-08-05): locate bands on the **photon-event column
-histogram** (the out-of-band floor is flat Poisson; the analog profile's fixed-pattern
-baseline is not thresholdable), folded into 10-px sub-windows; baseline and σ from the
-lowest-40 % sub-windows; bands = runs above baseline+5σ with baseline+2σ gap bridging;
-runs touching the detection-column edge are discarded as truncation artifacts.
+**Production method (fdr-snr, since 2026-08-11).** Bands are located on the
+**photon-event column histogram** by a per-column Poisson test against a local
+clipped floor, thresholded with a Benjamini–Hochberg FDR rule, and each detected
+band is trimmed to the per-band S/√(S+N)-optimal width (the out-of-band floor of the
+event histogram is flat Poisson; the analog profile's fixed-pattern baseline is not
+thresholdable). No profile fitting is involved. Windows: main B1 368–471,
+B2 560–685, B3 798–903, B4 999–1118; supplement 352–431, 538–665, 763–880,
+964–1099.
 
-- **vs a four-Gaussian attribution rule.** The windows come from the count-threshold
-  rule above, not from a fit. For width reference, a constant-background +
-  four-Gaussian fit of the main-batch histogram converges to
-  μ = 415.9/623.7/845.0/1061.2 px (≤1.5 px from the window centers), σ ≈ 34.5–37.9 px;
-  the production windows are ≈ μ±(1.0–1.45)σ of these peaks — peak-core *integration*
-  windows. A μ±2σ attribution-style rule would instead give 170–190 px windows
-  (2–3× wider) and push the residual-noise fraction above 50 %.
-- **S/N optimality.** Width scans of S/√(S+N) place the production windows within
-  0.6 % of optimum (a later all-rows refinement: ~1 % for B2/B4, ~6–7 % for the
-  narrower B1/B3 — the basis of the fdr-snr recommendation, not a retroactive change).
 - **The 8-method study** (`DOCS/26-08-08-band-window-methods.md`): eight candidate
   detectors × both batches, plus parameter-plateau, growth-curve, and synthetic-shelf
-  benchmarks, recommend a local-floor Poisson-FDR detection + S/N-optimal width
-  ("fdr-snr") as the future default; it reproduces the manually-set supplement windows
-  without hand-tuning (FOM within 0.1 %). The study also dissected the production
-  method's supplement failure: B1's over-threshold run touches detection column 350 and
-  the truncation filter discards the whole band (a 2026-08-10 rerun with the edge moved
-  to 330 confirmed the pile-up follows the boundary — the method, not the edge
-  position). Both batches' finalized windows predate the study and stand unchanged.
-- **Conclusion stability:** every downstream result was re-checked under the
-  alternative window semantics where applicable (§6.3 dataset A uses S/N-optimal
-  windows) — conclusions unchanged.
+  benchmarks, selected fdr-snr as the default — it reproduces the manually-set
+  supplement windows without hand-tuning (FOM within 0.1 %), is immune by
+  construction to the detection-edge truncation failure of the former sub-window
+  rule (B1's over-threshold run touches detection column 350 and is discarded whole;
+  a 2026-08-10 rerun with the edge at 330 confirmed the pile-up follows the
+  boundary), and needs no n=4 prior.
+- **The 2026-08-11 switch.** The registration-era pipeline used the 5σ sub-window
+  rule (main: 380–450 / 570–680 / 810–880 / 1010–1110) and the manually finalized
+  supplement windows (350–440 / 540–680 / 770–860 / 970–1100). After the study's
+  recommendation, every number in this report was recomputed under fdr-snr windows
+  and dataset A was rebuilt under the new bands. The switch is post-hoc by
+  construction but blind by record: the study predates and never looked at the
+  science outcomes, the pre-registered test criteria are window-independent, and
+  both window sets' results are on record (next bullet).
+- **Concordance.** Every conclusion is identical under the two window sets: null
+  population (z UL95 median 0.0123 → 0.0118), Poisson-consistent pooled g⁽²⁾,
+  four tests null — with one nuance: the fdr-snr 4-px oscillation cell shows a
+  marginal scan maximum at 4.7 ps, the bin edge (p = 0.035), absent at every prior
+  period and not reproduced at 2 px (§6.2). Limits tightened slightly under
+  fdr-snr (g⁽²⁾ oscillation UL95 median 0.812 → 0.670).
+- **Width reference.** A constant-background + four-Gaussian fit of the main-batch
+  histogram converges to μ = 415.9/623.7/845.0/1061.2 px, σ ≈ 34.5–37.9 px; the
+  fdr-snr windows cover ≈ μ±(1.4–1.7)σ of these peaks — they follow the measured
+  peak profiles (Fig. 3(c)). A μ±2σ attribution-style rule would give 170–190 px
+  windows (2–3× wider than the former core windows) and push the residual-noise
+  fraction above 50 %.
+- **S/N optimality.** Width scans of S/√(S+N) place the registration-era windows
+  within 0.6 % of optimum at fixed centers; fdr-snr also re-centers (+2.7 % FOM on
+  the main batch) and matches the supplement manual windows to 0.1 %.
 
 ### B.2 Time-zero estimator
 

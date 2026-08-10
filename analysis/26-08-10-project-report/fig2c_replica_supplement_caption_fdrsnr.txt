@@ -1,0 +1,11 @@
+Left: original Fig. 2(c) of Adiyatullin et al. 2017 (Nat. Commun. 8:1329) — time-resolved zero-delay second-order correlation
+g(2)(0)(t) of the left (blue) and right (red) mesa; shaded areas are ±1 s.e.m.; the light statistics switches between Poissonian
+and bunched in phase with the Josephson oscillations, the two mesas in counterphase. Right: this work — same estimator
+(Suppl. Note 1) on the 72000-frame supplement batch (CFD50 time-zero, measured-background subtraction,
+Poisson-FDR + S/N-optimal band windows, App. B.1, 4 px bins).
+The per-bin regime is statistics-limited; points are per-bin estimates (clipped to [0, 4]); shaded bands are the plug-in ±1 s.e.m.
+resolution around the Poisson reference (Monte-Carlo validated), not error bars on the points. Outcome: no significant deviation
+from Poisson — window-pooled g2(0) = 1.25 ± 0.38 (L), 1.06 ± 0.13 (R) (jackknife s.e.m.); all four pre-registered tests null
+(oscillation combined p = 0.27; the single marginal cell, pair L at 4 px p = 0.025, sits at 6.0 ps — the bin-edge — and does not
+reproduce at 2 px). 95% upper limits on the g2-1 oscillation amplitude: median 0.55 over 3–200 ps. (G3 power gate,
+docs/26-08-04-fig2c.md).

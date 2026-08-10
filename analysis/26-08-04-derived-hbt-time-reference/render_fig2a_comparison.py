@@ -46,7 +46,8 @@ CAPTION = (
 
 def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
                       bands_l, bands_r, rebin, t_min, t_max, snr_threshold,
-                      caption: str = CAPTION):
+                      caption: str = CAPTION,
+                      work_title: str = "This work: 26-08-04 HBT, 20000 frames, CFD50-timed"):
     data = rf.load_band_traces(npz_path, "photon")
     time_ps, trace_l, trace_r, sem_l, sem_r, _match_factor = rf.build_lr_traces(
         data, bands_l, bands_r, t_min, t_max, rebin, "peak"
@@ -76,7 +77,7 @@ def render_comparison(npz_path: Path, paper_image: Path, output_path: Path,
         label_r=rf.band_label("Right", bands_r),
     )
     ax_ours.set_title(
-        "This work: 26-08-04 HBT, 20000 frames, CFD50-timed", fontsize=8.5, loc="left"
+        work_title, fontsize=8.5, loc="left"
     )
 
     ax_caption.text(
@@ -108,6 +109,8 @@ def main(argv=None):
     parser.add_argument("--snr-threshold", type=float, default=0.0)
     parser.add_argument("--caption-file", type=Path, default=None,
                         help="optional text file replacing the built-in caption")
+    parser.add_argument("--work-title", default=None,
+                        help="override the this-work panel title")
     args = parser.parse_args(argv)
 
     caption = CAPTION
@@ -118,6 +121,7 @@ def main(argv=None):
         rf.parse_band_selection(args.bands_l), rf.parse_band_selection(args.bands_r),
         args.rebin, args.t_min, args.t_max, args.snr_threshold,
         caption=caption,
+        **({"work_title": args.work_title} if args.work_title else {}),
     )
     print(f"Wrote {png_path} and {pdf_path}", flush=True)
 

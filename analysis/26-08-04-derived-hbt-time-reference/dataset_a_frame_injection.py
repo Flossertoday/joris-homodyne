@@ -417,7 +417,17 @@ def main():
     parser.add_argument("--period-ps", type=float, default=9.84)
     parser.add_argument("--sample-step", type=int, default=7)
     parser.add_argument("--max-frames", type=int, default=None)
+    parser.add_argument("--bands", type=str, default=None,
+                        help="comma list of 2N column edges; default: "
+                             "build_dataset_a.DEFAULT_BANDS")
     args = parser.parse_args()
+    if args.bands:
+        values = [float(v) for v in args.bands.split(",") if v.strip()]
+        if len(values) % 2 or not values:
+            raise ValueError("--bands needs an even number of edges")
+        global BANDS
+        BANDS = tuple((int(lo), int(hi)) for lo, hi in
+                      np.asarray(values).reshape(-1, 2))
     run(args.h5, args.dataset_a, args.old_table, args.out_dir, args.mode,
         args.amplitude, args.period_ps, args.sample_step, args.max_frames)
 

@@ -1,0 +1,8 @@
+Left: original Fig. 2(a) of Adiyatullin et al. 2017 (Nat. Commun. 8:1329) — accumulated emission intensity of the left (blue) and right
+(red) mesa on a logarithmic scale, showing anti-phase population oscillations; the gray band marks the low-confidence SNR<20 region.
+Right: this work — replication on the 72000-frame supplement batch (photon-event source, rebin 8 ≈ 7.9 ps/bin, peak-normalized;
+Poisson-FDR + S/N-optimal band windows, App. B.1). Each condensate is recorded simultaneously by both HBT arms; the plotted intensity
+sums its two arm bands (Left = B1+B3, Right = B2+B4). Per-frame time zero by CFD50; measured background subtracted. Outcome:
+no anti-phase oscillation — 95% upper limit on a phase-locked sinusoidal z amplitude: median 0.009, worst 0.016 over 3–200 ps
+periods; cross-arm detrended fluctuations uncorrelated (r = 0.09–0.12, p = 0.07–0.09); the early left-side dip is an overdamped
+monotonic recovery, not an oscillation.

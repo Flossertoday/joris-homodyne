@@ -34,12 +34,12 @@ FRAME_INDEX = 2414
 PS_PER_PX = 0.984251968503937  # 1 ns / 1016 px, agreed convention
 
 BANDS = {
-    "B1": (380, 450),
-    "B2": (570, 680),
-    "B3": (810, 880),
-    "B4": (1010, 1110),
+    "B1": (368, 471),
+    "B2": (560, 685),
+    "B3": (798, 903),
+    "B4": (999, 1118),
 }
-BAND_CENTERS = {"B1": 415, "B2": 625, "B3": 845, "B4": 1060}
+BAND_CENTERS = {"B1": 419, "B2": 622, "B3": 850, "B4": 1058}
 # Project pairing: Left = B1 + B3, Right = B2 + B4.
 LR_OF_BAND = {"B1": "L", "B2": "R", "B3": "L", "B4": "R"}
 LR_COLORS = {"L": "tab:blue", "R": "tab:red"}
@@ -260,7 +260,7 @@ def render(out_path=OUT_PATH):
     ax_c.text(
         0.5 * (BAND_CENTERS["B1"] + BAND_CENTERS["B2"]),
         ax_c.get_ylim()[1] * 0.78,
-        "210 px ≈ condensate spacing\n(204 px in real space)",
+        "203 px ≈ condensate spacing\n(204 px in real space)",
         ha="center", va="bottom", fontsize=8,
     )
 
@@ -273,15 +273,15 @@ def render(out_path=OUT_PATH):
     ax_c.text(
         0.5 * (BAND_CENTERS["B1"] + BAND_CENTERS["B3"]),
         ax_c.get_ylim()[1] * 0.52,
-        "430 px = HBT arm separation",
+        "431 px = HBT arm separation",
         ha="center", va="bottom", fontsize=8,
     )
 
     ax_c.text(
         0.98, 0.02,
-        "shaded = S/N-optimal peak-core integration windows,\n"
-        "not fits (peak σ ≈ 35 px; windows ≈ ±1.0–1.45σ):\n"
-        "the peak tails are noise-dominated (App. B.1)",
+        "shaded = emission bands: Poisson-FDR detection +\n"
+        "S/N-optimal width (App. B.1); they follow the measured\n"
+        "peaks — only the noise-dominated far tails are excluded",
         transform=ax_c.transAxes, ha="right", va="bottom", fontsize=8,
         bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85,
                   edgecolor="none"),

@@ -24,8 +24,8 @@ DATA_H5 = Path(
     "E:/Documents/Codex/joris-homodyne/DATA/26-08-04-derived-hbt-time-reference/"
     "26-08-04_hbt_time_reference.h5"
 )
-INJECTION_JSON = Path(
-    "E:/Documents/Codex/joris-homodyne/drafts/26-08-06_fig2c/fig2c_injection_report.json"
+INJECTION_JSON = (
+    WORKTREE_ROOT / "drafts" / "26-08-10_fdr_snr" / "fig2c" / "fig2c_injection_report.json"
 )
 OUT_PATH = Path(__file__).resolve().parent / "figures" / "fig_injection_recovery.png"
 
