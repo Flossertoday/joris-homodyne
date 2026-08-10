@@ -12,11 +12,11 @@ matplotlib.use("Agg")
 import numpy as np
 from matplotlib import pyplot as plt
 
-SCIENCE_JSON = Path(
-    "drafts/26-08-10_fdr_snr/fig2c/fig2c_science_report.json"
+SCIENCE_JSON = (
+    Path(__file__).resolve().parent / "results" / "fig2c_science_report_main.json"
 )
-SUPPLEMENT_SCIENCE_JSON = Path(
-    "drafts/26-08-10_fdr_snr/fig2c_supplement/fig2c_science_report.json"
+SUPPLEMENT_SCIENCE_JSON = (
+    Path(__file__).resolve().parent / "results" / "fig2c_science_report_supplement.json"
 )
 OUT_PATH = Path(__file__).resolve().parent / "figures" / "fig_results_dashboard.png"
 
