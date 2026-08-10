@@ -50,7 +50,7 @@ def build_caption(width, pooled_l, pooled_r, ul95_text):
 
 
 def render_comparison(out_dir: Path, paper_image: Path, output_path: Path, width: int,
-                      caption: str | None = None):
+                      caption: str | None = None, work_title: str | None = None):
     data = np.load(out_dir / f"g2_results_bin{width}px.npz")
     with open(out_dir / "g2_summary.json") as handle:
         summary = json.load(handle)
@@ -99,8 +99,8 @@ def render_comparison(out_dir: Path, paper_image: Path, output_path: Path, width
     )
     rf.draw_fig2c_panel(ax_ours, t_ps, g2_l, sem_l, g2_r, sem_r, pooled=pooled)
     ax_ours.set_title(
-        f"This work: 26-08-04 HBT, 19992 frames, {width} px bins", fontsize=8.5,
-        loc="left",
+        work_title or f"This work: 26-08-04 HBT, 19992 frames, {width} px bins",
+        fontsize=8.5, loc="left",
     )
 
     ax_caption.text(
@@ -124,6 +124,8 @@ def main(argv=None):
     parser.add_argument("--paper-image", type=Path, default=DEFAULT_PAPER_IMAGE)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--width", type=int, default=4)
+    parser.add_argument("--work-title", default=None,
+                        help="override the this-work panel title")
     parser.add_argument("--caption-file", type=Path, default=None,
                         help="optional text file replacing the built-in caption")
     args = parser.parse_args(argv)
@@ -134,7 +136,8 @@ def main(argv=None):
         else None
     )
     png_path, pdf_path = render_comparison(
-        args.out_dir, args.paper_image, args.out, args.width, caption=caption
+        args.out_dir, args.paper_image, args.out, args.width, caption=caption,
+        work_title=args.work_title,
     )
     print(f"Wrote {png_path} and {pdf_path}", flush=True)
 

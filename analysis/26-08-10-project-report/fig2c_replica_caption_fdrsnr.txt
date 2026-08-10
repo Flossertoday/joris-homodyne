@@ -1,0 +1,14 @@
+Left: original Fig. 2(c) of Adiyatullin et al. 2017 (Nat. Commun. 8:1329) — time-resolved zero-delay second-order correlation
+g(2)(0)(t) of the left (blue) and right (red) mesa; shaded areas are ±1 s.e.m.; the light statistics switches between Poissonian
+and bunched in phase with the Josephson oscillations, the two mesas in counterphase. Right: this work — same estimator
+(Suppl. Note 1) on the 26-08-04 HBT batch (19992 single-sweep frames, CFD50 time-zero, measured-background subtraction,
+Poisson-FDR + S/N-optimal band windows, App. B.1, 4 px bins).
+The per-bin regime is statistics-limited: ~50% of detected events are residual detector-noise clusters and the per-bin
+occupancy is ~1e-3 events/frame, so per-bin g2 is a heavy-tailed statistic. Points are per-bin estimates (clipped to [0, 4]);
+shaded bands are the plug-in ±1 s.e.m. resolution around the Poisson reference (Monte-Carlo validated), not error bars on the
+points. Outcome: no significant deviation from Poisson — window-pooled g2(0) = 0.66 ± 0.30 (L), 1.09 ± 0.16 (R) (jackknife s.e.m.);
+no oscillation at the a-priori periods (9.84 / 74.4 / 83.7 ps all < 1.1σ); the 3–200 ps scan maximum sits at 4.7 ps, at the
+4-px bin edge — marginally above the surrogate null at 4 px (p = 0.035) and not reproduced at 2 px (p = 0.22): a noise
+fluctuation. 95% upper limits on the g2-1 amplitude: median 0.67, 0.74 at 9.84 ps, 0.52 at 74.4 ps, 0.43 at 83.7 ps. With 20k
+frames only the upper part of the paper's amplitude range (0.2-1.2) is resolvable; ~3e5 frames would be needed for 95%
+sensitivity to |A| = 0.2 (G3 power gate, docs/26-08-04-fig2c.md).
