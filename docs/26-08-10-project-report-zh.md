@@ -176,7 +176,7 @@ z = (N_L − N_R)/(N_L + N_R) 以耦合所设定的周期振荡（论文中 ~10 
 *理由。* 基底相对单光子斑点很大，在未减基底的帧上做探测，测到的会是基底形状
 而非光子。使用*实测*本底而非拟合模型，可避免把模型偏差注入光子探测器。减法
 能去掉基底的电平，去不掉它的涨落：余下的是类泊松的残余探测器噪声，它同样会
-触发光子探测器。这部分残余并非细枝末节 —— §5 表明它占带内事件的 45–55 %，
+触发光子探测器。这部分残余并非细枝末节 —— §5 表明它占带内事件的 48–62 %，
 是整个测量的第二大误差杠杆。
 
 ### 3.3 逐帧时间零点：CFD50
@@ -252,7 +252,7 @@ g⁽²⁾(0) = ⟨n₁n₂⟩/(⟨n₁⟩⟨n₂⟩)，对帧取平均。由于�
 稀释同一光子流，（不等且未知的）臂效率精确相消 —— 无需臂标定（§1.1）。
 
 残余探测器噪声进入比值的每一项，必须修正而非忽略。其逐带逐 bin 的期望计数 β
-由同一时间 bin 的带外事件测得（带外密度沿 τ 平坦，χ²/ndf = 1.16，附录 A.1）；
+由同一时间 bin 的带外事件测得（带外密度沿 τ 平坦，χ²/ndf = 1.10，附录 A.1）；
 估计量从逐臂均值中减去 β、从符合矩中减去相应的乘积项，从而无偏地去除噪声对
 g⁽²⁾ 的贡献。减法去不掉的是噪声额外带入的计数方差 —— 这一代价在分析侧不可
 约，转入 §5 的误差预算。
@@ -604,8 +604,9 @@ B1 368–471，B2 560–685，B3 798–903，B4 999–1118；补充批次 352–
   0.812 → 0.670）。
 - **宽度参照。** 对主批次直方图做常数本底 + 四高斯拟合，收敛到
   μ = 415.9/623.7/845.0/1061.2 px，σ ≈ 34.5–37.9 px；fdr-snr 窗口覆盖这些峰的
-  ≈ μ±(1.4–1.7)σ —— 它们跟随实测峰形（图 3(c)）。μ±2σ 的归属式规则会给出
-  170–190 px 窗口（较旧峰芯窗宽 2–3×），并把残余噪声份额推过 50 %。
+  ≈ μ±(1.4–1.7)σ —— 它们跟随实测峰形（图 3(c)）。μ±2.5σ 的归属式规则（07-31
+  接受窗规则在不重叠前提下的最大 k 选择，k = 2.5）会给出
+  170–190 px 窗口（约为旧峰芯窗宽的两倍），并把残余噪声份额推过 50 %。
 - **S/N 最优性。** S/√(S+N) 宽度扫描把预注册时代的窗口放在定心固定下距最优
   0.6 % 以内；fdr-snr 还会重定心（主批次 FOM +2.7 %），并与补充批次手动窗吻合到
   0.1 %。
@@ -713,6 +714,7 @@ pandoc docs\26-08-10-project-report-zh.md -o docs\26-08-10-project-report-zh.pdf
 | `DOCS/26-08-08-dataset-a.md` | 数据集 A 策展 + 下游重分析 —— §6.3、附录 B.4 |
 | `DOCS/26-08-08-dataset-a-noise-model.md` | 噪声基底结构 —— §5、附录 B.4 |
 | `DOCS/26-08-08-band-window-methods.md` | 八方法带窗研究 —— 附录 B.1 |
+| `DOCS/26-08-11-g2-cross-mesa.md` | 交叉凝聚体 g⁽²⁾（LR/RL）首次计算 —— §6.2–6.3 |
 | `DOCS/08-04_sync_oscillation.md` | 时间零点估计量论证 —— 附录 B.2 |
 | `DOCS/sem-limitations.md` | SEM 因式分解 + 帧数表 —— §5 |
 | `DOCS/peak-localization.md` / `peak-localization-error.md` | 定位方法 + 误差预算 —— §5、附录 B.3 |
@@ -734,7 +736,7 @@ pandoc docs\26-08-10-project-report-zh.md -o docs\26-08-10-project-report-zh.pdf
 | 图 9（C5）fig2c 复制品 | `figures/fig2c_replica_fdrsnr.png` | `render_fig2c_comparison.py --out-dir drafts/26-08-10_fdr_snr/fig2c --caption-file fig2c_replica_caption_fdrsnr.txt` |
 | 图 10（C6）k 空间条纹 | 重新渲染进本报告 | `measure_kspace_fringe_oscillation.py` |
 | 图 11（C7）总览图 | 本报告 | `render_report_summary.py`（数字带逐条溯源注释） |
-| §1.2 论文裁图 | `fig2a_paper_original.png` / `fig2c_paper_original.png` | `tmp/paper_crop/`（从库内 PDF 以 300 dpi 裁出） |
+| §1.2 论文裁图 | `fig2a_paper_original.png` / `fig2c_paper_original.png`（均位于 `analysis/26-08-04-derived-hbt-time-reference/`） | `tmp/paper_crop/`（从库内 PDF 以 300 dpi 裁出） |
 | §6.3 补充图版 | `figures/fig2a_replica_supplement_fdrsnr.png`、`figures/fig2c_replica_supplement_fdrsnr.png` | 同一生成器，补充 fdr-snr npz/立方体 + `--work-title` |
 | 附录 A.2 检验面板 | `figures/fig2c_science_tests_bin4px.png`（复制自 `drafts/26-08-10_fdr_snr/fig2c/`） | `fig2c_science_tests.py` |
 | 附录 B.2 t0 比较 | `figures/fig_t0_method_comparison.png`（复制自 `drafts/26-08-06_fig2a_cfd50/`） | `tmp/fig2a_t0_method_comparison.py` |
@@ -762,7 +764,7 @@ pandoc docs\26-08-10-project-report-zh.md -o docs\26-08-10-project-report-zh.pdf
 - **β correction**：减去残余本底的符合贡献，由带外事件估计。
 - **Dataset A**：策展的事件子集（带内、非缺陷、非边缘事件），配逐带局部噪声
   基底 —— "凡保留的都可以是信号"的策展。
-- **FDR**：错误发现率（Benjamini–Hochberg）阈值化；推荐的未来带探测器的一部分。
+- **FDR**：错误发现率（Benjamini–Hochberg）阈值化；现行生产带探测器（fdr-snr，附录 B.1）的一部分。
 - **CSI**：强度关联的柯西–施瓦茨不等式 —— 一种经典场检验，此处超出范围。
 - **凝聚体 / 台面（mesa）**：束缚两个凝聚体的耦合陷阱，在论文样品中是刻蚀的圆形
   台面；在我们平台中对应物是两个储库馈送的凝聚体（左/右，或 1/2 号）。本文对

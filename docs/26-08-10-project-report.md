@@ -220,7 +220,7 @@ un-subtracted frames would measure pedestal shape, not photons. Using the *measu
 background rather than a fitted model keeps model bias out of the photon detector.
 Subtraction removes the pedestal's level but not its fluctuation: a Poisson-like
 residual detector noise remains, which also triggers the photon detector. This
-residue is not a detail — §5 shows it is 45–55 % of in-band events and the
+residue is not a detail — §5 shows it is 48–62 % of in-band events and the
 second-largest error lever of the whole measurement.
 
 ### 3.3 Per-frame time zero: CFD50
@@ -322,7 +322,7 @@ calibration is needed (§1.1).
 
 The residual detector noise enters every term of the ratio and is corrected, not
 ignored. Its expected count per band and bin, β, is measured from out-of-band events
-in the same time bin (the out-of-band density is flat in τ, χ²/ndf = 1.16,
+in the same time bin (the out-of-band density is flat in τ, χ²/ndf = 1.10,
 Appendix A.1); the estimator subtracts β from the per-arm means and the matching
 product terms from the coincidence moment, which removes the noise contribution
 without bias. What subtraction cannot remove is the extra counting variance the noise
@@ -691,7 +691,6 @@ the analytic UL95 agrees with MC within 4 % for both pairs and both batches (mai
 qualitatively only);
 1 px fails (spike-dominated). Pooled jackknife SEMs sit within 0.86–1.08 of MC.
 This calibration is why 4 px is the reporting width throughout.
-This calibration is why 4 px is the reporting width throughout.
 
 ### A.4 Injection record (full)
 
@@ -753,8 +752,9 @@ B2 560–685, B3 798–903, B4 999–1118; supplement 352–431, 538–665, 763�
 - **Width reference.** A constant-background + four-Gaussian fit of the main-batch
   histogram converges to μ = 415.9/623.7/845.0/1061.2 px, σ ≈ 34.5–37.9 px; the
   fdr-snr windows cover ≈ μ±(1.4–1.7)σ of these peaks — they follow the measured
-  peak profiles (Fig. 3(c)). A μ±2σ attribution-style rule would give 170–190 px
-  windows (2–3× wider than the former core windows) and push the residual-noise
+  peak profiles (Fig. 3(c)). A μ±2.5σ attribution-style rule — the 07-31
+  acceptance rule's maximal non-overlap choice (k = 2.5) — would give 170–190 px
+  windows (about twice the former core widths) and push the residual-noise
   fraction above 50 %.
 - **S/N optimality.** Width scans of S/√(S+N) place the registration-era windows
   within 0.6 % of optimum at fixed centers; fdr-snr also re-centers (+2.7 % FOM on
@@ -876,6 +876,7 @@ pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
 | `DOCS/26-08-08-dataset-a.md` | dataset A curation + downstream re-analysis — §6.3, App. B.4 |
 | `DOCS/26-08-08-dataset-a-noise-model.md` | noise-floor structure — §5, App. B.4 |
 | `DOCS/26-08-08-band-window-methods.md` | 8-method band-window study — App. B.1 |
+| `DOCS/26-08-11-g2-cross-mesa.md` | cross-condensate g⁽²⁾ (LR/RL), first computation — §6.2–6.3 |
 | `DOCS/08-04_sync_oscillation.md` | time-zero estimator argument — App. B.2 |
 | `DOCS/sem-limitations.md` | SEM factorization + frame-count table — §5 |
 | `DOCS/peak-localization.md` / `peak-localization-error.md` | localization method + error budget — §5, App. B.3 |
@@ -897,7 +898,7 @@ pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
 | Fig. 9 (C5) fig2c replica | `figures/fig2c_replica_fdrsnr.png` | `render_fig2c_comparison.py --out-dir drafts/26-08-10_fdr_snr/fig2c --caption-file fig2c_replica_caption_fdrsnr.txt` |
 | Fig. 10 (C6) k-space fringes | re-rendered into this report | `measure_kspace_fringe_oscillation.py` |
 | Fig. 11 (C7) dashboard | this report | `render_report_summary.py` (numbers with per-entry provenance comments) |
-| §1.2 paper crops | `fig2a_paper_original.png` / `fig2c_paper_original.png` | `tmp/paper_crop/` (300 dpi from the in-repo PDF) |
+| §1.2 paper crops | `fig2a_paper_original.png` / `fig2c_paper_original.png` (both in `analysis/26-08-04-derived-hbt-time-reference/`) | `tmp/paper_crop/` (300 dpi from the in-repo PDF) |
 | §6.3 supplement panels | `figures/fig2a_replica_supplement_fdrsnr.png`, `figures/fig2c_replica_supplement_fdrsnr.png` | same renderers, supplement fdr-snr npz/cubes + `--work-title` |
 | App. A.2 test panel | `figures/fig2c_science_tests_bin4px.png` (copied from `drafts/26-08-10_fdr_snr/fig2c/`) | `fig2c_science_tests.py` |
 | App. B.2 t0 comparison | `figures/fig_t0_method_comparison.png` (copied from `drafts/26-08-06_fig2a_cfd50/`) | `tmp/fig2a_t0_method_comparison.py` |
@@ -932,7 +933,7 @@ pandoc docs\26-08-10-project-report.md -o docs\26-08-10-project-report.pdf `
 - **Dataset A**: the curated event subset (in-band, non-defective, non-edge events)
   with per-band local noise floors — the "everything kept can be signal" curation.
 - **FDR**: false-discovery-rate (Benjamini–Hochberg) thresholding; part of the
-  recommended future band detector.
+  production band detector (fdr-snr, Appendix B.1).
 - **CSI**: Cauchy–Schwarz inequality of intensity correlations — a classical-field
   test, out of scope here.
 - **condensate / mesa**: the two coupled traps holding the condensates are etched
